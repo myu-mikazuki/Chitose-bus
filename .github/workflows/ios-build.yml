@@ -78,6 +78,12 @@ jobs:
           channel: ${{ inputs.flutter_version && 'stable' || 'stable' }}
           cache: true
 
+      - name: Create .dart_define
+        if: steps.detect.outputs.type == 'flutter' && vars.DART_DEFINE_CONTENTS != ''
+        run: |
+          FLUTTER_ROOT=$(dirname "${{ inputs.ios_path }}")
+          echo "${{ vars.DART_DEFINE_CONTENTS }}" > "$FLUTTER_ROOT/.dart_define"
+
       - name: Flutter pub get
         if: steps.detect.outputs.type == 'flutter'
         run: |
@@ -195,6 +201,15 @@ jobs:
           if [ "$PROJECT_TYPE" = "flutter" ]; then
             cd ..
             echo "Building Flutter iOS ($CONFIGURATION) via xcodebuild..."
+            # Encode dart defines from file for xcodebuild (Flutter's DART_DEFINES format)
+            DART_DEFINES=""
+            if [ -f ".dart_define" ]; then
+              while IFS= read -r line; do
+                [ -z "$line" ] || [[ "$line" == "#"* ]] && continue
+                encoded=$(printf '%s' "$line" | base64)
+                DART_DEFINES="${DART_DEFINES:+$DART_DEFINES,}$encoded"
+              done < ".dart_define"
+            fi
             xcodebuild \
               -workspace "ios/Runner.xcworkspace" \
               -scheme Runner \
@@ -206,6 +221,7 @@ jobs:
               CODE_SIGNING_IDENTITY="" \
               DEVELOPMENT_TEAM="" \
               COMPILER_INDEX_STORE_ENABLE=NO \
+              ${DART_DEFINES:+DART_DEFINES="$DART_DEFINES"} \
               -quiet build
             cd "$IOS_PATH"
           elif [ "$PROJECT_TYPE" = "reactnative" ] || [ "$PROJECT_TYPE" = "expo" ]; then
