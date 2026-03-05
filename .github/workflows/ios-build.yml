@@ -80,7 +80,9 @@ jobs:
 
       - name: Create .dart_define
         if: steps.detect.outputs.type == 'flutter' && vars.DART_DEFINE_CONTENTS != ''
-        run: echo "${{ vars.DART_DEFINE_CONTENTS }}" > .dart_define
+        env:
+          DART_DEFINE_CONTENTS: ${{ vars.DART_DEFINE_CONTENTS }}
+        run: echo "$DART_DEFINE_CONTENTS" > .dart_define
 
       - name: Flutter pub get
         if: steps.detect.outputs.type == 'flutter'
