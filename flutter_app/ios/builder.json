@@ -5,7 +5,9 @@
     "owner": "Yuzucchi-cist",
     "repo": "Chitose-bus"
   },
-  "ios": {},
+  "ios": {
+    "path": "flutter_app/ios"
+  },
   "flutter": {
     "watch": {}
   },
