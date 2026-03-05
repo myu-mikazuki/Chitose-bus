@@ -194,6 +194,8 @@ jobs:
 
           if [ "$PROJECT_TYPE" = "flutter" ]; then
             cd ..
+            # Switch to Manual signing so --no-codesign works without a Development Team
+            sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' "ios/Runner.xcodeproj/project.pbxproj"
             if [ "$CONFIGURATION" = "Debug" ]; then
               echo "Building Flutter iOS Debug..."
               flutter build ios --debug --no-codesign
