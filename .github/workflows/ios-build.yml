@@ -80,9 +80,7 @@ jobs:
 
       - name: Create .dart_define
         if: steps.detect.outputs.type == 'flutter' && vars.DART_DEFINE_CONTENTS != ''
-        run: |
-          FLUTTER_ROOT=$(dirname "${{ inputs.ios_path }}")
-          echo "${{ vars.DART_DEFINE_CONTENTS }}" > "$FLUTTER_ROOT/.dart_define"
+        run: echo "${{ vars.DART_DEFINE_CONTENTS }}" > .dart_define
 
       - name: Flutter pub get
         if: steps.detect.outputs.type == 'flutter'
@@ -203,8 +201,8 @@ jobs:
             echo "Building Flutter iOS ($CONFIGURATION) via xcodebuild..."
             # Encode dart defines from file for xcodebuild (Flutter's DART_DEFINES format)
             DART_DEFINES=""
-            if [ -f ".dart_define" ]; then
-              DART_DEFINES=$(python3 -c "import json,base64; d=json.load(open('.dart_define')); print(','.join(base64.b64encode((k+'='+v).encode()).decode() for k,v in d.items()))")
+            if [ -f "$GITHUB_WORKSPACE/.dart_define" ]; then
+              DART_DEFINES=$(python3 -c "import json,base64; d=json.load(open('$GITHUB_WORKSPACE/.dart_define')); print(','.join(base64.b64encode((k+'='+v).encode()).decode() for k,v in d.items()))")
             fi
             xcodebuild \
               -workspace "ios/Runner.xcworkspace" \
