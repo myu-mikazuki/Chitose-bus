@@ -204,11 +204,12 @@ jobs:
             # Encode dart defines from file for xcodebuild (Flutter's DART_DEFINES format)
             DART_DEFINES=""
             if [ -f ".dart_define" ]; then
-              while IFS= read -r line; do
-                [ -z "$line" ] || [[ "$line" == "#"* ]] && continue
-                encoded=$(printf '%s' "$line" | base64)
-                DART_DEFINES="${DART_DEFINES:+$DART_DEFINES,}$encoded"
-              done < ".dart_define"
+              DART_DEFINES=$(python3 -c "
+import json, base64
+data = json.load(open('.dart_define'))
+pairs = [base64.b64encode(f'{k}={v}'.encode()).decode() for k, v in data.items()]
+print(','.join(pairs))
+")
             fi
             xcodebuild \
               -workspace "ios/Runner.xcworkspace" \
