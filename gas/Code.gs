@@ -6,7 +6,7 @@
  *   - Webアプリとしてデプロイ（アクセス: 全員）
  */
 
-var CACHE_KEY = 'bus_timetable_v2';
+var CACHE_KEY = 'bus_timetable_v4';
 var CACHE_EXPIRY_SECONDS = 6 * 60 * 60; // 6時間
 var CHITOSE_TOP_URL = 'https://www.chitose.ac.jp/info/access';
 // URLエンコード済み「時刻表」= %E6%99%82%E5%88%BB%E8%A1%A8 を含むPDFを対象とする
@@ -151,49 +151,73 @@ function extractTextFromPdf(pdfUrl) {
 // グループ先頭の時刻 = その便の出発時刻として採用する。
 //
 // セクション検出:
-//   「千歳駅発」が現れた行 → 往路（to_university）セクション開始
-//   「本部棟発」が現れた行 → 復路（to_station）セクション開始
+//   「千歳駅発」が現れた行 → 往路（outbound）セクション開始
+//   「本部棟発」が現れた行 → 復路（inbound）セクション開始
 //   「有料バス」が現れた行 → シャトルバス以外なので以降を無視
 
 function parseTimetableText(text) {
   var lines = text.split(/\r?\n/);
   var schedules = [];
-  var section = null; // 'to_university' | 'to_station' | null
-  var pendingTimes = []; // 現在の便グループに含まれる時刻バッファ
+  var section = null;
+  var pendingTimes = [];
 
   function flushTrip() {
-    if (pendingTimes.length > 0 && section) {
-      // グループ先頭の時刻 = 出発停留所の時刻
-      schedules.push({
-        time: pendingTimes[0],
-        direction: section,
-        destination: section === 'to_station' ? '千歳駅' : '千歳科学技術大学'
-      });
+    if (pendingTimes.length === 0 || !section) {
       pendingTimes = [];
+      return;
     }
+    if (section === 'outbound') {
+      var kenkyutoTime = pendingTimes.length > 2 ? pendingTimes[2] : null;
+      var honbutoTime  = pendingTimes.length > 3 ? pendingTimes[3] : null;
+      var outboundArrivals = {};
+      if (kenkyutoTime) outboundArrivals['kenkyuto'] = kenkyutoTime;
+      if (honbutoTime)  outboundArrivals['honbuto']  = honbutoTime;
+
+      if (pendingTimes.length > 0)
+        schedules.push({ time: pendingTimes[0], direction: 'from_chitose',        destination: '千歳科学技術大学', arrivals: outboundArrivals });
+      if (pendingTimes.length > 1)
+        schedules.push({ time: pendingTimes[1], direction: 'from_minami_chitose', destination: '千歳科学技術大学', arrivals: outboundArrivals });
+      if (pendingTimes.length > 2) {
+        var kenkyutoArrivals = {};
+        if (honbutoTime) kenkyutoArrivals['honbuto'] = honbutoTime;
+        schedules.push({ time: pendingTimes[2], direction: 'from_kenkyuto_to_honbuto', destination: '本部棟', arrivals: kenkyutoArrivals });
+      }
+    } else if (section === 'inbound') {
+      if (pendingTimes.length > 0) {
+        var honbutoArrivals = {};
+        if (pendingTimes.length > 1) honbutoArrivals['kenkyuto']     = pendingTimes[1];
+        if (pendingTimes.length > 2) honbutoArrivals['minamiChitose'] = pendingTimes[2];
+        if (pendingTimes.length > 3) honbutoArrivals['chitose']       = pendingTimes[3];
+        schedules.push({ time: pendingTimes[0], direction: 'from_honbuto', destination: '千歳駅', arrivals: honbutoArrivals });
+      }
+      if (pendingTimes.length > 1) {
+        var kenkyutoStationArrivals = {};
+        if (pendingTimes.length > 2) kenkyutoStationArrivals['minamiChitose'] = pendingTimes[2];
+        if (pendingTimes.length > 3) kenkyutoStationArrivals['chitose']       = pendingTimes[3];
+        schedules.push({ time: pendingTimes[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', arrivals: kenkyutoStationArrivals });
+      }
+    }
+    pendingTimes = [];
   }
 
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
 
-    // 有料バスセクション以降は無視（あつまバスの時刻が混入するのを防ぐ）
     if (/有料バス/.test(line)) break;
 
-    // セクションマーカー
     if (/千歳駅発/.test(line)) {
       flushTrip();
-      section = 'to_university';
+      section = 'outbound';
       continue;
     }
     if (/本部棟発/.test(line)) {
       flushTrip();
-      section = 'to_station';
+      section = 'inbound';
       continue;
     }
 
     if (!section) continue;
 
-    // 行が「H:MM」または「HH:MM」のみで構成されているか確認
     var timeMatch = line.match(/^(\d{1,2}):([0-5]\d)$/);
     if (timeMatch) {
       var hour = parseInt(timeMatch[1], 10);
@@ -202,15 +226,12 @@ function parseTimetableText(text) {
         pendingTimes.push(pad(hour) + ':' + pad(minute));
       }
     } else if (line === '') {
-      // 空行 = 1便グループの区切り
       flushTrip();
     }
-    // それ以外（列ヘッダー文字列・備考番号など）は無視
   }
 
-  flushTrip(); // 最後の便を処理
+  flushTrip();
 
-  // 時刻順でソート
   schedules.sort(function(a, b) {
     if (a.direction !== b.direction) return a.direction < b.direction ? -1 : 1;
     return a.time < b.time ? -1 : 1;
