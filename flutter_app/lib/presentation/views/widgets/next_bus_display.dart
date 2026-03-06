@@ -29,6 +29,53 @@ class _NextBusCard extends StatelessWidget {
   const _NextBusCard({required this.entry});
   final BusEntry entry;
 
+  static const _stopLabels = {
+    'kenkyuto':      '研究棟',
+    'honbuto':       '本部棟',
+    'minamiChitose': '南千歳',
+    'chitose':       '千歳駅',
+  };
+
+  static const _arrivalOrder = {
+    BusDirection.fromChitose:           ['kenkyuto', 'honbuto'],
+    BusDirection.fromMinamiChitose:     ['kenkyuto', 'honbuto'],
+    BusDirection.fromKenkyutoToHonbuto: ['honbuto'],
+    BusDirection.fromKenkyutoToStation: ['minamiChitose', 'chitose'],
+    BusDirection.fromHonbuto:           ['kenkyuto', 'minamiChitose', 'chitose'],
+  };
+
+  List<Widget> _buildArrivalRows(BusEntry entry) {
+    final order = _arrivalOrder[entry.direction] ?? [];
+    return order
+        .where((key) => entry.arrivals.containsKey(key))
+        .map((key) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${_stopLabels[key]} 着',
+                    style: const TextStyle(
+                      color: Color(0xFF888888),
+                      fontSize: 13,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  Text(
+                    entry.arrivals[key]!,
+                    style: const TextStyle(
+                      color: Color(0xFF888888),
+                      fontSize: 18,
+                      letterSpacing: 2,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+            ))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final minutes = entry.minutesFromNow();
@@ -45,7 +92,13 @@ class _NextBusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            entry.direction == BusDirection.toStation ? '→ 千歳駅' : '→ 千歳科技大',
+            switch (entry.direction) {
+              BusDirection.fromChitose => '→ 千歳科技大',
+              BusDirection.fromMinamiChitose => '→ 千歳科技大',
+              BusDirection.fromKenkyutoToHonbuto => '→ 本部棟',
+              BusDirection.fromKenkyutoToStation => '→ 千歳駅',
+              BusDirection.fromHonbuto => '→ 千歳駅',
+            },
             style: const TextStyle(
               color: Color(0xFF00FF88),
               fontSize: 14,
@@ -74,6 +127,13 @@ class _NextBusCard extends StatelessWidget {
               letterSpacing: 2,
             ),
           ),
+          // 到着時刻（arrivalsが空でない場合のみ表示）
+          if (entry.arrivals.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            const Divider(color: Color(0xFF333333), height: 1),
+            const SizedBox(height: 10),
+            ..._buildArrivalRows(entry),
+          ],
         ],
       ),
     );
