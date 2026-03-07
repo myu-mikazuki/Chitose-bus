@@ -1,13 +1,16 @@
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chitose_bus/presentation/viewmodels/schedule_viewmodel.dart';
 
 void main() {
   group('CountdownNotifier', () {
     test('initial state is close to DateTime.now()', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
       final before = DateTime.now();
-      final notifier = CountdownNotifier();
-      addTearDown(notifier.dispose);
+      final notifier = container.read(countdownProvider.notifier);
       final after = DateTime.now();
 
       expect(
@@ -19,33 +22,36 @@ void main() {
 
     test('state updates after countdownRefreshInterval elapses', () {
       fakeAsync((async) {
-        final notifier = CountdownNotifier();
+        final container = ProviderContainer();
+        final notifier = container.read(countdownProvider.notifier);
         final initial = notifier.state;
 
         // Advance fake clock by 30 seconds (countdownRefreshInterval)
         async.elapse(const Duration(seconds: 30));
 
         expect(notifier.state.isAfter(initial), isTrue);
-        notifier.dispose();
+        container.dispose();
       });
     });
 
     test('state does not update before interval elapses', () {
       fakeAsync((async) {
-        final notifier = CountdownNotifier();
+        final container = ProviderContainer();
+        final notifier = container.read(countdownProvider.notifier);
         final initial = notifier.state;
 
         // Advance by less than the interval
         async.elapse(const Duration(seconds: 29));
 
         expect(notifier.state, equals(initial));
-        notifier.dispose();
+        container.dispose();
       });
     });
 
     test('state updates multiple times over multiple intervals', () {
       fakeAsync((async) {
-        final notifier = CountdownNotifier();
+        final container = ProviderContainer();
+        final notifier = container.read(countdownProvider.notifier);
         final initialState = notifier.state;
 
         // Verify each of 3 successive intervals triggers a state update.
@@ -61,7 +67,7 @@ void main() {
         final stateAfter3 = notifier.state;
         expect(stateAfter3.isAfter(stateAfter2), isTrue); // 3rd update
 
-        notifier.dispose();
+        container.dispose();
       });
     });
   });
