@@ -82,7 +82,7 @@ jobs:
         if: steps.detect.outputs.type == 'flutter' && vars.DART_DEFINE_CONTENTS != ''
         env:
           DART_DEFINE_CONTENTS: ${{ vars.DART_DEFINE_CONTENTS }}
-        run: echo "$DART_DEFINE_CONTENTS" > .dart_define
+        run: echo "$DART_DEFINE_CONTENTS" > .dart_defines
 
       - name: Flutter pub get
         if: steps.detect.outputs.type == 'flutter'
@@ -210,8 +210,8 @@ jobs:
             echo "Building Flutter iOS ($CONFIGURATION) via flutter build ios..."
             # Build --dart-define flags from JSON file
             DART_DEFINE_ARGS=""
-            if [ -f "$GITHUB_WORKSPACE/.dart_define" ]; then
-              DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_define')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
+            if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
+              DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
             fi
             BUILD_MODE_FLAG=""
             if [ "$CONFIGURATION" = "Debug" ]; then
