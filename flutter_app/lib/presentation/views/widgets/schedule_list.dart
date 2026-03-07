@@ -43,7 +43,7 @@ class ScheduleList extends ConsumerWidget {
   }
 }
 
-class _ScheduleRow extends StatelessWidget {
+class _ScheduleRow extends StatefulWidget {
   const _ScheduleRow({
     required this.bus,
     required this.isPast,
@@ -55,14 +55,68 @@ class _ScheduleRow extends StatelessWidget {
   final bool isNext;
 
   @override
+  State<_ScheduleRow> createState() => _ScheduleRowState();
+}
+
+class _ScheduleRowState extends State<_ScheduleRow> {
+  bool _expanded = false;
+
+  static const _stopLabels = {
+    'kenkyuto': '研究棟',
+    'honbuto': '本部棟',
+    'minamiChitose': '南千歳',
+    'chitose': '千歳駅',
+  };
+
+  static const _arrivalOrder = {
+    BusDirection.fromChitose:           ['kenkyuto', 'honbuto'],
+    BusDirection.fromMinamiChitose:     ['kenkyuto', 'honbuto'],
+    BusDirection.fromKenkyutoToHonbuto: ['honbuto'],
+    BusDirection.fromKenkyutoToStation: ['minamiChitose', 'chitose'],
+    BusDirection.fromHonbuto:           ['kenkyuto', 'minamiChitose', 'chitose'],
+  };
+
+  List<Widget> _buildArrivalRows() {
+    final order = _arrivalOrder[widget.bus.direction] ?? [];
+    return order
+        .where((key) => widget.bus.arrivals.containsKey(key))
+        .map((key) => Padding(
+              padding: const EdgeInsets.only(top: 4, left: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${_stopLabels[key]} 着',
+                    style: const TextStyle(
+                      color: Color(0xFF888888),
+                      fontSize: 12,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  Text(
+                    widget.bus.arrivals[key]!,
+                    style: const TextStyle(
+                      color: Color(0xFF888888),
+                      fontSize: 14,
+                      letterSpacing: 2,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+            ))
+        .toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final Color textColor;
     final Color bgColor;
 
-    if (isNext) {
+    if (widget.isNext) {
       textColor = const Color(0xFF0A0A0A);
       bgColor = const Color(0xFF00FF88);
-    } else if (isPast) {
+    } else if (widget.isPast) {
       textColor = const Color(0xFF444444);
       bgColor = Colors.transparent;
     } else {
@@ -70,39 +124,52 @@ class _ScheduleRow extends StatelessWidget {
       bgColor = Colors.transparent;
     }
 
-    return Container(
-      color: bgColor,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          Text(
-            bus.time,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 18,
-              fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
-              letterSpacing: 2,
-              fontFeatures: const [FontFeature.tabularFigures()],
+    final hasArrivals = widget.bus.arrivals.isNotEmpty;
+
+    return GestureDetector(
+      onTap: hasArrivals ? () => setState(() => _expanded = !_expanded) : null,
+      child: Container(
+        color: bgColor,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  widget.bus.time,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 18,
+                    fontWeight:
+                        widget.isNext ? FontWeight.bold : FontWeight.normal,
+                    letterSpacing: 2,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  widget.bus.destination,
+                  style:
+                      TextStyle(color: textColor, fontSize: 14, letterSpacing: 1),
+                ),
+                if (widget.isNext) ...[
+                  const Spacer(),
+                  const Text(
+                    '◀ NEXT',
+                    style: TextStyle(
+                      color: Color(0xFF0A0A0A),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            bus.destination,
-            style: TextStyle(color: textColor, fontSize: 14, letterSpacing: 1),
-          ),
-          if (isNext) ...[
-            const Spacer(),
-            const Text(
-              '◀ NEXT',
-              style: TextStyle(
-                color: Color(0xFF0A0A0A),
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1,
-              ),
-            ),
+            if (_expanded && hasArrivals) ..._buildArrivalRows(),
           ],
-        ],
+        ),
       ),
     );
   }
