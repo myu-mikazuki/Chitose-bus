@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'widgets/next_bus_display.dart';
@@ -51,20 +50,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
         actions: [
-          scheduleAsync.maybeWhen(
-            data: (r) => r.current.pdfUrl.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.open_in_browser,
-                        color: Color(0xFF00FF88)),
-                    tooltip: '時刻表原文を開く',
-                    onPressed: () => launchUrl(
-                      Uri.parse(r.current.pdfUrl),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            orElse: () => const SizedBox.shrink(),
-          ),
           scheduleAsync.maybeWhen(
             data: (r) => r.upcoming != null
                 ? IconButton(
