@@ -1,0 +1,18 @@
+#!/bin/bash
+# flutter wrapper
+# builder dev flutter が内部で flutter attach を呼ぶ際に
+# --dart-define-from-file を自動付与するインターセプター
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DART_DEFINES="$REPO_ROOT/.dart_defines"
+
+# PATH からこのスクリプト自身を除いた本物の flutter を探す
+REAL_FLUTTER=$(PATH="${PATH//$SCRIPT_DIR:/}" which flutter)
+
+if [[ "$1" == "attach" ]] && [ -f "$DART_DEFINES" ]; then
+  echo "[flutter wrapper] injecting --dart-define-from-file $DART_DEFINES" >&2
+  exec "$REAL_FLUTTER" "$@" --dart-define-from-file "$DART_DEFINES"
+else
+  exec "$REAL_FLUTTER" "$@"
+fi
