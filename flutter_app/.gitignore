@@ -49,3 +49,6 @@ app.*.map.json
 
 # Build output
 /dist/
+
+# Golden test failure artifacts (auto-generated on test failure)
+test/widget/golden/failures/
