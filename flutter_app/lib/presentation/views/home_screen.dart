@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/notification_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
@@ -50,6 +52,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
         actions: [
+          if (kDebugMode) ...[
+            Consumer(builder: (context, ref, _) {
+              final debugTime = ref.watch(debugTimeProvider);
+              return IconButton(
+                icon: Icon(
+                  Icons.access_time,
+                  color: debugTime != null
+                      ? const Color(0xFFFFB000)
+                      : const Color(0xFF444444),
+                ),
+                tooltip: debugTime != null
+                    ? '時刻オーバーライド中 (タップでリセット/変更)'
+                    : 'デバッグ: 時刻を設定',
+                onPressed: () => _onDebugTimeTap(context, ref, debugTime),
+              );
+            }),
+          ],
+          scheduleAsync.maybeWhen(
+            data: (r) => r.current.pdfUrl.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.open_in_browser,
+                        color: Color(0xFF00FF88)),
+                    tooltip: '時刻表原文を開く',
+                    onPressed: () => launchUrl(
+                      Uri.parse(r.current.pdfUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            orElse: () => const SizedBox.shrink(),
+          ),
           scheduleAsync.maybeWhen(
             data: (r) => r.upcoming != null
                 ? IconButton(
@@ -128,6 +161,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           );
         },
       ),
+    );
+  }
+
+  Future<void> _onDebugTimeTap(
+      BuildContext context, WidgetRef ref, DateTime? current) async {
+    if (current != null) {
+      // オーバーライド中: リセットか変更かを選択
+      final choice = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1A1A),
+          title: const Text('時刻オーバーライド',
+              style: TextStyle(color: Color(0xFF00FF88))),
+          content: Text(
+            '現在: ${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}',
+            style: const TextStyle(color: Color(0xFFCCCCCC)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, 'reset'),
+              child: const Text('リセット',
+                  style: TextStyle(color: Color(0xFFFF4444))),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, 'change'),
+              child: const Text('変更',
+                  style: TextStyle(color: Color(0xFFFFB000))),
+            ),
+          ],
+        ),
+      );
+      if (choice == 'reset') {
+        ref.read(debugTimeProvider.notifier).state = null;
+        return;
+      }
+      if (choice != 'change') return;
+    }
+
+    // 時刻ピッカーを表示
+    if (!context.mounted) return;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: current != null
+          ? TimeOfDay(hour: current.hour, minute: current.minute)
+          : TimeOfDay.now(),
+    );
+    if (picked == null) return;
+
+    final now = DateTime.now();
+    ref.read(debugTimeProvider.notifier).state = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      picked.hour,
+      picked.minute,
     );
   }
 

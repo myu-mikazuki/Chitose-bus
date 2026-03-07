@@ -63,6 +63,7 @@ extension BusTimetableModelMapper on BusTimetableModel {
         validFrom: validFrom,
         validTo: validTo,
         schedules: schedules.map((e) => e.toEntity()).toList(),
+        pdfUrl: pdfUrl,
       );
 }
 

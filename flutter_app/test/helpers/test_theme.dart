@@ -17,7 +17,7 @@ final kTestNow = DateTime(2024, 1, 1, 9, 0);
 
 /// countdownProviderを固定時刻にオーバーライドするOverride
 Override countdownOverride({DateTime? now}) => countdownProvider.overrideWith(
-      (ref) => CountdownNotifier()..state = now ?? kTestNow,
+      (ref) => CountdownNotifier(ref)..state = now ?? kTestNow,
     );
 
 /// [now] から [minutesAhead] 分後のHH:MM文字列を返す（日付跨ぎを23:58にキャップ）

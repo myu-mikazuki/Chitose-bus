@@ -73,7 +73,7 @@ void main() {
       ProviderScope(
         overrides: [
           countdownProvider.overrideWith(
-            (ref) => CountdownNotifier()..state = DateTime(2024, 1, 1, 9, 0),
+            (ref) => CountdownNotifier(ref)..state = DateTime(2024, 1, 1, 9, 0),
           ),
         ],
         child: _buildTestApp(
@@ -101,7 +101,7 @@ void main() {
         overrides: [
           countdownProvider.overrideWith(
             (ref) =>
-                CountdownNotifier()..state = DateTime(2024, 1, 1, 23, 59),
+                CountdownNotifier(ref)..state = DateTime(2024, 1, 1, 23, 59),
           ),
         ],
         child: _buildTestApp(

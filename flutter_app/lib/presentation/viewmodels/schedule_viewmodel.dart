@@ -17,9 +17,11 @@ final scheduleViewModelProvider =
   ScheduleViewModel.new,
 );
 
+final debugTimeProvider = StateProvider<DateTime?>((ref) => null);
+
 final countdownProvider =
     StateNotifierProvider<CountdownNotifier, DateTime>((ref) {
-  return CountdownNotifier();
+  return CountdownNotifier(ref);
 });
 
 // ----- ScheduleViewModel -----
@@ -54,12 +56,13 @@ class ScheduleViewModel extends AsyncNotifier<ScheduleResponse> {
 // ----- CountdownNotifier -----
 
 class CountdownNotifier extends StateNotifier<DateTime> {
-  CountdownNotifier() : super(DateTime.now()) {
+  CountdownNotifier(this._ref) : super(DateTime.now()) {
     _timer = Timer.periodic(AppConstants.countdownRefreshInterval, (_) {
-      state = DateTime.now();
+      state = _ref.read(debugTimeProvider) ?? DateTime.now();
     });
   }
 
+  final Ref _ref;
   Timer? _timer;
 
   @override
