@@ -4,6 +4,7 @@ import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'widgets/next_bus_display.dart';
 import 'widgets/schedule_list.dart';
+import 'widgets/weekend_warning_banner.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -188,6 +189,7 @@ class _KenkyutoTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const WeekendWarningBanner(),
           const SizedBox(height: 8),
           const Text('NEXT BUS  → 本部棟', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
           const SizedBox(height: 8),
@@ -231,6 +233,7 @@ class _DirectionTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const WeekendWarningBanner(),
           const SizedBox(height: 8),
           const Text(
             'NEXT BUS',

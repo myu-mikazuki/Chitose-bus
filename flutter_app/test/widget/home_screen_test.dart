@@ -215,5 +215,46 @@ void main() {
 
       expect(vm.refreshCalled, isTrue);
     });
+
+    testWidgets('土曜日のdata状態: 土日バナーが表示される', (tester) async {
+      // 2024-01-06 = Saturday
+      final saturday = DateTime(2024, 1, 6, 9, 0);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            scheduleViewModelProvider
+                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+            countdownOverride(now: saturday),
+          ],
+          child: const MaterialApp(home: HomeScreen()),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('土日祝日はバスが運行していない場合があります'),
+        findsWidgets,
+      );
+    });
+
+    testWidgets('平日のdata状態: 土日バナーが表示されない', (tester) async {
+      // 2024-01-01 = Monday (kTestNow)
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            scheduleViewModelProvider
+                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+            countdownOverride(),
+          ],
+          child: const MaterialApp(home: HomeScreen()),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('土日祝日はバスが運行していない場合があります'),
+        findsNothing,
+      );
+    });
   });
 }
