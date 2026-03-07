@@ -43,11 +43,13 @@ class BusTimetable {
     required this.validFrom,
     required this.validTo,
     required this.schedules,
+    this.pdfUrl = '',
   });
 
   final String validFrom;
   final String validTo;
   final List<BusEntry> schedules;
+  final String pdfUrl;
 
   BusEntry? nextBus(BusDirection direction, {DateTime? now}) {
     final current = now ?? DateTime.now();
