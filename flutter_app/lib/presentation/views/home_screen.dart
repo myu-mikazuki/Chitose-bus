@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'widgets/next_bus_display.dart';
@@ -48,6 +52,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
         actions: [
           scheduleAsync.maybeWhen(
+            data: (r) => r.current.pdfUrl.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.open_in_browser,
+                        color: Color(0xFF00FF88)),
+                    tooltip: '時刻表原文を開く',
+                    onPressed: () => launchUrl(
+                      Uri.parse(r.current.pdfUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            orElse: () => const SizedBox.shrink(),
+          ),
+          scheduleAsync.maybeWhen(
             data: (r) => r.upcoming != null
                 ? IconButton(
                     icon: const Icon(Icons.calendar_month,
@@ -77,6 +95,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ],
         ),
       ),
+      bottomNavigationBar: const _BannerAdWidget(),
       body: scheduleAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: Color(0xFF00FF88)),
@@ -260,6 +279,58 @@ class _DirectionTab extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BannerAdWidget extends StatefulWidget {
+  const _BannerAdWidget();
+
+  @override
+  State<_BannerAdWidget> createState() => _BannerAdWidgetState();
+}
+
+class _BannerAdWidgetState extends State<_BannerAdWidget> {
+  BannerAd? _bannerAd;
+
+  static String get _adUnitId {
+    if (Platform.isAndroid) {
+      return 'ca-app-pub-3940256099942544/6300978111';
+    } else {
+      return 'ca-app-pub-3940256099942544/2934735716';
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _bannerAd = BannerAd(
+      adUnitId: _adUnitId,
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) => setState(() {}),
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          setState(() => _bannerAd = null);
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_bannerAd == null) return const SizedBox.shrink();
+    return SizedBox(
+      width: _bannerAd!.size.width.toDouble(),
+      height: _bannerAd!.size.height.toDouble(),
+      child: AdWidget(ad: _bannerAd!),
     );
   }
 }
