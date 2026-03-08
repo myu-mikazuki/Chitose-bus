@@ -23,7 +23,13 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
   @override
   void initState() {
     super.initState();
+    // スクロールは初期表示時のみ実行（didUpdateWidgetは対象外）。
+    // - direction は各タブで固定のため変化しない
+    // - timetable 更新時の再スクロールは要件外（ユーザー操作の上書きを避けるため）
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // nextBus が null（来週ダイヤの ScheduleList 等）の場合は
+      // _nextBusKey がどのウィジェットにも付与されないため
+      // currentContext が null となりスクロールは発生しない（意図通り）。
       final ctx = _nextBusKey.currentContext;
       if (ctx != null) {
         Scrollable.ensureVisible(
@@ -51,6 +57,11 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
       );
     }
 
+    // BusEntry は == を override しないためオブジェクト同一性で比較される。
+    // todayBuses() と nextBus() は同一 schedules リストの要素を返すため
+    // indexOf が正確に1件を特定でき、同時刻便が複数あっても GlobalKey の重複付与を防ぐ。
+    final nextBusIndex = nextBus != null ? buses.indexOf(nextBus) : -1;
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -58,7 +69,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
       itemBuilder: (context, index) {
         final bus = buses[index];
         final isPast = bus.minutesFromNow(now: now) < 0;
-        final isNext = nextBus != null && bus.time == nextBus.time;
+        final isNext = index == nextBusIndex;
         return _ScheduleRow(
           key: isNext ? _nextBusKey : null,
           bus: bus,
