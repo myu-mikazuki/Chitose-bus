@@ -10,6 +10,7 @@ import es.antonborri.home_widget.HomeWidgetPlugin
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 class BusWidgetProvider : AppWidgetProvider() {
 
@@ -44,7 +45,9 @@ class BusWidgetProvider : AppWidgetProvider() {
             val formattedUpdated = if (updatedAtIso.isNotEmpty()) {
                 try {
                     val instant = java.time.Instant.parse(updatedAtIso)
-                    val sdf = SimpleDateFormat("HH:mm", Locale.JAPAN)
+                    val sdf = SimpleDateFormat("HH:mm", Locale.JAPAN).apply {
+                        timeZone = TimeZone.getTimeZone("Asia/Tokyo")
+                    }
                     "更新: ${sdf.format(Date.from(instant))}"
                 } catch (e: Exception) {
                     ""

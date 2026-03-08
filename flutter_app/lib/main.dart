@@ -59,7 +59,10 @@ class _AppLifecycleWrapperState extends ConsumerState<_AppLifecycleWrapper> {
   }
 
   void _onResume() {
-    // フォアグラウンド復帰時: 最新データで即時ウィジェット更新
+    // フォアグラウンド復帰時はキャッシュ済みデータでウィジェットを即時更新する。
+    // 次のバスが変わっている場合は古い情報を一瞬表示する可能性があるが、
+    // ScheduleViewModel の自動リフレッシュ（30分ごと）により間もなく正しい値に更新される。
+    // 復帰のたびに API を叩かないことで不要なネットワーク通信を避ける設計。
     final scheduleState = ref.read(scheduleViewModelProvider);
     scheduleState.whenData((response) {
       WidgetUpdateService.instance.updateWidget(response.current).ignore();

@@ -56,6 +56,7 @@ struct BusWidgetProvider: TimelineProvider {
         let display = DateFormatter()
         display.dateFormat = "HH:mm"
         display.locale = Locale(identifier: "ja_JP")
+        display.timeZone = TimeZone(identifier: "Asia/Tokyo")
         return "更新: \(display.string(from: date))"
     }
 }

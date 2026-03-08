@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../../domain/entities/bus_schedule.dart';
@@ -20,6 +21,14 @@ class WidgetUpdateService {
   }
 
   Future<void> updateWidget(BusTimetable timetable) async {
+    try {
+      await _doUpdateWidget(timetable);
+    } catch (e, st) {
+      debugPrint('[WidgetUpdateService] updateWidget failed: $e\n$st');
+    }
+  }
+
+  Future<void> _doUpdateWidget(BusTimetable timetable) async {
     await initialize();
 
     // 最も早い次のバスを全方面から探す
