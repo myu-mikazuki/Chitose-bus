@@ -123,7 +123,7 @@ struct BusWidget: Widget {
 #Preview(as: .systemSmall) {
     BusWidget()
 } timeline: {
-    BusWidgetEntry(date: .now, data: BusWidgetData(
+    BusWidgetEntry(date: Date(), data: BusWidgetData(
         nextBusTime: "08:45",
         nextBusDirection: "千歳駅発",
         nextBusDestination: "大学",
