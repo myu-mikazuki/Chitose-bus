@@ -292,33 +292,51 @@ class _KenkyutoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const WeekendWarningBanner(),
-          const SizedBox(height: 8),
-          const Text('NEXT BUS  → 本部棟', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
-          const SizedBox(height: 8),
-          NextBusDisplay(timetable: timetable, direction: BusDirection.fromKenkyutoToHonbuto),
-          const SizedBox(height: 24),
-          const Text("TODAY'S SCHEDULE  → 本部棟", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
-          const SizedBox(height: 8),
-          ScheduleList(timetable: timetable, direction: BusDirection.fromKenkyutoToHonbuto),
-          const SizedBox(height: 32),
-          const Text('NEXT BUS  → 千歳駅', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
-          const SizedBox(height: 8),
-          NextBusDisplay(timetable: timetable, direction: BusDirection.fromKenkyutoToStation),
-          const SizedBox(height: 24),
-          const Text("TODAY'S SCHEDULE  → 千歳駅", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
-          const SizedBox(height: 8),
-          ScheduleList(timetable: timetable, direction: BusDirection.fromKenkyutoToStation),
-          const SizedBox(height: 16),
-          Text('更新: $updatedAt  有効期間: ${timetable.validFrom} 〜 ${timetable.validTo}',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const WeekendWarningBanner(),
+              const SizedBox(height: 8),
+              const Text('NEXT BUS  → 本部棟', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+              const SizedBox(height: 8),
+              NextBusDisplay(timetable: timetable, direction: BusDirection.fromKenkyutoToHonbuto),
+              const SizedBox(height: 24),
+              const Text("TODAY'S SCHEDULE  → 本部棟", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ScheduleList(timetable: timetable, direction: BusDirection.fromKenkyutoToHonbuto),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('NEXT BUS  → 千歳駅', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+              const SizedBox(height: 8),
+              NextBusDisplay(timetable: timetable, direction: BusDirection.fromKenkyutoToStation),
+              const SizedBox(height: 24),
+              const Text("TODAY'S SCHEDULE  → 千歳駅", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ScheduleList(timetable: timetable, direction: BusDirection.fromKenkyutoToStation),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Text('更新: $updatedAt  有効期間: ${timetable.validFrom} 〜 ${timetable.validTo}',
               style: const TextStyle(color: Color(0xFF444444), fontSize: 11)),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
