@@ -292,49 +292,69 @@ class _KenkyutoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 各ルートセクション全体（固定ヘッダ＋スクロールリスト）を外側 Expanded で囲むことで
+    // 2つの NextBusDisplay カードが固定ヘッダとして合算されず RenderFlex overflow を防ぐ。
+    // 各外側 Expanded が利用可能高さを均等に分割し、その中で内側の Column が
+    // 固定ヘッダ高さを消費した残りをスクロールリスト（内側 Expanded）に割り当てる。
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: WeekendWarningBanner(),
+        ),
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const WeekendWarningBanner(),
-              const SizedBox(height: 8),
-              const Text('NEXT BUS  → 本部棟', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
-              const SizedBox(height: 8),
-              NextBusDisplay(timetable: timetable, direction: BusDirection.fromKenkyutoToHonbuto),
-              const SizedBox(height: 24),
-              const Text("TODAY'S SCHEDULE  → 本部棟", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
-              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('NEXT BUS  → 本部棟', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+                    const SizedBox(height: 8),
+                    NextBusDisplay(timetable: timetable, direction: BusDirection.fromKenkyutoToHonbuto),
+                    const SizedBox(height: 24),
+                    const Text("TODAY'S SCHEDULE  → 本部棟", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ScheduleList(timetable: timetable, direction: BusDirection.fromKenkyutoToHonbuto),
+              ),
             ],
           ),
         ),
         Expanded(
-          child: ScheduleList(timetable: timetable, direction: BusDirection.fromKenkyutoToHonbuto),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('NEXT BUS  → 千歳駅', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
-              const SizedBox(height: 8),
-              NextBusDisplay(timetable: timetable, direction: BusDirection.fromKenkyutoToStation),
-              const SizedBox(height: 24),
-              const Text("TODAY'S SCHEDULE  → 千歳駅", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
-              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('NEXT BUS  → 千歳駅', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+                    const SizedBox(height: 8),
+                    NextBusDisplay(timetable: timetable, direction: BusDirection.fromKenkyutoToStation),
+                    const SizedBox(height: 24),
+                    const Text("TODAY'S SCHEDULE  → 千歳駅", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ScheduleList(timetable: timetable, direction: BusDirection.fromKenkyutoToStation),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Text('更新: $updatedAt  有効期間: ${timetable.validFrom} 〜 ${timetable.validTo}',
+                    style: const TextStyle(color: Color(0xFF444444), fontSize: 11)),
+              ),
             ],
           ),
-        ),
-        Expanded(
-          child: ScheduleList(timetable: timetable, direction: BusDirection.fromKenkyutoToStation),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Text('更新: $updatedAt  有効期間: ${timetable.validFrom} 〜 ${timetable.validTo}',
-              style: const TextStyle(color: Color(0xFF444444), fontSize: 11)),
         ),
       ],
     );
