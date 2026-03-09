@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'presentation/views/home_screen.dart';
 
 void main() async {
@@ -22,11 +21,11 @@ class ChitoseBusApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
         scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-        // google_fonts で Noto Sans JP をバンドルし、システムフォントに依存せず
-        // Linux 環境でも日本語を正しく表示する。
-        textTheme: GoogleFonts.notoSansJpTextTheme(
-          ThemeData(brightness: Brightness.dark).textTheme,
-        ),
+        fontFamily: 'monospace',
+        // バンドルした NotoSansJP をフォールバックに指定。
+        // monospace フォントに含まれない日本語グリフを NotoSansJP で補完し、
+        // Linux 環境での文字化け（tofu box）を解消する。
+        fontFamilyFallback: const ['NotoSansJP'],
       ),
       home: const HomeScreen(),
     );

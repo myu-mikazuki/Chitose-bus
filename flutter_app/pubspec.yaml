@@ -21,7 +21,6 @@ dependencies:
   shared_preferences: ^2.3.0
   timezone: ^0.9.4
   url_launcher: ^6.3.0
-  google_fonts: ^8.0.2
 
 dev_dependencies:
   flutter_test:
@@ -38,3 +37,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: NotoSansJP
+      fonts:
+        - asset: fonts/NotoSansJP-Regular.ttf
