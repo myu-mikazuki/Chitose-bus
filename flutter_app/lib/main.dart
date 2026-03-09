@@ -22,6 +22,10 @@ class ChitoseBusApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color(0xFF0A0A0A),
         fontFamily: 'monospace',
+        // バンドルした NotoSansJP をフォールバックに指定。
+        // monospace フォントに含まれない日本語グリフを NotoSansJP で補完し、
+        // Linux 環境での文字化け（tofu box）を解消する。
+        fontFamilyFallback: const ['NotoSansJP'],
       ),
       home: const HomeScreen(),
     );
