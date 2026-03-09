@@ -1,17 +1,25 @@
 name: iOS Build
 
 on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'fix/**'
+    paths:
+      - 'flutter_app/**'
+      - '.github/workflows/ios-build.yml'
   workflow_dispatch:
     inputs:
       build_id:
         description: 'Unique build identifier'
-        required: true
+        required: false
         type: string
       ios_path:
         description: 'Path to iOS project (e.g., "ios" for React Native)'
         required: false
         type: string
-        default: '.'
+        default: 'flutter_app/ios'
       scheme:
         description: 'Xcode scheme to build (auto-detected if empty)'
         required: false
@@ -59,7 +67,7 @@ jobs:
       - name: Detect project type
         id: detect
         run: |
-          FLUTTER_ROOT=$(dirname "${{ inputs.ios_path }}")
+          FLUTTER_ROOT=$(dirname "${{ inputs.ios_path || 'flutter_app/ios' }}")
           if [ -f "pubspec.yaml" ] || [ -f "$FLUTTER_ROOT/pubspec.yaml" ]; then
             echo "type=flutter" >> $GITHUB_OUTPUT
           elif [ -f "package.json" ] && grep -q '"expo"' package.json; then
@@ -87,14 +95,14 @@ jobs:
       - name: Flutter pub get
         if: steps.detect.outputs.type == 'flutter'
         run: |
-          FLUTTER_ROOT=$(dirname "${{ inputs.ios_path }}")
+          FLUTTER_ROOT=$(dirname "${{ inputs.ios_path || 'flutter_app/ios' }}")
           cd "$FLUTTER_ROOT"
           flutter pub get
 
       - name: Flutter build_runner
         if: steps.detect.outputs.type == 'flutter'
         run: |
-          FLUTTER_ROOT=$(dirname "${{ inputs.ios_path }}")
+          FLUTTER_ROOT=$(dirname "${{ inputs.ios_path || 'flutter_app/ios' }}")
           cd "$FLUTTER_ROOT"
           flutter pub run build_runner build --delete-conflicting-outputs
 
@@ -123,9 +131,9 @@ jobs:
         id: pods-cache
         with:
           path: |
-            ${{ inputs.ios_path }}/Pods
+            ${{ inputs.ios_path || 'flutter_app/ios' }}/Pods
             ~/.cocoapods/repos
-          key: pods-${{ runner.os }}-${{ hashFiles(format('{0}/Podfile.lock', inputs.ios_path)) }}
+          key: pods-${{ runner.os }}-${{ hashFiles(format('{0}/Podfile.lock', inputs.ios_path || 'flutter_app/ios')) }}
           restore-keys: |
             pods-${{ runner.os }}-
 
@@ -166,8 +174,8 @@ jobs:
 
       - name: Build IPA
         env:
-          BUILD_ID: ${{ inputs.build_id }}
-          IOS_PATH: ${{ inputs.ios_path }}
+          BUILD_ID: ${{ inputs.build_id || github.sha }}
+          IOS_PATH: ${{ inputs.ios_path || 'flutter_app/ios' }}
           SCHEME: ${{ inputs.scheme }}
           PROJECT_TYPE: ${{ steps.detect.outputs.type }}
           USE_SIGNING: ${{ inputs.use_signing }}
