@@ -338,11 +338,14 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
             children: [
               const Text('NEXT BUS', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              // SizedBox で高さを固定し、本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
-              // 270px は到着時刻2件表示時の最大カード高さ（~257px）に余裕を持たせた値。
-              SizedBox(
-                height: 270,
-                child: NextBusDisplay(timetable: widget.timetable, direction: _direction),
+              // IndexedStack で両方向の NextBusDisplay を常時保持し、
+              // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
+              IndexedStack(
+                index: _direction == BusDirection.fromKenkyutoToHonbuto ? 0 : 1,
+                children: [
+                  NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToHonbuto),
+                  NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToStation),
+                ],
               ),
               const SizedBox(height: 24),
               const Text("TODAY'S SCHEDULE", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
