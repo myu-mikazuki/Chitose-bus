@@ -18,7 +18,7 @@ void main() {
       await tester.pumpWidget(_wrap(const WeekendWarningBanner(), now: saturday));
 
       expect(
-        find.text('土日祝日はバスが運行していない場合があります'),
+        find.text('土日祝日は一部の便のみ運行します（系統2は運休）'),
         findsOneWidget,
       );
     });
@@ -29,7 +29,7 @@ void main() {
       await tester.pumpWidget(_wrap(const WeekendWarningBanner(), now: sunday));
 
       expect(
-        find.text('土日祝日はバスが運行していない場合があります'),
+        find.text('土日祝日は一部の便のみ運行します（系統2は運休）'),
         findsOneWidget,
       );
     });
@@ -40,7 +40,7 @@ void main() {
       await tester.pumpWidget(_wrap(const WeekendWarningBanner(), now: monday));
 
       expect(
-        find.text('土日祝日はバスが運行していない場合があります'),
+        find.text('土日祝日は一部の便のみ運行します（系統2は運休）'),
         findsNothing,
       );
     });
@@ -51,7 +51,7 @@ void main() {
       await tester.pumpWidget(_wrap(const WeekendWarningBanner(), now: friday));
 
       expect(
-        find.text('土日祝日はバスが運行していない場合があります'),
+        find.text('土日祝日は一部の便のみ運行します（系統2は運休）'),
         findsNothing,
       );
     });

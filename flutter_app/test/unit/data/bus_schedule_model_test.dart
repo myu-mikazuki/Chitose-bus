@@ -26,8 +26,8 @@ void main() {
       expect(makeEntry('from_kenkyuto_to_station').direction, BusDirection.fromKenkyutoToStation);
     });
 
-    test('maps from_honbuto to fromHonbuto', () {
-      expect(makeEntry('from_honbuto').direction, BusDirection.fromHonbuto);
+    test('maps to_honbuto to toHonbuto', () {
+      expect(makeEntry('to_honbuto').direction, BusDirection.toHonbuto);
     });
 
     test('unknown direction falls back to fromChitose', () {
@@ -56,7 +56,7 @@ void main() {
         pdfUrl: '',
         schedules: [
           BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '千歳科技大'),
-          BusEntryModel(time: '10:00', direction: 'from_honbuto', destination: '本部棟'),
+          BusEntryModel(time: '10:00', direction: 'to_honbuto', destination: '本部棟'),
         ],
       );
       final entity = model.toEntity();
@@ -64,7 +64,7 @@ void main() {
       expect(entity.validTo, '2024-03-31');
       expect(entity.schedules.length, 2);
       expect(entity.schedules[0].direction, BusDirection.fromChitose);
-      expect(entity.schedules[1].direction, BusDirection.fromHonbuto);
+      expect(entity.schedules[1].direction, BusDirection.toHonbuto);
     });
   });
 
