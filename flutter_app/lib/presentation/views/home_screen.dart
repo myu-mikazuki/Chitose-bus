@@ -274,7 +274,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 8),
               ScheduleList(timetable: upcoming, direction: BusDirection.fromKenkyutoToStation),
               const SizedBox(height: 16),
-              const Text('本部棟発', style: TextStyle(color: Color(0xFF00FF88), fontSize: 12, letterSpacing: 3)),
+              const Text('本部棟着（大学行き）', style: TextStyle(color: Color(0xFF00FF88), fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(timetable: upcoming, direction: BusDirection.toHonbuto),
             ],
