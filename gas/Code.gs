@@ -39,22 +39,22 @@ function buildResponse(jsonString) {
 
 // ---- 時刻表データ（授業期ダイヤ）----
 //
-// weekdayOnly: 土日祝は運休（系統2全便、系統1/3の一部）
-// weekendOnly: 土日祝のみ運行（系統1の一部）
+// weekdayOnly: 土日祝は運休（系統2全便、系統1/3の一部）☆
+// weekendOnly: 土日祝のみ運行（系統1の一部）★
 //
 // 各エントリ:
 //   { chitose, minamiChitose, kenkyuto, honbuto, weekdayOnly, weekendOnly }
 // 復路エントリ:
-//   { kenkyuto, weekdayOnly, weekendOnly }
+//   { kenkyuto, honbuto, weekdayOnly, weekendOnly }
 
 // 系統1 千歳駅発（5番） → 南千歳 → 空港 → 研究棟 → 本部棟
 var ROUTE1_OUTBOUND = [
   { chitose: '7:20',  minamiChitose: '7:31',  kenkyuto: '7:44',  honbuto: '7:45',  weekdayOnly: false, weekendOnly: false },
   { chitose: '8:18',  minamiChitose: '8:29',  kenkyuto: '8:42',  honbuto: '8:43',  weekdayOnly: false, weekendOnly: true  },
-  { chitose: '9:10',  minamiChitose: '9:21',  kenkyuto: '9:34',  honbuto: '9:35',  weekdayOnly: true,  weekendOnly: false },
+  { chitose: '9:10',  minamiChitose: '9:21',  kenkyuto: '9:34',  honbuto: '9:35',  weekdayOnly: false, weekendOnly: true  },
   { chitose: '10:30', minamiChitose: '10:41', kenkyuto: '10:54', honbuto: '10:55', weekdayOnly: true,  weekendOnly: false },
   { chitose: '11:00', minamiChitose: '11:11', kenkyuto: '11:24', honbuto: '11:25', weekdayOnly: true,  weekendOnly: false },
-  { chitose: '12:10', minamiChitose: '12:21', kenkyuto: '12:34', honbuto: '12:35', weekdayOnly: false, weekendOnly: false },
+  { chitose: '12:10', minamiChitose: '12:21', kenkyuto: '12:34', honbuto: '12:35', weekdayOnly: true,  weekendOnly: false },
   { chitose: '13:20', minamiChitose: '13:31', kenkyuto: '13:44', honbuto: '13:45', weekdayOnly: false, weekendOnly: false }
 ];
 
@@ -83,36 +83,42 @@ var ROUTE2_OUTBOUND = [
 
 // 系統3 長都駅 → 千歳駅（5番）→ 南千歳 → 空港 → 研究棟 → 本部棟
 var ROUTE3_OUTBOUND = [
-  { chitose: '11:29', minamiChitose: '11:40', kenkyuto: '11:53', honbuto: '11:54', weekdayOnly: true,  weekendOnly: false },
-  { chitose: '12:19', minamiChitose: '12:30', kenkyuto: '12:43', honbuto: '12:44', weekdayOnly: false, weekendOnly: false },
+  { chitose: '11:29', minamiChitose: '11:40', kenkyuto: '11:53', honbuto: '11:54', weekdayOnly: false, weekendOnly: false },
+  { chitose: '12:19', minamiChitose: '12:30', kenkyuto: '12:43', honbuto: '12:44', weekdayOnly: true,  weekendOnly: false },
   { chitose: '14:29', minamiChitose: '14:40', kenkyuto: '14:53', honbuto: '14:54', weekdayOnly: true,  weekendOnly: false }
 ];
 
-// 系統1 大学発 → 空港 → 千歳駅（研究棟発）
+// 系統1 大学発 → 空港 → 千歳駅（研究棟発・本部棟発）
 var ROUTE1_INBOUND = [
-  { kenkyuto: '11:39', weekdayOnly: false, weekendOnly: false },
-  { kenkyuto: '12:45', weekdayOnly: false, weekendOnly: true  },
-  { kenkyuto: '13:38', weekdayOnly: false, weekendOnly: false },
-  { kenkyuto: '14:35', weekdayOnly: false, weekendOnly: true  },
-  { kenkyuto: '15:27', weekdayOnly: false, weekendOnly: false },
-  { kenkyuto: '16:50', weekdayOnly: false, weekendOnly: false },
-  { kenkyuto: '17:55', weekdayOnly: false, weekendOnly: false },
-  { kenkyuto: '19:05', weekdayOnly: false, weekendOnly: false },
-  { kenkyuto: '19:45', weekdayOnly: false, weekendOnly: false },
-  { kenkyuto: '21:25', weekdayOnly: false, weekendOnly: false }
+  { kenkyuto: '11:39', honbuto: '11:36', weekdayOnly: true,  weekendOnly: false },
+  { kenkyuto: '12:45', honbuto: '12:42', weekdayOnly: false, weekendOnly: true  },
+  { kenkyuto: '13:38', honbuto: '13:35', weekdayOnly: true,  weekendOnly: false },
+  { kenkyuto: '14:35', honbuto: '14:32', weekdayOnly: false, weekendOnly: true  },
+  { kenkyuto: '15:27', honbuto: '15:24', weekdayOnly: false, weekendOnly: false },
+  { kenkyuto: '16:50', honbuto: '16:47', weekdayOnly: false, weekendOnly: false },
+  { kenkyuto: '17:55', honbuto: '17:52', weekdayOnly: false, weekendOnly: false },
+  { kenkyuto: '19:05', honbuto: '19:02', weekdayOnly: false, weekendOnly: false },
+  { kenkyuto: '19:45', honbuto: '19:42', weekdayOnly: true,  weekendOnly: false },
+  { kenkyuto: '21:25', honbuto: '21:22', weekdayOnly: true,  weekendOnly: false }
 ];
 
-// 系統2 大学発 → 直通 → 千歳駅（研究棟発、全便weekdayOnly）
+// 系統2 大学発 → 直通 → 千歳駅（研究棟発・本部棟発、全便weekdayOnly）
 var ROUTE2_INBOUND = [
-  { kenkyuto: '11:05' },
-  { kenkyuto: '12:30' },
-  { kenkyuto: '13:10' },
-  { kenkyuto: '14:20' },
-  { kenkyuto: '15:05' },
-  { kenkyuto: '16:45' },
-  { kenkyuto: '17:05' },
-  { kenkyuto: '17:33' },
-  { kenkyuto: '18:30' }
+  { kenkyuto: '11:05', honbuto: '11:02' },
+  { kenkyuto: '12:30', honbuto: '12:27' },
+  { kenkyuto: '13:10', honbuto: '13:07' },
+  { kenkyuto: '14:20', honbuto: '14:17' },
+  { kenkyuto: '15:05', honbuto: '15:02' },
+  { kenkyuto: '16:45', honbuto: '16:42' },
+  { kenkyuto: '17:05', honbuto: '17:02' },
+  { kenkyuto: '17:33', honbuto: '17:30' },
+  { kenkyuto: '18:30', honbuto: '18:27' }
+];
+
+// 系統3 大学発 → 長都駅（研究棟発・本部棟発、全便毎日）
+var ROUTE3_INBOUND = [
+  { kenkyuto: '20:35', honbuto: '20:32' },
+  { kenkyuto: '22:05', honbuto: '22:02' }
 ];
 
 // ---- 時刻フォーマット ----
@@ -135,7 +141,7 @@ function buildTimetable() {
     schedules.push({
       time: padTime(e.chitose),
       direction: 'from_chitose',
-      destination: '千歳科学技術大学',
+      destination: '本部棟',
       routeNumber: 1,
       platformNumber: 5,
       arrivals: { kenkyuto: padTime(e.kenkyuto), honbuto: padTime(e.honbuto) },
@@ -147,7 +153,7 @@ function buildTimetable() {
     schedules.push({
       time: padTime(e.chitose),
       direction: 'from_chitose',
-      destination: '千歳科学技術大学',
+      destination: '本部棟',
       routeNumber: 2,
       platformNumber: 3,
       arrivals: { kenkyuto: padTime(e.kenkyuto), honbuto: padTime(e.honbuto) },
@@ -159,7 +165,7 @@ function buildTimetable() {
     schedules.push({
       time: padTime(e.chitose),
       direction: 'from_chitose',
-      destination: '千歳科学技術大学',
+      destination: '本部棟',
       routeNumber: 3,
       platformNumber: 5,
       arrivals: { kenkyuto: padTime(e.kenkyuto), honbuto: padTime(e.honbuto) },
@@ -173,7 +179,7 @@ function buildTimetable() {
     schedules.push({
       time: padTime(e.minamiChitose),
       direction: 'from_minami_chitose',
-      destination: '千歳科学技術大学',
+      destination: '本部棟',
       routeNumber: 1,
       arrivals: { kenkyuto: padTime(e.kenkyuto), honbuto: padTime(e.honbuto) },
       weekdayOnly: e.weekdayOnly,
@@ -184,7 +190,7 @@ function buildTimetable() {
     schedules.push({
       time: padTime(e.minamiChitose),
       direction: 'from_minami_chitose',
-      destination: '千歳科学技術大学',
+      destination: '本部棟',
       routeNumber: 3,
       arrivals: { kenkyuto: padTime(e.kenkyuto), honbuto: padTime(e.honbuto) },
       weekdayOnly: e.weekdayOnly,
@@ -227,7 +233,7 @@ function buildTimetable() {
     });
   });
 
-  // --- fromKenkyutoToStation: 系統1+2 の研究棟発時刻（大学発） ---
+  // --- fromKenkyutoToStation: 系統1+2+3 の研究棟発時刻（大学発） ---
   ROUTE1_INBOUND.forEach(function(e) {
     schedules.push({
       time: padTime(e.kenkyuto),
@@ -250,8 +256,19 @@ function buildTimetable() {
       weekendOnly: false
     });
   });
+  ROUTE3_INBOUND.forEach(function(e) {
+    schedules.push({
+      time: padTime(e.kenkyuto),
+      direction: 'from_kenkyuto_to_station',
+      destination: '長都駅',
+      routeNumber: 3,
+      arrivals: {},
+      weekdayOnly: false,
+      weekendOnly: false
+    });
+  });
 
-  // --- fromHonbuto: 系統1+2+3 の本部棟着時刻 ---
+  // --- fromHonbuto: 系統1+2+3 の本部棟着・本部棟発時刻 ---
   ROUTE1_OUTBOUND.forEach(function(e) {
     schedules.push({
       time: padTime(e.honbuto),
@@ -283,6 +300,39 @@ function buildTimetable() {
       arrivals: {},
       weekdayOnly: e.weekdayOnly,
       weekendOnly: e.weekendOnly
+    });
+  });
+  ROUTE1_INBOUND.forEach(function(e) {
+    schedules.push({
+      time: padTime(e.honbuto),
+      direction: 'from_honbuto',
+      destination: '千歳駅',
+      routeNumber: 1,
+      arrivals: {},
+      weekdayOnly: e.weekdayOnly,
+      weekendOnly: e.weekendOnly
+    });
+  });
+  ROUTE2_INBOUND.forEach(function(e) {
+    schedules.push({
+      time: padTime(e.honbuto),
+      direction: 'from_honbuto',
+      destination: '千歳駅',
+      routeNumber: 2,
+      arrivals: {},
+      weekdayOnly: true,
+      weekendOnly: false
+    });
+  });
+  ROUTE3_INBOUND.forEach(function(e) {
+    schedules.push({
+      time: padTime(e.honbuto),
+      direction: 'from_honbuto',
+      destination: '長都駅',
+      routeNumber: 3,
+      arrivals: {},
+      weekdayOnly: false,
+      weekendOnly: false
     });
   });
 
