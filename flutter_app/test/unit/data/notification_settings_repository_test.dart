@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:chitose_bus/data/repositories/notification_settings_repository.dart';
-import 'package:chitose_bus/domain/entities/notification_settings.dart';
+import 'package:kagi_bus/data/repositories/notification_settings_repository.dart';
+import 'package:kagi_bus/domain/entities/notification_settings.dart';
 
 void main() {
   setUp(() {

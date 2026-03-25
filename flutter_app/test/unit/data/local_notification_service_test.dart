@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/domain/services/notification_service.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/domain/services/notification_service.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 
 void main() {
   group('NotificationService.busNotificationId', () {

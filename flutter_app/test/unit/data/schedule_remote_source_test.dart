@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:http/http.dart' as http;
-import 'package:chitose_bus/data/sources/schedule_remote_source.dart';
+import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
 
 class MockHttpClient extends Mock implements http.Client {}
 

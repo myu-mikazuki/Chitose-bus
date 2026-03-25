@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:chitose_bus/data/models/bus_schedule_model.dart';
-import 'package:chitose_bus/data/repositories/schedule_repository_impl.dart';
-import 'package:chitose_bus/data/sources/schedule_remote_source.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
-import 'package:chitose_bus/presentation/viewmodels/schedule_viewmodel.dart';
+import 'package:kagi_bus/data/models/bus_schedule_model.dart';
+import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
+import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 
 class MockScheduleRemoteSource extends Mock implements ScheduleRemoteSource {}
 

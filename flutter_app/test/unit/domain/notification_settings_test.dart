@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/domain/entities/notification_settings.dart';
+import 'package:kagi_bus/domain/entities/notification_settings.dart';
 
 void main() {
   group('NotificationSettings', () {

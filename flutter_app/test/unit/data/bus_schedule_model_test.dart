@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/data/models/bus_schedule_model.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/data/models/bus_schedule_model.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 
 void main() {
   group('BusEntryModelMapper', () {

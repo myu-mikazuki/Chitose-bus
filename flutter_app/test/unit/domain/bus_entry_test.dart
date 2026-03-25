@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 
 void main() {
   // Fixed reference time for deterministic tests: 2024-06-15 12:00:00

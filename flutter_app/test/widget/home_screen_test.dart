@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
-import 'package:chitose_bus/presentation/viewmodels/schedule_viewmodel.dart';
-import 'package:chitose_bus/presentation/views/home_screen.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
+import 'package:kagi_bus/presentation/views/home_screen.dart';
 
 import '../helpers/test_theme.dart';
 

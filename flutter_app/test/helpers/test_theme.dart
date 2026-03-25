@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:chitose_bus/presentation/viewmodels/schedule_viewmodel.dart';
+import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 
 /// テスト用共通テーマ
 ThemeData buildTestTheme() => ThemeData(

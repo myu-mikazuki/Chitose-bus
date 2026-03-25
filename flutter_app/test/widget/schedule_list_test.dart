@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
-import 'package:chitose_bus/domain/entities/notification_settings.dart';
-import 'package:chitose_bus/presentation/viewmodels/notification_viewmodel.dart';
-import 'package:chitose_bus/presentation/views/widgets/schedule_list.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/domain/entities/notification_settings.dart';
+import 'package:kagi_bus/presentation/viewmodels/notification_viewmodel.dart';
+import 'package:kagi_bus/presentation/views/widgets/schedule_list.dart';
 
 import '../helpers/test_theme.dart';
 

@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
-import 'package:chitose_bus/domain/entities/notification_settings.dart';
-import 'package:chitose_bus/domain/services/notification_service.dart';
-import 'package:chitose_bus/data/repositories/notification_settings_repository.dart';
-import 'package:chitose_bus/presentation/viewmodels/notification_viewmodel.dart';
-import 'package:chitose_bus/presentation/viewmodels/schedule_viewmodel.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/domain/entities/notification_settings.dart';
+import 'package:kagi_bus/domain/services/notification_service.dart';
+import 'package:kagi_bus/data/repositories/notification_settings_repository.dart';
+import 'package:kagi_bus/presentation/viewmodels/notification_viewmodel.dart';
+import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---- Fakes ----
