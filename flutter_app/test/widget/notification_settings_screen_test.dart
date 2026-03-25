@@ -31,40 +31,32 @@ Widget _wrap(NotificationSettings settings) => ProviderScope(
 
 void main() {
   group('NotificationSettingsScreen', () {
-    testWidgets('初期表示: スイッチ・通知タイミング・路線ラベルが表示される', (tester) async {
+    testWidgets('初期表示: スイッチ・通知タイミングが表示される', (tester) async {
       await tester.pumpWidget(_wrap(NotificationSettings()));
       await tester.pump();
 
       expect(find.text('出発通知を有効にする'), findsOneWidget);
       expect(find.text('通知タイミング'), findsOneWidget);
-      expect(find.text('通知する路線'), findsOneWidget);
     });
 
-    testWidgets('enabled=false: ドロップダウンが無効状態', (tester) async {
+    testWidgets('路線選択UIが非表示', (tester) async {
+      await tester.pumpWidget(_wrap(NotificationSettings()));
+      await tester.pump();
+
+      expect(find.text('通知する路線'), findsNothing);
+      expect(find.text('選択してください'), findsNothing);
+      expect(find.text('通知を受け取るには路線を選択してください'), findsNothing);
+    });
+
+    testWidgets('enabled=false: minutesBefore ドロップダウンが無効状態', (tester) async {
       await tester.pumpWidget(_wrap(NotificationSettings(enabled: false)));
       await tester.pump();
 
-      // DropdownButton が disabled (onChanged == null) の場合、opacity が下がる
-      // 簡易確認: 選択してください が表示される
-      expect(find.text('選択してください'), findsOneWidget);
-    });
-
-    testWidgets('enabled=true かつ direction=null: 警告テキストが表示される', (tester) async {
-      await tester.pumpWidget(
-          _wrap(NotificationSettings(enabled: true)));
-      await tester.pump();
-
-      expect(find.text('通知を受け取るには路線を選択してください'), findsOneWidget);
-    });
-
-    testWidgets('enabled=true かつ direction 設定済み: 警告テキストが非表示', (tester) async {
-      await tester.pumpWidget(_wrap(NotificationSettings(
-        enabled: true,
-        direction: BusDirection.fromChitose,
-      )));
-      await tester.pump();
-
-      expect(find.text('通知を受け取るには路線を選択してください'), findsNothing);
+      // enabled=false のとき minutesBefore DropdownButton は disabled
+      final dropdown = tester.widget<DropdownButton<int>>(
+        find.byType(DropdownButton<int>),
+      );
+      expect(dropdown.onChanged, isNull);
     });
   });
 }
