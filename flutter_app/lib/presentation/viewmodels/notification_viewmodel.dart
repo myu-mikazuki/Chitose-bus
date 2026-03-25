@@ -57,13 +57,21 @@ class NotificationSettingsNotifier
       await service.cancelAll();
       return;
     }
-    await scheduleForTimetable(timetable);
+    await scheduleForTimetable(timetable, settingsOverride: settings);
   }
 
-  Future<void> scheduleForTimetable(BusTimetable timetable) async {
-    final settingsState = state;
-    if (settingsState is! AsyncData<NotificationSettings>) return;
-    final settings = settingsState.value;
+  /// [settingsOverride] が指定された場合はその設定を使用し、
+  /// 省略時は現在の [state] から設定を読み込む。
+  Future<void> scheduleForTimetable(BusTimetable timetable,
+      {NotificationSettings? settingsOverride}) async {
+    final NotificationSettings settings;
+    if (settingsOverride != null) {
+      settings = settingsOverride;
+    } else {
+      final settingsState = state;
+      if (settingsState is! AsyncData<NotificationSettings>) return;
+      settings = settingsState.value;
+    }
     if (!settings.enabled || settings.direction == null) return;
 
     final service = ref.read(notificationServiceProvider);

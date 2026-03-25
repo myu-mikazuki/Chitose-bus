@@ -279,6 +279,7 @@ void main() {
             .read(notificationSettingsProvider.notifier)
             .saveSettings(settings);
 
+        expect(service.scheduledCalls.length, greaterThan(0));
         expect(service.scheduledCalls.length, lessThanOrEqualTo(3));
       });
 
