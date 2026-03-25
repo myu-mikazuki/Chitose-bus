@@ -1,14 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
 import 'package:chitose_bus/domain/entities/notification_settings.dart';
 
 void main() {
   group('NotificationSettings', () {
-    test('デフォルト値: enabled=false, minutesBefore=10, direction=null', () {
+    test('デフォルト値: enabled=false, minutesBefore=10', () {
       final s = NotificationSettings();
       expect(s.enabled, isFalse);
       expect(s.minutesBefore, 10);
-      expect(s.direction, isNull);
     });
 
     test('copyWith: enabled のみ変更', () {
@@ -16,7 +14,6 @@ void main() {
       final s2 = s.copyWith(enabled: true);
       expect(s2.enabled, isTrue);
       expect(s2.minutesBefore, 10);
-      expect(s2.direction, isNull);
     });
 
     test('copyWith: minutesBefore のみ変更', () {
@@ -26,25 +23,13 @@ void main() {
       expect(s2.enabled, isTrue);
     });
 
-    test('copyWith: direction を設定', () {
-      final s = NotificationSettings();
-      final s2 = s.copyWith(direction: BusDirection.fromChitose);
-      expect(s2.direction, BusDirection.fromChitose);
-    });
-
-    test('copyWith: clearDirection=true で direction を null に', () {
-      final s = NotificationSettings(direction: BusDirection.fromChitose);
-      final s2 = s.copyWith(clearDirection: true);
-      expect(s2.direction, isNull);
-    });
-
     test('minutesOptions に 5/10/15/30 が含まれる', () {
       expect(NotificationSettings.minutesOptions, containsAll([5, 10, 15, 30]));
     });
 
     test('== と hashCode: 同じ値は等しい', () {
-      final a = NotificationSettings(enabled: true, minutesBefore: 5, direction: BusDirection.fromChitose);
-      final b = NotificationSettings(enabled: true, minutesBefore: 5, direction: BusDirection.fromChitose);
+      final a = NotificationSettings(enabled: true, minutesBefore: 5);
+      final b = NotificationSettings(enabled: true, minutesBefore: 5);
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
     });

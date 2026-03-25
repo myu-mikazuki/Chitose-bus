@@ -187,230 +187,163 @@ void main() {
     }
 
     group('saveSettings()', () {
-      test('enabled=true かつ direction 設定済みのとき通知が再スケジュールされる', () async {
+      test('enabled=false: cancelAll・scheduleNotification は呼ばれない', () async {
         final service = FakeNotificationService();
         final container = makeContainer(service: service);
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        final settings = NotificationSettings(
-          enabled: true,
-          minutesBefore: 10,
-          direction: BusDirection.fromChitose,
-        );
         await container
             .read(notificationSettingsProvider.notifier)
-            .saveSettings(settings);
+            .saveSettings(NotificationSettings(enabled: false));
 
-        expect(service.cancelAllCount, greaterThanOrEqualTo(1),
-            reason: 'cancelAll が呼ばれるべき');
-        expect(service.scheduledCalls, isNotEmpty,
-            reason: 'scheduleNotification が呼ばれるべき');
-      });
-
-      test('enabled=false のとき cancelAll のみ呼ばれ再スケジュールされない', () async {
-        final service = FakeNotificationService();
-        final container = makeContainer(service: service);
-        addTearDown(container.dispose);
-        await awaitProviders(container);
-
-        final settings = NotificationSettings(enabled: false);
-        await container
-            .read(notificationSettingsProvider.notifier)
-            .saveSettings(settings);
-
-        expect(service.cancelAllCount, greaterThanOrEqualTo(1),
-            reason: 'cancelAll が呼ばれるべき');
-        expect(service.scheduledCalls, isEmpty,
-            reason: 'scheduleNotification は呼ばれるべきでない');
-      });
-
-      test('enabled=true かつ direction=null のとき cancelAll のみ呼ばれる', () async {
-        final service = FakeNotificationService();
-        final container = makeContainer(service: service);
-        addTearDown(container.dispose);
-        await awaitProviders(container);
-
-        final settings = NotificationSettings(
-          enabled: true,
-          minutesBefore: 10,
-          // direction: null
-        );
-        await container
-            .read(notificationSettingsProvider.notifier)
-            .saveSettings(settings);
-
-        expect(service.cancelAllCount, greaterThanOrEqualTo(1));
-        expect(service.scheduledCalls, isEmpty,
-            reason: '方面未設定では通知スケジュール不可');
-      });
-
-      test('minutesBefore を変更したとき新しい値で再スケジュールされる', () async {
-        final service = FakeNotificationService();
-        final container = makeContainer(service: service);
-        addTearDown(container.dispose);
-        await awaitProviders(container);
-
-        final settings = NotificationSettings(
-          enabled: true,
-          minutesBefore: 5,
-          direction: BusDirection.fromChitose,
-        );
-        await container
-            .read(notificationSettingsProvider.notifier)
-            .saveSettings(settings);
-
-        expect(service.scheduledCalls, isNotEmpty);
-        for (final call in service.scheduledCalls) {
-          expect(call.settings.minutesBefore, equals(5));
-        }
-      });
-
-      test('最大3便まで通知がスケジュールされる', () async {
-        final service = FakeNotificationService();
-        // 未来4便あるが最大3便のみスケジュールされるべき
-        final container = makeContainer(
-          service: service,
-          timetable: futureTimetable(BusDirection.fromChitose),
-        );
-        addTearDown(container.dispose);
-        await awaitProviders(container);
-
-        final settings = NotificationSettings(
-          enabled: true,
-          minutesBefore: 10,
-          direction: BusDirection.fromChitose,
-        );
-        await container
-            .read(notificationSettingsProvider.notifier)
-            .saveSettings(settings);
-
-        expect(service.scheduledCalls.length, greaterThan(0));
-        expect(service.scheduledCalls.length, lessThanOrEqualTo(3));
-      });
-
-      test('過去のバスしかないとき scheduleNotification は呼ばれない', () async {
-        final service = FakeNotificationService();
-        final container = makeContainer(
-          service: service,
-          timetable: pastTimetable(BusDirection.fromChitose),
-        );
-        addTearDown(container.dispose);
-        await awaitProviders(container);
-
-        final settings = NotificationSettings(
-          enabled: true,
-          minutesBefore: 10,
-          direction: BusDirection.fromChitose,
-        );
-        await container
-            .read(notificationSettingsProvider.notifier)
-            .saveSettings(settings);
-
-        expect(service.cancelAllCount, greaterThanOrEqualTo(1));
+        expect(service.cancelAllCount, 0,
+            reason: 'direction ベース削除後は cancelAll を呼ばない');
         expect(service.scheduledCalls, isEmpty);
       });
 
-      test('timetable が未ロードのとき cancelAll が呼ばれ古い通知が残らない', () async {
+      test('enabled=true, scheduledBusKeys 空: cancelAll・scheduleNotification は呼ばれない',
+          () async {
         final service = FakeNotificationService();
-        final repo = FakeNotificationSettingsRepository();
+        final container = makeContainer(service: service);
+        addTearDown(container.dispose);
+        await awaitProviders(container);
+
+        await container
+            .read(notificationSettingsProvider.notifier)
+            .saveSettings(NotificationSettings(enabled: true));
+
+        expect(service.cancelAllCount, 0,
+            reason: 'direction ベース削除後は cancelAll を呼ばない');
+        expect(service.scheduledCalls, isEmpty,
+            reason: 'tracked 便がなければスケジュールしない');
+      });
+
+      test('enabled=true, scheduledBusKeys={key}: tracked な未来便のみスケジュールされる',
+          () async {
+        final service = FakeNotificationService();
+        final now = DateTime.now();
+        final futureTime = now.add(const Duration(hours: 2));
+        String fmt(DateTime dt) =>
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        final futureBus = BusEntry(
+          time: fmt(futureTime),
+          direction: BusDirection.fromChitose,
+          destination: '千歳駅',
+        );
+        final key = NotificationSettingsNotifier.busKey(futureBus);
+        final timetable = BusTimetable(
+          validFrom: '2026-01-01',
+          validTo: '2026-12-31',
+          schedules: [futureBus],
+        );
+        final container = makeContainer(
+          service: service,
+          timetable: timetable,
+          initialSettings: NotificationSettings(
+            enabled: true,
+            minutesBefore: 10,
+            scheduledBusKeys: {key},
+          ),
+        );
+        addTearDown(container.dispose);
+        await awaitProviders(container);
+
+        final current = container.read(notificationSettingsProvider).value!;
+        await container
+            .read(notificationSettingsProvider.notifier)
+            .saveSettings(current.copyWith(minutesBefore: 5));
+
+        // direction ベース削除後は tracked 便のみ → 1件
+        expect(service.scheduledCalls.length, equals(1),
+            reason: 'tracked 便のみスケジュールされるべき（direction ベースの重複なし）');
+        expect(service.scheduledCalls.first.bus, equals(futureBus));
+        expect(service.scheduledCalls.first.settings.minutesBefore, equals(5));
+      });
+
+      test('timetable 未ロード: scheduledBusKeys があっても scheduleNotification は呼ばれない',
+          () async {
+        final service = FakeNotificationService();
+        final repo = FakeNotificationSettingsRepository(
+          NotificationSettings(
+            enabled: true,
+            scheduledBusKeys: {'fromChitose_12:00'},
+          ),
+        );
         final container = ProviderContainer(
           overrides: [
             notificationServiceProvider.overrideWithValue(service),
             notificationSettingsRepositoryProvider.overrideWithValue(repo),
-            // scheduleViewModel は永遠にロード中
             scheduleViewModelProvider
                 .overrideWith(() => _FakeLoadingScheduleViewModel()),
           ],
         );
         addTearDown(container.dispose);
-        // notificationSettingsProvider だけ初期化を待つ
         await container.read(notificationSettingsProvider.future);
 
-        final settings = NotificationSettings(
-          enabled: true,
-          minutesBefore: 10,
-          direction: BusDirection.fromChitose,
-        );
+        final current = container.read(notificationSettingsProvider).value!;
         await container
             .read(notificationSettingsProvider.notifier)
-            .saveSettings(settings);
+            .saveSettings(current);
 
-        expect(service.cancelAllCount, greaterThanOrEqualTo(1),
-            reason: 'timetable 未ロードでも古い通知はキャンセルされるべき');
-        expect(service.scheduledCalls, isEmpty);
-      });
-
-      test('方面違いのバスが混在するとき指定方面のみ通知される', () async {
-        final service = FakeNotificationService();
-        final container = makeContainer(
-          service: service,
-          timetable: mixedDirectionTimetable(),
-        );
-        addTearDown(container.dispose);
-        await awaitProviders(container);
-
-        final settings = NotificationSettings(
-          enabled: true,
-          minutesBefore: 10,
-          direction: BusDirection.fromChitose,
-        );
-        await container
-            .read(notificationSettingsProvider.notifier)
-            .saveSettings(settings);
-
-        expect(service.scheduledCalls, isNotEmpty);
-        for (final call in service.scheduledCalls) {
-          expect(call.bus.direction, equals(BusDirection.fromChitose),
-              reason: '指定方面以外のバスが通知されてはいけない');
-        }
+        expect(service.scheduledCalls, isEmpty,
+            reason: 'timetable 未ロードのとき _rescheduleTrackedBuses は何もしない');
       });
     });
 
     group('enableNotifications()', () {
-      test('権限が許可されたとき通知が再スケジュールされる', () async {
+      test('権限が許可されたとき tracked 便が再スケジュールされる', () async {
         final service = FakeNotificationService(permissionGranted: true);
+        final now = DateTime.now();
+        final futureTime = now.add(const Duration(hours: 2));
+        String fmt(DateTime dt) =>
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        final futureBus = BusEntry(
+          time: fmt(futureTime),
+          direction: BusDirection.fromChitose,
+          destination: '千歳駅',
+        );
+        final key = NotificationSettingsNotifier.busKey(futureBus);
+        final timetable = BusTimetable(
+          validFrom: '2026-01-01',
+          validTo: '2026-12-31',
+          schedules: [futureBus],
+        );
         final container = makeContainer(
           service: service,
+          timetable: timetable,
           initialSettings: NotificationSettings(
             enabled: false,
             minutesBefore: 10,
-            direction: BusDirection.fromChitose,
+            scheduledBusKeys: {key},
           ),
         );
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        final current =
-            container.read(notificationSettingsProvider).value!;
+        final current = container.read(notificationSettingsProvider).value!;
         await container
             .read(notificationSettingsProvider.notifier)
             .enableNotifications(current);
 
         expect(service.scheduledCalls, isNotEmpty,
-            reason: '権限許可後に通知がスケジュールされるべき');
+            reason: '権限許可後に tracked 便がスケジュールされるべき');
       });
 
-      test('権限が拒否されたとき cancelAll のみ呼ばれる', () async {
+      test('権限が拒否されたとき scheduleNotification は呼ばれない', () async {
         final service = FakeNotificationService(permissionGranted: false);
         final container = makeContainer(
           service: service,
-          initialSettings: NotificationSettings(
-            enabled: false,
-            minutesBefore: 10,
-            direction: BusDirection.fromChitose,
-          ),
+          initialSettings: NotificationSettings(enabled: false),
         );
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        final current =
-            container.read(notificationSettingsProvider).value!;
+        final current = container.read(notificationSettingsProvider).value!;
         await container
             .read(notificationSettingsProvider.notifier)
             .enableNotifications(current);
 
-        expect(service.cancelAllCount, greaterThanOrEqualTo(1));
         expect(service.scheduledCalls, isEmpty,
             reason: '権限拒否後は scheduleNotification が呼ばれるべきでない');
       });
@@ -419,10 +352,7 @@ void main() {
         final service = FakeNotificationService(permissionGranted: true);
         final container = makeContainer(
           service: service,
-          initialSettings: NotificationSettings(
-            enabled: false,
-            direction: BusDirection.fromChitose,
-          ),
+          initialSettings: NotificationSettings(enabled: false),
         );
         addTearDown(container.dispose);
         await awaitProviders(container);
@@ -441,10 +371,7 @@ void main() {
         final service = FakeNotificationService(permissionGranted: false);
         final container = makeContainer(
           service: service,
-          initialSettings: NotificationSettings(
-            enabled: false,
-            direction: BusDirection.fromChitose,
-          ),
+          initialSettings: NotificationSettings(enabled: false),
         );
         addTearDown(container.dispose);
         await awaitProviders(container);

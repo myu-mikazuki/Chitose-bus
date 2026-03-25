@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chitose_bus/data/repositories/notification_settings_repository.dart';
-import 'package:chitose_bus/domain/entities/bus_schedule.dart';
 import 'package:chitose_bus/domain/entities/notification_settings.dart';
 
 void main() {
@@ -15,33 +14,18 @@ void main() {
       final settings = await repo.load();
       expect(settings.enabled, isFalse);
       expect(settings.minutesBefore, 10);
-      expect(settings.direction, isNull);
     });
 
-    test('save して load: 値が永続化される', () async {
+    test('save して load: enabled・minutesBefore が永続化される', () async {
       final repo = NotificationSettingsRepository();
       final saved = NotificationSettings(
         enabled: true,
         minutesBefore: 5,
-        direction: BusDirection.fromChitose,
       );
       await repo.save(saved);
       final loaded = await repo.load();
-      expect(loaded, equals(saved));
-    });
-
-    test('direction=null で save して load: direction が null', () async {
-      final repo = NotificationSettingsRepository();
-      // まず direction あり で保存
-      await repo.save(NotificationSettings(
-        enabled: true,
-        minutesBefore: 10,
-        direction: BusDirection.fromHonbuto,
-      ));
-      // direction なし で上書き
-      await repo.save(NotificationSettings(enabled: false));
-      final loaded = await repo.load();
-      expect(loaded.direction, isNull);
+      expect(loaded.enabled, isTrue);
+      expect(loaded.minutesBefore, equals(5));
     });
 
     test('scheduledBusKeys: save して load: キーが永続化される', () async {

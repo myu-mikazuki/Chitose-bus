@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/bus_schedule.dart';
 import '../../domain/entities/notification_settings.dart';
 import '../viewmodels/notification_viewmodel.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
-
-  static const _directionLabels = {
-    BusDirection.fromChitose: '千歳駅発',
-    BusDirection.fromMinamiChitose: '南千歳発',
-    BusDirection.fromKenkyutoToHonbuto: '研究棟発（→本部棟方面）',
-    BusDirection.fromKenkyutoToStation: '研究棟発 → 千歳駅',
-    BusDirection.fromHonbuto: '本部棟発',
-  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,63 +108,6 @@ class _SettingsBody extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
-
-        // Direction
-        _SectionCard(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '通知する路線',
-                  style: TextStyle(
-                      color: Color(0xFF00FF88),
-                      fontSize: 12,
-                      letterSpacing: 2),
-                ),
-                const SizedBox(height: 12),
-                DropdownButton<BusDirection?>(
-                  value: settings.direction,
-                  dropdownColor: const Color(0xFF1A1A1A),
-                  style: const TextStyle(
-                      color: Color(0xFFCCCCCC), fontSize: 14),
-                  isExpanded: true,
-                  underline: const Divider(color: Color(0xFF333333)),
-                  items: [
-                    const DropdownMenuItem(
-                      value: null,
-                      child: Text('選択してください',
-                          style: TextStyle(color: Color(0xFF666666))),
-                    ),
-                    ...BusDirection.values.map((d) => DropdownMenuItem(
-                          value: d,
-                          child: Text(NotificationSettingsScreen
-                              ._directionLabels[d]!),
-                        )),
-                  ],
-                  onChanged: settings.enabled
-                      ? (v) => v == null
-                          ? notifier.saveSettings(
-                              settings.copyWith(clearDirection: true))
-                          : notifier.saveSettings(settings.copyWith(direction: v))
-                      : null,
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        if (settings.enabled && settings.direction == null)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              '通知を受け取るには路線を選択してください',
-              style: TextStyle(color: Color(0xFFFFB000), fontSize: 12),
-            ),
-          ),
       ],
     );
   }

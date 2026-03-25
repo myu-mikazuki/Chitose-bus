@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/bus_schedule.dart';
-import '../viewmodels/notification_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'notification_settings_screen.dart';
 import 'widgets/next_bus_display.dart';
@@ -144,12 +143,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
         data: (response) {
-          // Schedule notifications when timetable data is available
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref
-                .read(notificationSettingsProvider.notifier)
-                .scheduleForTimetable(response.current);
-          });
           return TabBarView(
             controller: _tabController,
             children: [
