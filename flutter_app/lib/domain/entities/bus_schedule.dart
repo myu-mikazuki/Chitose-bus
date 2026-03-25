@@ -69,12 +69,14 @@ class BusTimetable {
 
   BusEntry? nextBus(BusDirection direction, {DateTime? now}) {
     final current = now ?? DateTime.now();
-    return schedules
+    final candidates = schedules
         .where((e) =>
             e.direction == direction &&
             e.isRunningToday(current) &&
             e.toDateTimeToday(now: current).isAfter(current))
-        .firstOrNull;
+        .toList()
+      ..sort((a, b) => a.time.compareTo(b.time));
+    return candidates.firstOrNull;
   }
 
   List<BusEntry> todayBuses(BusDirection direction, {DateTime? now}) {
