@@ -32,6 +32,26 @@ class _FakeNotificationSettingsNotifier extends NotificationSettingsNotifier {
   Future<NotificationSettings> build() async => _settings;
 }
 
+class _TrackingNotificationSettingsNotifier
+    extends NotificationSettingsNotifier {
+  _TrackingNotificationSettingsNotifier(this._settings, {required this.onSave});
+  final NotificationSettings _settings;
+  final void Function(NotificationSettings) onSave;
+
+  @override
+  Future<NotificationSettings> build() async => _settings;
+
+  @override
+  Future<void> toggleBusNotification(bus) async {
+    final current = state.value!;
+    final key = NotificationSettingsNotifier.busKey(bus);
+    final newKeys = {...current.scheduledBusKeys, key};
+    final updated = current.copyWith(scheduledBusKeys: newKeys);
+    state = AsyncData(updated);
+    onSave(updated);
+  }
+}
+
 void main() {
   group('ScheduleList', () {
     testWidgets('バスリストが空の場合: 「時刻表データなし」が表示される', (tester) async {
@@ -300,26 +320,37 @@ void main() {
         expect(find.byIcon(Icons.notifications), findsNothing);
       });
 
-      testWidgets('選択済み便: グリーン(0xFF00FF88)のベルアイコンが表示される', (tester) async {
-        final busTime = safeFutureHhmm(60);
-        final bus = BusEntry(
-            time: busTime,
+      testWidgets('選択済み便（非NEXT）: グリーン(0xFF00FF88)のベルアイコンが表示される', (tester) async {
+        // 2便構成で2便目を選択済みにする（1便目がNEXT、2便目は通常未来便）
+        final t1 = safeFutureHhmm(60);
+        final t2 = safeFutureHhmm(120);
+        final bus2 = BusEntry(
+            time: t2,
             direction: BusDirection.fromChitose,
             destination: '千歳科技大');
-        final key = NotificationSettingsNotifier.busKey(bus);
+        final key2 = NotificationSettingsNotifier.busKey(bus2);
         final timetable = BusTimetable(
           validFrom: '2024-01-01',
           validTo: '2024-12-31',
-          schedules: [bus],
+          schedules: [
+            BusEntry(
+                time: t1,
+                direction: BusDirection.fromChitose,
+                destination: '千歳科技大'),
+            bus2,
+          ],
         );
         await tester.pumpWidget(_wrapWithNotification(
           ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
-          NotificationSettings(enabled: true, scheduledBusKeys: {key}),
+          NotificationSettings(enabled: true, scheduledBusKeys: {key2}),
         ));
         await tester.pump();
 
-        final icon = tester.widget<Icon>(find.byIcon(Icons.notifications));
-        expect(icon.color, const Color(0xFF00FF88));
+        // t1==t2 の場合（深夜キャップ）はスキップ
+        if (t1 != t2) {
+          final icon = tester.widget<Icon>(find.byIcon(Icons.notifications));
+          expect(icon.color, const Color(0xFF00FF88));
+        }
       });
 
       testWidgets('未選択便: グレー(0xFF888888)のベルアイコンが表示される', (tester) async {
@@ -342,6 +373,68 @@ void main() {
 
         final icon = tester.widget<Icon>(find.byIcon(Icons.notifications_outlined));
         expect(icon.color, const Color(0xFF888888));
+      });
+
+      testWidgets('isNext かつ選択済み: ベルアイコン色が 0xFF0A0A0A（背景と区別できる）', (tester) async {
+        final busTime = safeFutureHhmm(60);
+        final bus = BusEntry(
+            time: busTime,
+            direction: BusDirection.fromChitose,
+            destination: '千歳科技大');
+        final key = NotificationSettingsNotifier.busKey(bus);
+        final timetable = BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-12-31',
+          schedules: [bus],
+        );
+        await tester.pumpWidget(_wrapWithNotification(
+          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          NotificationSettings(enabled: true, scheduledBusKeys: {key}),
+        ));
+        await tester.pump();
+
+        final icon = tester.widget<Icon>(find.byIcon(Icons.notifications));
+        // NEXT 行の背景色 0xFF00FF88 と被らないよう 0xFF0A0A0A を使う
+        expect(icon.color, const Color(0xFF0A0A0A));
+      });
+
+      testWidgets('ベルアイコンをタップ: scheduledBusKeys にキーが追加される', (tester) async {
+        final busTime = safeFutureHhmm(60);
+        final bus = BusEntry(
+            time: busTime,
+            direction: BusDirection.fromChitose,
+            destination: '千歳科技大');
+        final timetable = BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-12-31',
+          schedules: [bus],
+        );
+        late NotificationSettings capturedSettings;
+        final notifier = _TrackingNotificationSettingsNotifier(
+          NotificationSettings(enabled: true),
+          onSave: (s) => capturedSettings = s,
+        );
+        await tester.pumpWidget(ProviderScope(
+          overrides: [
+            countdownOverride(),
+            notificationSettingsProvider.overrideWith(() => notifier),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: ScheduleList(
+                  timetable: timetable, direction: BusDirection.fromChitose),
+            ),
+          ),
+        ));
+        await tester.pump();
+
+        await tester.tap(find.byIcon(Icons.notifications_outlined));
+        await tester.pump();
+
+        expect(
+          capturedSettings.scheduledBusKeys,
+          contains(NotificationSettingsNotifier.busKey(bus)),
+        );
       });
     });
 

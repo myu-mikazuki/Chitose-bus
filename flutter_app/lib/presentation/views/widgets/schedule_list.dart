@@ -167,20 +167,23 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
 
     final isScheduled = settings.scheduledBusKeys
         .contains(NotificationSettingsNotifier.busKey(widget.bus));
-    return GestureDetector(
-      onTap: () => ref
+    // isNext 行の背景色 0xFF00FF88 とベル選択色が同一になるため、
+    // isNext のときは NEXT テキストと同じ 0xFF0A0A0A を使う
+    final bellColor = isScheduled
+        ? (widget.isNext ? const Color(0xFF0A0A0A) : const Color(0xFF00FF88))
+        : const Color(0xFF888888);
+    return IconButton(
+      onPressed: () => ref
           .read(notificationSettingsProvider.notifier)
           .toggleBusNotification(widget.bus),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 8),
-        child: Icon(
-          isScheduled ? Icons.notifications : Icons.notifications_outlined,
-          color: isScheduled
-              ? const Color(0xFF00FF88)
-              : const Color(0xFF888888),
-          size: 20,
-        ),
+      icon: Icon(
+        isScheduled ? Icons.notifications : Icons.notifications_outlined,
+        color: bellColor,
+        size: 24,
       ),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      visualDensity: VisualDensity.compact,
     );
   }
 
@@ -283,6 +286,8 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                   style:
                       TextStyle(color: textColor, fontSize: 14, letterSpacing: 1),
                 ),
+                // ベルアイコンを右端に配置するため全行に Spacer を挿入。
+                // isPast 行はベルを SizedBox.shrink() で返すため視覚的影響はない。
                 const Spacer(),
                 if (widget.isNext)
                   const Text(
