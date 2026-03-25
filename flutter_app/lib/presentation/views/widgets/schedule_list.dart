@@ -75,21 +75,37 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
         // maxHeight が有限 = Expanded 等で有界な高さが与えられている（_DirectionTab）。
         // maxHeight が無限大 = SingleChildScrollView 配下（_KenkyutoTab・BottomSheet 等）。
         _isBounded = constraints.maxHeight.isFinite;
-        return ListView.builder(
-          shrinkWrap: !_isBounded,
-          physics: _isBounded ? null : const NeverScrollableScrollPhysics(),
-          itemCount: buses.length,
-          itemBuilder: (context, index) {
-            final bus = buses[index];
-            final isPast = bus.minutesFromNow(now: now) < 0;
-            final isNext = index == nextBusIndex;
-            return _ScheduleRow(
-              key: isNext ? _nextBusKey : null,
-              bus: bus,
-              isPast: isPast,
-              isNext: isNext,
-            );
-          },
+
+        final rows = List.generate(buses.length, (index) {
+          final bus = buses[index];
+          final isPast = bus.minutesFromNow(now: now) < 0;
+          final isNext = index == nextBusIndex;
+          return _ScheduleRow(
+            key: isNext ? _nextBusKey : null,
+            bus: bus,
+            isPast: isPast,
+            isNext: isNext,
+          );
+        });
+
+        if (_isBounded) {
+          // bounded 時は SingleChildScrollView + Column を使う。
+          // ListView（SliverList）はビューポート外のアイテムをエレメントツリーに
+          // 追加しないため、NEXT が画面外の場合 _nextBusKey.currentContext が null に
+          // なり Scrollable.ensureVisible が機能しない。
+          // Column は全アイテムをツリーに保持するためこの問題が発生しない。
+          // スケジュール件数は最大でも数十件程度なので性能問題はない。
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
+            ),
+          );
+        }
+        return ListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: rows,
         );
       },
     );

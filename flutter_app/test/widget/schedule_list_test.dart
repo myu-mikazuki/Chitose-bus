@@ -237,5 +237,53 @@ void main() {
 
       expect(find.text('研究棟 着'), findsNothing);
     });
+
+    testWidgets('NEXTバスが画面外にあっても初期表示でスクロールされて見える', (tester) async {
+      // kTestNow = 09:00。過去便を18件並べてNEXTを画面外に追いやる
+      final pastTimes = List.generate(
+        18,
+        (i) => '0${i ~/ 6 + 1}:${(i % 6 * 10).toString().padLeft(2, '0')}',
+      );
+      final nextTime = safeFutureHhmm(60); // 10:00
+
+      final timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-03-31',
+        schedules: [
+          ...pastTimes.map((t) => BusEntry(
+                time: t,
+                direction: BusDirection.fromChitose,
+                destination: '科技大',
+              )),
+          BusEntry(
+            time: nextTime,
+            direction: BusDirection.fromChitose,
+            destination: '科技大',
+          ),
+        ],
+      );
+
+      // 高さ制限を設けて NEXT を画面外にする（ListView.builder では描画されない高さ）
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [countdownOverride()],
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                height: 200,
+                child: ScheduleList(
+                    timetable: timetable,
+                    direction: BusDirection.fromChitose),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(); // postFrameCallback を発火させる
+
+      // NEXT バスが画面内に表示されている（スクロールされた）
+      expect(find.text(nextTime), findsOneWidget);
+      expect(find.text('◀ NEXT'), findsOneWidget);
+    });
   });
 }
