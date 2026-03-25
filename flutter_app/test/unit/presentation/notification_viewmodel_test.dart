@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeNotificationService implements NotificationService {
   int cancelAllCount = 0;
+  final List<int> canceledIds = [];
   final List<({BusEntry bus, NotificationSettings settings})> scheduledCalls =
       [];
   bool permissionGranted;
@@ -27,6 +28,11 @@ class FakeNotificationService implements NotificationService {
   Future<void> scheduleNotification(
       BusEntry bus, NotificationSettings settings) async {
     scheduledCalls.add((bus: bus, settings: settings));
+  }
+
+  @override
+  Future<void> cancel(int id) async {
+    canceledIds.add(id);
   }
 
   @override
