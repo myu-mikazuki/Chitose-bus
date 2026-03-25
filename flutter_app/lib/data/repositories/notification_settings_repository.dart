@@ -7,6 +7,7 @@ class NotificationSettingsRepository {
   static const _keyEnabled = 'notif_enabled';
   static const _keyMinutesBefore = 'notif_minutes_before';
   static const _keyDirection = 'notif_direction';
+  static const _keyScheduledBusKeys = 'notif_scheduled_bus_keys';
 
   Future<NotificationSettings> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -16,10 +17,13 @@ class NotificationSettingsRepository {
     final direction = directionIndex != null
         ? BusDirection.values[directionIndex]
         : null;
+    final scheduledBusKeys =
+        (prefs.getStringList(_keyScheduledBusKeys) ?? []).toSet();
     return NotificationSettings(
       enabled: enabled,
       minutesBefore: minutesBefore,
       direction: direction,
+      scheduledBusKeys: scheduledBusKeys,
     );
   }
 
@@ -32,5 +36,7 @@ class NotificationSettingsRepository {
     } else {
       await prefs.remove(_keyDirection);
     }
+    await prefs.setStringList(
+        _keyScheduledBusKeys, settings.scheduledBusKeys.toList());
   }
 }

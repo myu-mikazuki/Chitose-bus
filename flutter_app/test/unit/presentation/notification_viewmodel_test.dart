@@ -40,7 +40,7 @@ class FakeNotificationSettingsRepository
   NotificationSettings _stored;
 
   FakeNotificationSettingsRepository([NotificationSettings? initial])
-      : _stored = initial ?? const NotificationSettings();
+      : _stored = initial ?? NotificationSettings();
 
   @override
   Future<NotificationSettings> load() async => _stored;
@@ -187,7 +187,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        const settings = NotificationSettings(
+        final settings = NotificationSettings(
           enabled: true,
           minutesBefore: 10,
           direction: BusDirection.fromChitose,
@@ -208,7 +208,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        const settings = NotificationSettings(enabled: false);
+        final settings = NotificationSettings(enabled: false);
         await container
             .read(notificationSettingsProvider.notifier)
             .saveSettings(settings);
@@ -225,7 +225,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        const settings = NotificationSettings(
+        final settings = NotificationSettings(
           enabled: true,
           minutesBefore: 10,
           // direction: null
@@ -245,7 +245,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        const settings = NotificationSettings(
+        final settings = NotificationSettings(
           enabled: true,
           minutesBefore: 5,
           direction: BusDirection.fromChitose,
@@ -270,7 +270,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        const settings = NotificationSettings(
+        final settings = NotificationSettings(
           enabled: true,
           minutesBefore: 10,
           direction: BusDirection.fromChitose,
@@ -292,7 +292,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        const settings = NotificationSettings(
+        final settings = NotificationSettings(
           enabled: true,
           minutesBefore: 10,
           direction: BusDirection.fromChitose,
@@ -321,7 +321,7 @@ void main() {
         // notificationSettingsProvider だけ初期化を待つ
         await container.read(notificationSettingsProvider.future);
 
-        const settings = NotificationSettings(
+        final settings = NotificationSettings(
           enabled: true,
           minutesBefore: 10,
           direction: BusDirection.fromChitose,
@@ -344,7 +344,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        const settings = NotificationSettings(
+        final settings = NotificationSettings(
           enabled: true,
           minutesBefore: 10,
           direction: BusDirection.fromChitose,
@@ -366,7 +366,7 @@ void main() {
         final service = FakeNotificationService(permissionGranted: true);
         final container = makeContainer(
           service: service,
-          initialSettings: const NotificationSettings(
+          initialSettings: NotificationSettings(
             enabled: false,
             minutesBefore: 10,
             direction: BusDirection.fromChitose,
@@ -389,7 +389,7 @@ void main() {
         final service = FakeNotificationService(permissionGranted: false);
         final container = makeContainer(
           service: service,
-          initialSettings: const NotificationSettings(
+          initialSettings: NotificationSettings(
             enabled: false,
             minutesBefore: 10,
             direction: BusDirection.fromChitose,
@@ -413,7 +413,7 @@ void main() {
         final service = FakeNotificationService(permissionGranted: true);
         final container = makeContainer(
           service: service,
-          initialSettings: const NotificationSettings(
+          initialSettings: NotificationSettings(
             enabled: false,
             direction: BusDirection.fromChitose,
           ),
@@ -435,7 +435,7 @@ void main() {
         final service = FakeNotificationService(permissionGranted: false);
         final container = makeContainer(
           service: service,
-          initialSettings: const NotificationSettings(
+          initialSettings: NotificationSettings(
             enabled: false,
             direction: BusDirection.fromChitose,
           ),

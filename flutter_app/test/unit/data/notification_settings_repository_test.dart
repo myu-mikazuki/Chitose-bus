@@ -20,7 +20,7 @@ void main() {
 
     test('save して load: 値が永続化される', () async {
       final repo = NotificationSettingsRepository();
-      const saved = NotificationSettings(
+      final saved = NotificationSettings(
         enabled: true,
         minutesBefore: 5,
         direction: BusDirection.fromChitose,
@@ -33,15 +33,39 @@ void main() {
     test('direction=null で save して load: direction が null', () async {
       final repo = NotificationSettingsRepository();
       // まず direction あり で保存
-      await repo.save(const NotificationSettings(
+      await repo.save(NotificationSettings(
         enabled: true,
         minutesBefore: 10,
         direction: BusDirection.fromHonbuto,
       ));
       // direction なし で上書き
-      await repo.save(const NotificationSettings(enabled: false));
+      await repo.save(NotificationSettings(enabled: false));
       final loaded = await repo.load();
       expect(loaded.direction, isNull);
+    });
+
+    test('scheduledBusKeys: save して load: キーが永続化される', () async {
+      final repo = NotificationSettingsRepository();
+      final saved = NotificationSettings(
+        enabled: true,
+        minutesBefore: 10,
+        scheduledBusKeys: {'fromChitose_08:30', 'toChitose_09:00'},
+      );
+      await repo.save(saved);
+      final loaded = await repo.load();
+      expect(loaded.scheduledBusKeys, {'fromChitose_08:30', 'toChitose_09:00'});
+    });
+
+    test('scheduledBusKeys: 空で save して load: 空の Set', () async {
+      final repo = NotificationSettingsRepository();
+      // まずキーあり で保存
+      await repo.save(NotificationSettings(
+        scheduledBusKeys: {'fromChitose_08:30'},
+      ));
+      // 空で上書き
+      await repo.save(NotificationSettings());
+      final loaded = await repo.load();
+      expect(loaded.scheduledBusKeys, isEmpty);
     });
   });
 }

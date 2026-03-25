@@ -32,7 +32,7 @@ Widget _wrap(NotificationSettings settings) => ProviderScope(
 void main() {
   group('NotificationSettingsScreen', () {
     testWidgets('初期表示: スイッチ・通知タイミング・路線ラベルが表示される', (tester) async {
-      await tester.pumpWidget(_wrap(const NotificationSettings()));
+      await tester.pumpWidget(_wrap(NotificationSettings()));
       await tester.pump();
 
       expect(find.text('出発通知を有効にする'), findsOneWidget);
@@ -41,7 +41,7 @@ void main() {
     });
 
     testWidgets('enabled=false: ドロップダウンが無効状態', (tester) async {
-      await tester.pumpWidget(_wrap(const NotificationSettings(enabled: false)));
+      await tester.pumpWidget(_wrap(NotificationSettings(enabled: false)));
       await tester.pump();
 
       // DropdownButton が disabled (onChanged == null) の場合、opacity が下がる
@@ -51,14 +51,14 @@ void main() {
 
     testWidgets('enabled=true かつ direction=null: 警告テキストが表示される', (tester) async {
       await tester.pumpWidget(
-          _wrap(const NotificationSettings(enabled: true)));
+          _wrap(NotificationSettings(enabled: true)));
       await tester.pump();
 
       expect(find.text('通知を受け取るには路線を選択してください'), findsOneWidget);
     });
 
     testWidgets('enabled=true かつ direction 設定済み: 警告テキストが非表示', (tester) async {
-      await tester.pumpWidget(_wrap(const NotificationSettings(
+      await tester.pumpWidget(_wrap(NotificationSettings(
         enabled: true,
         direction: BusDirection.fromChitose,
       )));
