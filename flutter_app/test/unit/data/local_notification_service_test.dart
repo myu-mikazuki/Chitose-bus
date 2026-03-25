@@ -1,17 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chitose_bus/data/services/local_notification_service.dart';
+import 'package:chitose_bus/domain/services/notification_service.dart';
 import 'package:chitose_bus/domain/entities/bus_schedule.dart';
 
 void main() {
-  group('LocalNotificationService.busNotificationId', () {
+  group('NotificationService.busNotificationId', () {
     test('同じ便は同じIDを返す', () {
       const bus = BusEntry(
         time: '08:30',
         direction: BusDirection.fromChitose,
         destination: '千歳駅',
       );
-      final id1 = LocalNotificationService.busNotificationId(bus);
-      final id2 = LocalNotificationService.busNotificationId(bus);
+      final id1 = NotificationService.busNotificationId(bus);
+      final id2 = NotificationService.busNotificationId(bus);
       expect(id1, equals(id2));
     });
 
@@ -27,8 +27,8 @@ void main() {
         destination: '本部棟',
       );
       expect(
-        LocalNotificationService.busNotificationId(busA),
-        isNot(equals(LocalNotificationService.busNotificationId(busB))),
+        NotificationService.busNotificationId(busA),
+        isNot(equals(NotificationService.busNotificationId(busB))),
       );
     });
 
@@ -38,7 +38,7 @@ void main() {
         direction: BusDirection.fromMinamiChitose,
         destination: '南千歳駅',
       );
-      final id = LocalNotificationService.busNotificationId(bus);
+      final id = NotificationService.busNotificationId(bus);
       expect(id, greaterThanOrEqualTo(0));
     });
   });
