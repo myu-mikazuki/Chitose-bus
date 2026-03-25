@@ -64,6 +64,9 @@ class LocalNotificationService implements NotificationService {
     return granted ?? true;
   }
 
+  static int busNotificationId(BusEntry bus) =>
+      '${bus.direction.name}_${bus.time}'.hashCode & 0x7FFFFFFF;
+
   @override
   Future<void> scheduleNotification(
       BusEntry bus, NotificationSettings settings) async {
@@ -74,7 +77,7 @@ class LocalNotificationService implements NotificationService {
 
     final tzNotifyAt = tz.TZDateTime.from(notifyAt, tz.local);
     await _plugin.zonedSchedule(
-      bus.time.hashCode & 0x7FFFFFFF,
+      busNotificationId(bus),
       'バスが出発します',
       '${settings.minutesBefore}分後に ${bus.destination} 行きバスが出発します',
       tzNotifyAt,
@@ -96,6 +99,12 @@ class LocalNotificationService implements NotificationService {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );
+  }
+
+  @override
+  Future<void> cancel(int id) async {
+    await initialize();
+    await _plugin.cancel(id);
   }
 
   @override
