@@ -4,11 +4,11 @@ import 'presentation/views/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: ChitoseBusApp()));
+  runApp(const ProviderScope(child: KagiBusApp()));
 }
 
-class ChitoseBusApp extends StatelessWidget {
-  const ChitoseBusApp({super.key});
+class KagiBusApp extends StatelessWidget {
+  const KagiBusApp({super.key});
 
   @override
   Widget build(BuildContext context) {

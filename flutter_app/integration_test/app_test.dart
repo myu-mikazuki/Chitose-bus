@@ -93,7 +93,7 @@ Widget _buildApp(MockScheduleRepository repo) {
     overrides: [
       scheduleRepositoryProvider.overrideWithValue(repo),
     ],
-    child: const ChitoseBusApp(),
+    child: const KagiBusApp(),
   );
 }
 
