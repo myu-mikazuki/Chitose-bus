@@ -59,13 +59,13 @@ jobs:
           mkdir -p build/Payload
           cp -R "$APP_PATH" build/Payload/
           cd build
-          zip -rq "chitose_bus-${{ github.ref_name }}-ios.ipa" Payload
+          zip -rq "kagi_bus-${{ github.ref_name }}-ios.ipa" Payload
           rm -rf Payload
 
       - uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
-          path: build/chitose_bus-${{ github.ref_name }}-ios.ipa
+          path: build/kagi_bus-${{ github.ref_name }}-ios.ipa
           if-no-files-found: error
 
   build-android:
@@ -93,7 +93,19 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
         working-directory: flutter_app
 
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p flutter_app/android/app/keystore
+          echo "$KEYSTORE_BASE64" | base64 --decode > flutter_app/android/app/keystore/kagi_bus.jks
+
       - name: Build APK (release)
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/flutter_app/android/app/keystore/kagi_bus.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           DART_DEFINE_ARGS=""
           if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
@@ -102,13 +114,17 @@ jobs:
           flutter build apk --release $DART_DEFINE_ARGS
         working-directory: flutter_app
 
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f flutter_app/android/app/keystore/kagi_bus.jks
+
       - name: Rename APK
-        run: mv flutter_app/build/app/outputs/flutter-apk/app-release.apk chitose_bus-${{ github.ref_name }}-android.apk
+        run: mv flutter_app/build/app/outputs/flutter-apk/app-release.apk kagi_bus-${{ github.ref_name }}-android.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: chitose_bus-${{ github.ref_name }}-android.apk
+          path: kagi_bus-${{ github.ref_name }}-android.apk
           if-no-files-found: error
 
   release:
