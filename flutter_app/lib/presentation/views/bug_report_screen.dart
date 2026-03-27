@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/sources/bug_report_remote_source.dart';
 
 class BugReportScreen extends StatefulWidget {
   const BugReportScreen({super.key});
@@ -29,39 +27,23 @@ class _BugReportScreenState extends State<BugReportScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (AppConstants.gasEndpointUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('送信先が設定されていません。')),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
-    final client = http.Client();
+    final source = BugReportRemoteSource(
+      endpointUrl: AppConstants.gasEndpointUrl,
+    );
     try {
-      // GAS web app redirects POST (302) to a GET URL.
-      // Disable auto-redirect to capture the Location header, then follow manually.
-      final request = http.Request(
-        'POST',
-        Uri.parse(AppConstants.gasEndpointUrl),
-      )
-        ..headers['Content-Type'] = 'application/json'
-        ..body = jsonEncode({
-          'description': _descriptionController.text.trim(),
-          'steps': _stepsController.text.trim(),
-        })
-        ..followRedirects = false;
-
-      final streamed = await client.send(request).timeout(const Duration(seconds: 30));
-      var response = await http.Response.fromStream(streamed);
-
-      if (response.statusCode == 302) {
-        final location = response.headers['location'];
-        if (location != null) {
-          response = await client
-              .get(Uri.parse(location))
-              .timeout(const Duration(seconds: 30));
-        }
-      }
-
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      if (body['success'] != true) {
-        throw Exception(body['error'] ?? '送信に失敗しました');
-      }
+      await source.sendReport(
+        description: _descriptionController.text.trim(),
+        steps: _stepsController.text.trim(),
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,12 +51,12 @@ class _BugReportScreenState extends State<BugReportScreen> {
       );
       Navigator.pop(context);
     } catch (e) {
+      debugPrint('BugReportScreen: send failed: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('送信に失敗しました: $e')),
+        const SnackBar(content: Text('送信に失敗しました。しばらく後で再試行してください。')),
       );
     } finally {
-      client.close();
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
