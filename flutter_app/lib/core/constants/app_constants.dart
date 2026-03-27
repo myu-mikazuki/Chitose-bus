@@ -13,4 +13,8 @@ class AppConstants {
 
   /// カウントダウン更新間隔
   static const Duration countdownRefreshInterval = Duration(seconds: 30);
+
+  /// プライバシーポリシーの公開URL
+  static const String privacyPolicyUrl =
+      'https://yuzucchi-cist.github.io/Chitose-bus/privacy_policy.html';
 }

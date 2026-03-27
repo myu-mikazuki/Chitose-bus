@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/schedule_viewmodel.dart';
-import 'notification_settings_screen.dart';
+import 'settings_screen.dart';
 import 'widgets/next_bus_display.dart';
 import 'widgets/schedule_list.dart';
 import 'widgets/weekend_warning_banner.dart';
@@ -95,13 +95,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             orElse: () => const SizedBox.shrink(),
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined,
-                color: AppColors.primary),
-            tooltip: '通知設定',
+            icon: const Icon(Icons.settings, color: AppColors.primary),
+            tooltip: '設定',
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) => const NotificationSettingsScreen()),
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
           ),
           IconButton(
