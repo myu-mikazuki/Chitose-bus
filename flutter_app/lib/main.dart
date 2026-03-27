@@ -16,9 +16,8 @@ class KagiBusApp extends StatelessWidget {
     return MaterialApp(
       title: 'Kagi-Bus',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      theme: AppTheme.dark(),
+      themeMode: ThemeMode.dark,
       home: const HomeScreen(),
     );
   }
