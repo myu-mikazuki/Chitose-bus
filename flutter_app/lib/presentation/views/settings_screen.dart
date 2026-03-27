@@ -52,21 +52,16 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
           _SectionHeader(label: 'アプリ情報'),
           _SectionCard(
-            child: Column(
-              children: [
-                ListTile(
-                  leading:
-                      const Icon(Icons.policy_outlined, color: AppColors.primary),
-                  title: const Text(
-                    'プライバシーポリシー',
-                    style: TextStyle(color: AppColors.textPrimary),
-                  ),
-                  trailing: const Icon(Icons.open_in_new,
-                      color: AppColors.textDisabled, size: 18),
-                  onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
-                ),
-
-              ],
+            child: ListTile(
+              leading:
+                  const Icon(Icons.policy_outlined, color: AppColors.primary),
+              title: const Text(
+                'プライバシーポリシー',
+                style: TextStyle(color: AppColors.textPrimary),
+              ),
+              trailing: const Icon(Icons.open_in_new,
+                  color: AppColors.textDisabled, size: 18),
+              onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
             ),
           ),
         ],
