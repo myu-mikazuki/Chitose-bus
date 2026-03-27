@@ -5,6 +5,14 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
+  static ThemeData light() => ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+        ),
+        fontFamily: 'monospace',
+        fontFamilyFallback: const ['NotoSansJP'],
+      );
+
   static ThemeData dark() => ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,

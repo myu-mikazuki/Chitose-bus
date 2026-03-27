@@ -5,7 +5,7 @@ class AppColors {
   AppColors._();
 
   // ブランドカラー
-  static const Color primary = Color(0xFF00FF88);
+  static const Color primary = Color(0xFFFE9616);
   static const Color onPrimary = Color(0xFF0A0A0A);
 
   // 背景・サーフェス
