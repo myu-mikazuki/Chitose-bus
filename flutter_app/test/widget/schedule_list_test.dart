@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kagi_bus/core/theme/app_colors.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:kagi_bus/domain/entities/notification_settings.dart';
 import 'package:kagi_bus/presentation/viewmodels/notification_viewmodel.dart';
@@ -103,7 +104,7 @@ void main() {
       expect(find.text('千歳科技大'), findsNWidgets(2));
     });
 
-    testWidgets('isNext=trueのバス: 背景色がColor(0xFF00FF88)・「◀ NEXT」が表示される',
+    testWidgets('isNext=trueのバス: 背景色がAppColors.secondary・「◀ NEXT」が表示される',
         (tester) async {
       final nextTime = safeFutureHhmm(60);
       final timetable = BusTimetable(
@@ -125,7 +126,7 @@ void main() {
       expect(find.text('◀ NEXT'), findsOneWidget);
       expect(
         find.byWidgetPredicate(
-          (w) => w is Container && w.color == const Color(0xFF00FF88),
+          (w) => w is Container && w.color == AppColors.secondary,
         ),
         findsWidgets,
       );
