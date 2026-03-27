@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/bus_schedule.dart';
 import '../../viewmodels/notification_viewmodel.dart';
 import '../../viewmodels/schedule_viewmodel.dart';
@@ -61,7 +62,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
       return const Center(
         child: Text(
           '時刻表データなし',
-          style: TextStyle(color: Color(0xFF666666)),
+          style: TextStyle(color: AppColors.textTertiary),
         ),
       );
     }
@@ -172,7 +173,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
           .toggleBusNotification(widget.bus),
       icon: Icon(
         isScheduled ? Icons.notifications : Icons.notifications_off_outlined,
-        color: const Color(0xFF888888),
+        color: AppColors.textSecondary,
         size: 24,
       ),
       padding: EdgeInsets.zero,
@@ -193,7 +194,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                   Text(
                     '${_stopLabels[key]} 着',
                     style: const TextStyle(
-                      color: Color(0xFF888888),
+                      color: AppColors.textSecondary,
                       fontSize: 12,
                       letterSpacing: 1,
                     ),
@@ -201,7 +202,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                   Text(
                     widget.bus.arrivals[key]!,
                     style: const TextStyle(
-                      color: Color(0xFF888888),
+                      color: AppColors.textSecondary,
                       fontSize: 14,
                       letterSpacing: 2,
                       fontFeatures: [FontFeature.tabularFigures()],
@@ -219,13 +220,13 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
     final Color bgColor;
 
     if (widget.isNext) {
-      textColor = const Color(0xFF0A0A0A);
-      bgColor = const Color(0xFF00FF88);
+      textColor = AppColors.onPrimary;
+      bgColor = AppColors.primary;
     } else if (widget.isPast) {
-      textColor = const Color(0xFF444444);
+      textColor = AppColors.textDisabled;
       bgColor = Colors.transparent;
     } else {
-      textColor = const Color(0xFFCCCCCC);
+      textColor = AppColors.textPrimary;
       bgColor = Colors.transparent;
     }
 
@@ -259,8 +260,8 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: widget.isNext
-                            ? const Color(0xFF0A0A0A)
-                            : const Color(0xFF666666),
+                            ? AppColors.onPrimary
+                            : AppColors.textTertiary,
                       ),
                       borderRadius: BorderRadius.circular(3),
                     ),
@@ -287,7 +288,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                   const Text(
                     '◀ NEXT',
                     style: TextStyle(
-                      color: Color(0xFF0A0A0A),
+                      color: AppColors.onPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1,

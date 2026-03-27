@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/theme/app_colors.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'notification_settings_screen.dart';
@@ -37,14 +38,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0A0A),
-        foregroundColor: const Color(0xFF00FF88),
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.primary,
         title: const Text(
           'Kagi-Bus',
           style: TextStyle(
-            color: Color(0xFF00FF88),
+            color: AppColors.primary,
             fontSize: 18,
             letterSpacing: 3,
             fontWeight: FontWeight.bold,
@@ -58,8 +59,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 icon: Icon(
                   Icons.access_time,
                   color: debugTime != null
-                      ? const Color(0xFFFFB000)
-                      : const Color(0xFF444444),
+                      ? AppColors.warning
+                      : AppColors.textDisabled,
                 ),
                 tooltip: debugTime != null
                     ? '時刻オーバーライド中 (タップでリセット/変更)'
@@ -72,7 +73,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             data: (r) => r.current.pdfUrl.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.open_in_browser,
-                        color: Color(0xFF00FF88)),
+                        color: AppColors.primary),
                     tooltip: '時刻表原文を開く',
                     onPressed: () => launchUrl(
                       Uri.parse(r.current.pdfUrl),
@@ -86,7 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             data: (r) => r.upcoming != null
                 ? IconButton(
                     icon: const Icon(Icons.calendar_month,
-                        color: Color(0xFFFFB000)),
+                        color: AppColors.warning),
                     tooltip: '来週のダイヤ',
                     onPressed: () => _showUpcomingSheet(context, r.upcoming!),
                   )
@@ -95,7 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined,
-                color: Color(0xFF00FF88)),
+                color: AppColors.primary),
             tooltip: '通知設定',
             onPressed: () => Navigator.push(
               context,
@@ -104,16 +105,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF00FF88)),
+            icon: const Icon(Icons.refresh, color: AppColors.primary),
             onPressed: () =>
                 ref.read(scheduleViewModelProvider.notifier).refresh(),
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF00FF88),
-          labelColor: const Color(0xFF00FF88),
-          unselectedLabelColor: const Color(0xFF444444),
+          indicatorColor: AppColors.primary,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textDisabled,
           tabs: const [
             Tab(text: '千歳駅'),
             Tab(text: '南千歳'),
@@ -124,20 +125,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
       body: scheduleAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF00FF88)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (e, _) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('エラー: $e',
-                  style: const TextStyle(color: Color(0xFFFF4444))),
+                  style: const TextStyle(color: AppColors.error)),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () =>
                     ref.read(scheduleViewModelProvider.notifier).refresh(),
                 child: const Text('再試行',
-                    style: TextStyle(color: Color(0xFF00FF88))),
+                    style: TextStyle(color: AppColors.primary)),
               ),
             ],
           ),
@@ -164,23 +165,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       final choice = await showDialog<String>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: const Color(0xFF1A1A1A),
+          backgroundColor: AppColors.surface,
           title: const Text('時刻オーバーライド',
-              style: TextStyle(color: Color(0xFF00FF88))),
+              style: TextStyle(color: AppColors.primary)),
           content: Text(
             '現在: ${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}',
-            style: const TextStyle(color: Color(0xFFCCCCCC)),
+            style: const TextStyle(color: AppColors.textPrimary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, 'reset'),
               child: const Text('リセット',
-                  style: TextStyle(color: Color(0xFFFF4444))),
+                  style: TextStyle(color: AppColors.error)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, 'change'),
               child: const Text('変更',
-                  style: TextStyle(color: Color(0xFFFFB000))),
+                  style: TextStyle(color: AppColors.warning)),
             ),
           ],
         ),
@@ -216,7 +217,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: AppColors.bottomSheet,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -237,7 +238,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF444444),
+                    color: AppColors.textDisabled,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -245,29 +246,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               Text(
                 '来週のダイヤ  ${upcoming.validFrom} 〜 ${upcoming.validTo}',
                 style: const TextStyle(
-                  color: Color(0xFFFFB000),
+                  color: AppColors.warning,
                   fontSize: 13,
                   letterSpacing: 1,
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('千歳駅発', style: TextStyle(color: Color(0xFF00FF88), fontSize: 12, letterSpacing: 3)),
+              const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(timetable: upcoming, direction: BusDirection.fromChitose),
               const SizedBox(height: 16),
-              const Text('南千歳発', style: TextStyle(color: Color(0xFF00FF88), fontSize: 12, letterSpacing: 3)),
+              const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(timetable: upcoming, direction: BusDirection.fromMinamiChitose),
               const SizedBox(height: 16),
-              const Text('研究棟発 → 本部棟', style: TextStyle(color: Color(0xFF00FF88), fontSize: 12, letterSpacing: 3)),
+              const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(timetable: upcoming, direction: BusDirection.fromKenkyutoToHonbuto),
               const SizedBox(height: 16),
-              const Text('研究棟発 → 千歳駅', style: TextStyle(color: Color(0xFF00FF88), fontSize: 12, letterSpacing: 3)),
+              const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(timetable: upcoming, direction: BusDirection.fromKenkyutoToStation),
               const SizedBox(height: 16),
-              const Text('本部棟発', style: TextStyle(color: Color(0xFF00FF88), fontSize: 12, letterSpacing: 3)),
+              const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(timetable: upcoming, direction: BusDirection.fromHonbuto),
             ],
@@ -317,10 +318,10 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
             onSelectionChanged: (selection) =>
                 setState(() => _direction = selection.first),
             style: SegmentedButton.styleFrom(
-              backgroundColor: const Color(0xFF1A1A1A),
-              foregroundColor: const Color(0xFF666666),
-              selectedBackgroundColor: const Color(0xFF00FF88),
-              selectedForegroundColor: const Color(0xFF0A0A0A),
+              backgroundColor: AppColors.surface,
+              foregroundColor: AppColors.textTertiary,
+              selectedBackgroundColor: AppColors.primary,
+              selectedForegroundColor: AppColors.onPrimary,
             ),
           ),
         ),
@@ -329,7 +330,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('NEXT BUS', style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+              const Text('NEXT BUS', style: TextStyle(color: AppColors.textTertiary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
               // IndexedStack で両方向の NextBusDisplay を常時保持し、
               // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
@@ -341,7 +342,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                 ],
               ),
               const SizedBox(height: 24),
-              const Text("TODAY'S SCHEDULE", style: TextStyle(color: Color(0xFF666666), fontSize: 12, letterSpacing: 3)),
+              const Text("TODAY'S SCHEDULE", style: TextStyle(color: AppColors.textTertiary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
             ],
           ),
@@ -370,7 +371,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Text(
             '更新: ${widget.updatedAt}  有効期間: ${widget.timetable.validFrom} 〜 ${widget.timetable.validTo}',
-            style: const TextStyle(color: Color(0xFF444444), fontSize: 11),
+            style: const TextStyle(color: AppColors.textDisabled, fontSize: 11),
           ),
         ),
       ],
@@ -408,7 +409,7 @@ class _DirectionTab extends StatelessWidget {
               const Text(
                 'NEXT BUS',
                 style: TextStyle(
-                  color: Color(0xFF666666),
+                  color: AppColors.textTertiary,
                   fontSize: 12,
                   letterSpacing: 3,
                 ),
@@ -423,7 +424,7 @@ class _DirectionTab extends StatelessWidget {
               const Text(
                 'TODAY\'S SCHEDULE',
                 style: TextStyle(
-                  color: Color(0xFF666666),
+                  color: AppColors.textTertiary,
                   fontSize: 12,
                   letterSpacing: 3,
                 ),
@@ -439,7 +440,7 @@ class _DirectionTab extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Text(
             '更新: $updatedAt  有効期間: ${timetable.validFrom} 〜 ${timetable.validTo}',
-            style: const TextStyle(color: Color(0xFF444444), fontSize: 11),
+            style: const TextStyle(color: AppColors.textDisabled, fontSize: 11),
           ),
         ),
       ],
