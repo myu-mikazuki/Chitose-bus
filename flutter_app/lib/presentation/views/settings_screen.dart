@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import 'bug_report_screen.dart';
 import 'notification_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -52,16 +53,36 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
           _SectionHeader(label: 'アプリ情報'),
           _SectionCard(
-            child: ListTile(
-              leading:
-                  const Icon(Icons.policy_outlined, color: AppColors.primary),
-              title: const Text(
-                'プライバシーポリシー',
-                style: TextStyle(color: AppColors.textPrimary),
-              ),
-              trailing: const Icon(Icons.open_in_new,
-                  color: AppColors.textDisabled, size: 18),
-              onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.bug_report_outlined,
+                      color: AppColors.primary),
+                  title: const Text(
+                    'バグを報告',
+                    style: TextStyle(color: AppColors.textPrimary),
+                  ),
+                  trailing: const Icon(Icons.chevron_right,
+                      color: AppColors.textDisabled),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const BugReportScreen()),
+                  ),
+                ),
+                const Divider(height: 1, color: AppColors.border),
+                ListTile(
+                  leading: const Icon(Icons.policy_outlined,
+                      color: AppColors.primary),
+                  title: const Text(
+                    'プライバシーポリシー',
+                    style: TextStyle(color: AppColors.textPrimary),
+                  ),
+                  trailing: const Icon(Icons.open_in_new,
+                      color: AppColors.textDisabled, size: 18),
+                  onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
+                ),
+              ],
             ),
           ),
         ],
