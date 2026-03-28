@@ -57,15 +57,19 @@ class FakeNotificationSettingsRepository
   }
 }
 
+// ---- テスト用の固定時刻 ----
+
+/// テスト全体で使う固定基準時刻（正午を使うことで前後数時間の未来・過去が当日内に収まる）
+final _fixedNow = DateTime(2026, 1, 15, 12, 0, 0);
+
 // ---- テスト用の BusTimetable ヘルパー ----
 
 /// 指定した direction で未来時刻のバスを含む BusTimetable を生成する
 BusTimetable futureTimetable(BusDirection direction) {
-  final now = DateTime.now();
-  final future1 = now.add(const Duration(hours: 1));
-  final future2 = now.add(const Duration(hours: 2));
-  final future3 = now.add(const Duration(hours: 3));
-  final future4 = now.add(const Duration(hours: 4));
+  final future1 = _fixedNow.add(const Duration(hours: 1));
+  final future2 = _fixedNow.add(const Duration(hours: 2));
+  final future3 = _fixedNow.add(const Duration(hours: 3));
+  final future4 = _fixedNow.add(const Duration(hours: 4));
   String fmt(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
@@ -83,9 +87,8 @@ BusTimetable futureTimetable(BusDirection direction) {
 
 /// 過去時刻のみのバスを含む BusTimetable を生成する
 BusTimetable pastTimetable(BusDirection direction) {
-  final now = DateTime.now();
-  final past1 = now.subtract(const Duration(hours: 2));
-  final past2 = now.subtract(const Duration(hours: 1));
+  final past1 = _fixedNow.subtract(const Duration(hours: 2));
+  final past2 = _fixedNow.subtract(const Duration(hours: 1));
   String fmt(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
@@ -128,6 +131,7 @@ ProviderContainer makeContainer({
     overrides: [
       notificationServiceProvider.overrideWithValue(service),
       notificationSettingsRepositoryProvider.overrideWithValue(repo),
+      clockProvider.overrideWithValue(() => _fixedNow),
       scheduleOverride,
     ],
   );
@@ -150,9 +154,8 @@ class _FakeLoadingScheduleViewModel extends ScheduleViewModel {
 
 /// fromChitose と fromHonbuto が混在する BusTimetable
 BusTimetable mixedDirectionTimetable() {
-  final now = DateTime.now();
-  final future1 = now.add(const Duration(hours: 1));
-  final future2 = now.add(const Duration(hours: 2));
+  final future1 = _fixedNow.add(const Duration(hours: 1));
+  final future2 = _fixedNow.add(const Duration(hours: 2));
   String fmt(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
@@ -222,8 +225,7 @@ void main() {
       test('enabled=true, scheduledBusKeys={key}: tracked な未来便のみスケジュールされる',
           () async {
         final service = FakeNotificationService();
-        final now = DateTime.now();
-        final futureTime = now.add(const Duration(hours: 2));
+        final futureTime = _fixedNow.add(const Duration(hours: 2));
         String fmt(DateTime dt) =>
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         final futureBus = BusEntry(
@@ -274,6 +276,7 @@ void main() {
           overrides: [
             notificationServiceProvider.overrideWithValue(service),
             notificationSettingsRepositoryProvider.overrideWithValue(repo),
+            clockProvider.overrideWithValue(() => _fixedNow),
             scheduleViewModelProvider
                 .overrideWith(() => _FakeLoadingScheduleViewModel()),
           ],
@@ -294,8 +297,7 @@ void main() {
     group('enableNotifications()', () {
       test('権限が許可されたとき tracked 便が再スケジュールされる', () async {
         final service = FakeNotificationService(permissionGranted: true);
-        final now = DateTime.now();
-        final futureTime = now.add(const Duration(hours: 2));
+        final futureTime = _fixedNow.add(const Duration(hours: 2));
         String fmt(DateTime dt) =>
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         final futureBus = BusEntry(
@@ -388,10 +390,9 @@ void main() {
     });
 
     group('toggleBusNotification()', () {
-      // 未来時刻のバスをヘルパーで生成
+      // 固定時刻から未来のバスを生成するヘルパー
       BusEntry futureBusEntry() {
-        final now = DateTime.now();
-        final future = now.add(const Duration(hours: 2));
+        final future = _fixedNow.add(const Duration(hours: 2));
         String fmt(DateTime dt) =>
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         return BusEntry(
@@ -452,9 +453,8 @@ void main() {
 
       test('OFF→ON: 過去の便は scheduleNotification が呼ばれない', () async {
         final service = FakeNotificationService();
-        // 過去時刻のバス
-        final now = DateTime.now();
-        final past = now.subtract(const Duration(hours: 1));
+        // 固定時刻より過去のバス
+        final past = _fixedNow.subtract(const Duration(hours: 1));
         String fmt(DateTime dt) =>
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         final pastBus = BusEntry(
@@ -504,8 +504,7 @@ void main() {
       test('minutesBefore 変更後の saveSettings: 選択済み便が再スケジュールされる', () async {
         final service = FakeNotificationService();
         // timetable に含まれる未来バスを使ってキーを作る
-        final now = DateTime.now();
-        final futureTime = now.add(const Duration(hours: 2));
+        final futureTime = _fixedNow.add(const Duration(hours: 2));
         String fmt(DateTime dt) =>
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         final futureBus = BusEntry(
