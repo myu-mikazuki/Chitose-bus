@@ -96,7 +96,7 @@ void main() {
             scheduleViewModelProvider.overrideWith(() => _LoadingViewModel()),
             countdownOverride(),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
 
@@ -112,7 +112,7 @@ void main() {
                 () => _ErrorViewModel(Exception('test error'))),
             countdownOverride(),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
       await tester.pump(); // let the failed future resolve
@@ -130,7 +130,7 @@ void main() {
             scheduleViewModelProvider.overrideWith(() => vm),
             countdownOverride(),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
       await tester.pump(); // let the failed future resolve
@@ -149,7 +149,7 @@ void main() {
                 .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
             countdownOverride(),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
       await tester.pump();
@@ -168,7 +168,7 @@ void main() {
                 () => _FakeScheduleViewModel(_mockResponseWithUpcoming)),
             countdownOverride(),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
       await tester.pump();
@@ -185,7 +185,7 @@ void main() {
                 () => _FakeScheduleViewModel(_mockResponseWithUpcoming)),
             countdownOverride(),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
       await tester.pump();
@@ -205,7 +205,7 @@ void main() {
             scheduleViewModelProvider.overrideWith(() => vm),
             countdownOverride(),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
       await tester.pump();
@@ -227,7 +227,7 @@ void main() {
                 .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
             countdownOverride(now: saturday),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
       await tester.pump();
@@ -247,7 +247,7 @@ void main() {
                 .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
             countdownOverride(),
           ],
-          child: const MaterialApp(home: HomeScreen()),
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
         ),
       );
       await tester.pump();

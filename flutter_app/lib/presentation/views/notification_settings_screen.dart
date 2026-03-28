@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/notification_settings.dart';
 import '../viewmodels/notification_viewmodel.dart';
 
@@ -13,9 +14,9 @@ class NotificationSettingsScreen extends ConsumerWidget {
     final settingsAsync = ref.watch(notificationSettingsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.appColors.background,
         foregroundColor: AppColors.primary,
         title: const Text(
           '通知設定',
@@ -55,13 +56,13 @@ class _SettingsBody extends ConsumerWidget {
         // Enable toggle
         _SectionCard(
           child: SwitchListTile(
-            title: const Text(
+            title: Text(
               '出発通知を有効にする',
-              style: TextStyle(color: AppColors.textPrimary, letterSpacing: 1),
+              style: TextStyle(color: context.appColors.textPrimary, letterSpacing: 1),
             ),
-            subtitle: const Text(
+            subtitle: Text(
               '次のバスが出発する前に通知を受け取ります',
-              style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+              style: TextStyle(color: context.appColors.textTertiary, fontSize: 12),
             ),
             value: settings.enabled,
             activeThumbColor: AppColors.primary,
@@ -89,11 +90,11 @@ class _SettingsBody extends ConsumerWidget {
                 const SizedBox(height: 12),
                 DropdownButton<int>(
                   value: settings.minutesBefore,
-                  dropdownColor: AppColors.surface,
-                  style: const TextStyle(
-                      color: AppColors.textPrimary, fontSize: 16),
+                  dropdownColor: context.appColors.surface,
+                  style: TextStyle(
+                      color: context.appColors.textPrimary, fontSize: 16),
                   isExpanded: true,
-                  underline: const Divider(color: AppColors.divider),
+                  underline: Divider(color: context.appColors.divider),
                   items: NotificationSettings.minutesOptions
                       .map((m) => DropdownMenuItem(
                             value: m,
@@ -122,7 +123,7 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.appColors.border),
         borderRadius: BorderRadius.circular(8),
       ),
       child: child,

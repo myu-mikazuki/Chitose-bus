@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_colors_theme.dart';
 import '../../data/sources/bug_report_remote_source.dart';
 
 class BugReportScreen extends StatefulWidget {
@@ -64,9 +65,9 @@ class _BugReportScreenState extends State<BugReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.appColors.background,
         foregroundColor: AppColors.primary,
         title: const Text(
           'バグを報告',
@@ -96,9 +97,9 @@ class _BugReportScreenState extends State<BugReportScreen> {
               maxLines: 5,
               decoration: InputDecoration(
                 hintText: 'どのような問題が起きましたか？',
-                hintStyle: const TextStyle(color: AppColors.textDisabled),
+                hintStyle: TextStyle(color: context.appColors.textDisabled),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.appColors.border),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -114,7 +115,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: TextStyle(color: context.appColors.textPrimary),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'バグの内容を入力してください' : null,
             ),
@@ -133,9 +134,9 @@ class _BugReportScreenState extends State<BugReportScreen> {
               maxLines: 5,
               decoration: InputDecoration(
                 hintText: '再現する手順があれば教えてください',
-                hintStyle: const TextStyle(color: AppColors.textDisabled),
+                hintStyle: TextStyle(color: context.appColors.textDisabled),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: context.appColors.border),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -143,7 +144,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: TextStyle(color: context.appColors.textPrimary),
             ),
             const SizedBox(height: 32),
             ElevatedButton(

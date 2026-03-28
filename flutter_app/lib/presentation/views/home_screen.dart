@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'settings_screen.dart';
@@ -38,9 +39,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.appColors.background,
         foregroundColor: AppColors.primary,
         title: const Text(
           'Kagi-Bus',
@@ -60,7 +61,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   Icons.access_time,
                   color: debugTime != null
                       ? AppColors.warning
-                      : AppColors.textDisabled,
+                      : context.appColors.textDisabled,
                 ),
                 tooltip: debugTime != null
                     ? '時刻オーバーライド中 (タップでリセット/変更)'
@@ -112,7 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textDisabled,
+          unselectedLabelColor: context.appColors.textDisabled,
           tabs: const [
             Tab(text: '千歳駅'),
             Tab(text: '南千歳'),
@@ -163,12 +164,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       final choice = await showDialog<String>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: ctx.appColors.surface,
           title: const Text('時刻オーバーライド',
               style: TextStyle(color: AppColors.primary)),
           content: Text(
             '現在: ${current.hour.toString().padLeft(2, '0')}:${current.minute.toString().padLeft(2, '0')}',
-            style: const TextStyle(color: AppColors.textPrimary),
+            style: TextStyle(color: ctx.appColors.textPrimary),
           ),
           actions: [
             TextButton(
@@ -215,7 +216,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.bottomSheet,
+      backgroundColor: context.appColors.bottomSheet,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -236,7 +237,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: AppColors.textDisabled,
+                    color: context.appColors.textDisabled,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -316,8 +317,8 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
             onSelectionChanged: (selection) =>
                 setState(() => _direction = selection.first),
             style: SegmentedButton.styleFrom(
-              backgroundColor: AppColors.surface,
-              foregroundColor: AppColors.textTertiary,
+              backgroundColor: context.appColors.surface,
+              foregroundColor: context.appColors.textTertiary,
               selectedBackgroundColor: AppColors.primary,
               selectedForegroundColor: AppColors.onPrimary,
             ),
@@ -328,7 +329,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('NEXT BUS', style: TextStyle(color: AppColors.textTertiary, fontSize: 12, letterSpacing: 3)),
+              Text('NEXT BUS', style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
               // IndexedStack で両方向の NextBusDisplay を常時保持し、
               // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
@@ -340,7 +341,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                 ],
               ),
               const SizedBox(height: 24),
-              const Text("TODAY'S SCHEDULE", style: TextStyle(color: AppColors.textTertiary, fontSize: 12, letterSpacing: 3)),
+              Text("TODAY'S SCHEDULE", style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
             ],
           ),
@@ -369,7 +370,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Text(
             '更新: ${widget.updatedAt}  有効期間: ${widget.timetable.validFrom} 〜 ${widget.timetable.validTo}',
-            style: const TextStyle(color: AppColors.textDisabled, fontSize: 11),
+            style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
           ),
         ),
       ],
@@ -404,10 +405,10 @@ class _DirectionTab extends StatelessWidget {
             children: [
               const WeekendWarningBanner(),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'NEXT BUS',
                 style: TextStyle(
-                  color: AppColors.textTertiary,
+                  color: context.appColors.textTertiary,
                   fontSize: 12,
                   letterSpacing: 3,
                 ),
@@ -419,10 +420,10 @@ class _DirectionTab extends StatelessWidget {
                 showPlatform: direction == BusDirection.fromChitose,
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'TODAY\'S SCHEDULE',
                 style: TextStyle(
-                  color: AppColors.textTertiary,
+                  color: context.appColors.textTertiary,
                   fontSize: 12,
                   letterSpacing: 3,
                 ),
@@ -438,7 +439,7 @@ class _DirectionTab extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Text(
             '更新: $updatedAt  有効期間: ${timetable.validFrom} 〜 ${timetable.validTo}',
-            style: const TextStyle(color: AppColors.textDisabled, fontSize: 11),
+            style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
           ),
         ),
       ],

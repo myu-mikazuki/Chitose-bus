@@ -11,7 +11,7 @@ import '../helpers/test_theme.dart';
 
 Widget _wrap(Widget child) => ProviderScope(
       overrides: [countdownOverride()],
-      child: MaterialApp(home: Scaffold(body: child)),
+      child: MaterialApp(theme: buildTestTheme(), home: Scaffold(body: child)),
     );
 
 Widget _wrapWithNotification(Widget child, NotificationSettings settings) =>
@@ -22,7 +22,7 @@ Widget _wrapWithNotification(Widget child, NotificationSettings settings) =>
           () => _FakeNotificationSettingsNotifier(settings),
         ),
       ],
-      child: MaterialApp(home: Scaffold(body: child)),
+      child: MaterialApp(theme: buildTestTheme(), home: Scaffold(body: child)),
     );
 
 class _FakeNotificationSettingsNotifier extends NotificationSettingsNotifier {
@@ -387,6 +387,7 @@ void main() {
             notificationSettingsProvider.overrideWith(() => notifier),
           ],
           child: MaterialApp(
+            theme: buildTestTheme(),
             home: Scaffold(
               body: ScheduleList(
                   timetable: timetable, direction: BusDirection.fromChitose),
@@ -460,6 +461,7 @@ void main() {
         ProviderScope(
           overrides: [countdownOverride()],
           child: MaterialApp(
+            theme: buildTestTheme(),
             home: Scaffold(
               body: SizedBox(
                 height: 200,
