@@ -8,7 +8,7 @@ import '../helpers/test_theme.dart';
 
 Widget _wrap(Widget child) => ProviderScope(
       overrides: [countdownOverride()],
-      child: MaterialApp(home: Scaffold(body: child)),
+      child: MaterialApp(theme: buildTestTheme(), home: Scaffold(body: child)),
     );
 
 void main() {

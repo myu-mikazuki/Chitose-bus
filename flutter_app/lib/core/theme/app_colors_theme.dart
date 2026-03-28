@@ -93,6 +93,13 @@ class AppColorsTheme extends ThemeExtension<AppColorsTheme> {
 }
 
 extension AppColorsThemeX on BuildContext {
-  AppColorsTheme get appColors =>
-      Theme.of(this).extension<AppColorsTheme>() ?? AppColorsTheme.dark;
+  AppColorsTheme get appColors {
+    final ext = Theme.of(this).extension<AppColorsTheme>();
+    assert(
+      ext != null,
+      'AppColorsTheme が ThemeData に登録されていません。'
+      ' AppTheme.light() / AppTheme.dark() を使用してください。',
+    );
+    return ext ?? AppColorsTheme.dark;
+  }
 }

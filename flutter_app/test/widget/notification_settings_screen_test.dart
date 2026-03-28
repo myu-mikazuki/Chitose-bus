@@ -5,6 +5,8 @@ import 'package:kagi_bus/domain/entities/notification_settings.dart';
 import 'package:kagi_bus/presentation/viewmodels/notification_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/notification_settings_screen.dart';
 
+import '../helpers/test_theme.dart';
+
 // 固定値を返す Fake (NotificationSettingsNotifier を継承して型を合わせる)
 class _FakeNotificationSettingsNotifier extends NotificationSettingsNotifier {
   _FakeNotificationSettingsNotifier(this._initial);
@@ -25,7 +27,7 @@ Widget _wrap(NotificationSettings settings) => ProviderScope(
           () => _FakeNotificationSettingsNotifier(settings),
         ),
       ],
-      child: const MaterialApp(home: NotificationSettingsScreen()),
+      child: MaterialApp(theme: buildTestTheme(), home: const NotificationSettingsScreen()),
     );
 
 void main() {
