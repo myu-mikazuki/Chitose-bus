@@ -1,4 +1,4 @@
-package com.example.chitose_bus
+package jp.yuzucchi.kagibus
 
 import io.flutter.embedding.android.FlutterActivity
 

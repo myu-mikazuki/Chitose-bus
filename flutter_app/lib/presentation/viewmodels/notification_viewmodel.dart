@@ -11,6 +11,9 @@ final notificationServiceProvider = Provider<NotificationService>(
   (ref) => LocalNotificationService.instance,
 );
 
+/// テスト時に差し替え可能な時刻取得プロバイダ
+final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+
 final notificationSettingsRepositoryProvider =
     Provider<NotificationSettingsRepository>(
   (ref) => NotificationSettingsRepository(),
@@ -65,8 +68,9 @@ class NotificationSettingsNotifier
       final newSettings = settings.copyWith(scheduledBusKeys: newKeys);
       await repo.save(newSettings);
       state = AsyncData(newSettings);
+      final now = ref.read(clockProvider)();
       if (newSettings.enabled &&
-          bus.toDateTimeToday().isAfter(DateTime.now())) {
+          bus.toDateTimeToday(now: now).isAfter(now)) {
         await service.scheduleNotification(bus, newSettings);
       }
     }
@@ -83,10 +87,10 @@ class NotificationSettingsNotifier
     if (timetable == null) return;
 
     final service = ref.read(notificationServiceProvider);
-    final now = DateTime.now();
+    final now = ref.read(clockProvider)();
     for (final bus in timetable.schedules) {
       if (settings.scheduledBusKeys.contains(busKey(bus)) &&
-          bus.toDateTimeToday().isAfter(now)) {
+          bus.toDateTimeToday(now: now).isAfter(now)) {
         await service.scheduleNotification(bus, settings);
       }
     }

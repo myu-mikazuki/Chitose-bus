@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kagi_bus/core/theme/app_theme.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 
 /// テスト用共通テーマ
-ThemeData buildTestTheme() => ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF00FF88),
-        brightness: Brightness.dark,
-      ),
-      scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-      fontFamily: 'monospace',
-    );
+ThemeData buildTestTheme() => AppTheme.dark();
 
 /// テスト用固定時刻 (2024-01-01 09:00)
 final kTestNow = DateTime(2024, 1, 1, 9, 0);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/notification_settings.dart';
 import '../viewmodels/notification_viewmodel.dart';
 
@@ -12,14 +14,14 @@ class NotificationSettingsScreen extends ConsumerWidget {
     final settingsAsync = ref.watch(notificationSettingsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0A0A),
-        foregroundColor: const Color(0xFF00FF88),
+        backgroundColor: context.appColors.background,
+        foregroundColor: AppColors.primary,
         title: const Text(
           '通知設定',
           style: TextStyle(
-            color: Color(0xFF00FF88),
+            color: AppColors.primary,
             fontSize: 16,
             letterSpacing: 2,
           ),
@@ -27,11 +29,11 @@ class NotificationSettingsScreen extends ConsumerWidget {
       ),
       body: settingsAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF00FF88)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (e, _) => Center(
           child: Text('エラー: $e',
-              style: const TextStyle(color: Color(0xFFFF4444))),
+              style: const TextStyle(color: AppColors.error)),
         ),
         data: (settings) => _SettingsBody(settings: settings),
       ),
@@ -54,16 +56,16 @@ class _SettingsBody extends ConsumerWidget {
         // Enable toggle
         _SectionCard(
           child: SwitchListTile(
-            title: const Text(
+            title: Text(
               '出発通知を有効にする',
-              style: TextStyle(color: Color(0xFFCCCCCC), letterSpacing: 1),
+              style: TextStyle(color: context.appColors.textPrimary, letterSpacing: 1),
             ),
-            subtitle: const Text(
+            subtitle: Text(
               '次のバスが出発する前に通知を受け取ります',
-              style: TextStyle(color: Color(0xFF666666), fontSize: 12),
+              style: TextStyle(color: context.appColors.textTertiary, fontSize: 12),
             ),
             value: settings.enabled,
-            activeThumbColor: const Color(0xFF00FF88),
+            activeThumbColor: AppColors.primary,
             onChanged: (v) => v
                 ? notifier.enableNotifications(settings)
                 : notifier.saveSettings(settings.copyWith(enabled: false)),
@@ -81,18 +83,18 @@ class _SettingsBody extends ConsumerWidget {
                 const Text(
                   '通知タイミング',
                   style: TextStyle(
-                      color: Color(0xFF00FF88),
+                      color: AppColors.primary,
                       fontSize: 12,
                       letterSpacing: 2),
                 ),
                 const SizedBox(height: 12),
                 DropdownButton<int>(
                   value: settings.minutesBefore,
-                  dropdownColor: const Color(0xFF1A1A1A),
-                  style: const TextStyle(
-                      color: Color(0xFFCCCCCC), fontSize: 16),
+                  dropdownColor: context.appColors.surface,
+                  style: TextStyle(
+                      color: context.appColors.textPrimary, fontSize: 16),
                   isExpanded: true,
-                  underline: const Divider(color: Color(0xFF333333)),
+                  underline: Divider(color: context.appColors.divider),
                   items: NotificationSettings.minutesOptions
                       .map((m) => DropdownMenuItem(
                             value: m,
@@ -121,7 +123,7 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF222222)),
+        border: Border.all(color: context.appColors.border),
         borderRadius: BorderRadius.circular(8),
       ),
       child: child,

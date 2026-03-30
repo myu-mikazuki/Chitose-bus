@@ -4,8 +4,11 @@ on:
   push:
     branches:
       - main
+      - develop
       - 'feature/**'
       - 'fix/**'
+      - 'hotfix/**'
+      - 'release/**'
     paths:
       - 'flutter_app/**'
       - '.github/workflows/ios-build.yml'

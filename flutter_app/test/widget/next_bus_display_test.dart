@@ -8,7 +8,7 @@ import '../helpers/test_theme.dart';
 
 Widget _wrap(Widget child) => ProviderScope(
       overrides: [countdownOverride()],
-      child: MaterialApp(home: Scaffold(body: child)),
+      child: MaterialApp(theme: buildTestTheme(), home: Scaffold(body: child)),
     );
 
 void main() {
@@ -49,7 +49,8 @@ void main() {
             RegExp(r'^あと \d+:\d{2}$').hasMatch(w.data!)),
         findsAtLeastNWidgets(1),
       );
-      expect(find.text('→ 科技大'), findsOneWidget);
+      expect(find.text('→ '), findsOneWidget);
+      expect(find.text('科技大'), findsOneWidget);
     });
 
     testWidgets('次のバスが5分以内: カウントダウンが赤色（Color(0xFFFF4444)）', (tester) async {

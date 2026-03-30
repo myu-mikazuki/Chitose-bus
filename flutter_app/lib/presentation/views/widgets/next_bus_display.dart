@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_colors_theme.dart';
 import '../../../domain/entities/bus_schedule.dart';
 import '../../viewmodels/schedule_viewmodel.dart';
 
@@ -38,10 +40,10 @@ class _NextBusCard extends StatelessWidget {
   final bool showPlatform;
 
   static const _stopLabels = {
-    'kenkyuto':      '研究棟',
-    'honbuto':       '本部棟',
+    'kenkyuto': '研究棟',
+    'honbuto': '本部棟',
     'minamiChitose': '南千歳',
-    'chitose':       '千歳駅',
+    'chitose': '千歳駅',
   };
 
   List<String> _getArrivalOrder(BusEntry entry) {
@@ -64,7 +66,8 @@ class _NextBusCard extends StatelessWidget {
     }
   }
 
-  List<Widget> _buildArrivalRows(BusEntry entry) {
+  List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
+    final colors = context.appColors;
     final order = _getArrivalOrder(entry);
     return order
         .where((key) => entry.arrivals.containsKey(key))
@@ -75,19 +78,19 @@ class _NextBusCard extends StatelessWidget {
                 children: [
                   Text(
                     '${_stopLabels[key]} 着',
-                    style: const TextStyle(
-                      color: Color(0xFF888888),
+                    style: TextStyle(
+                      color: colors.textSecondary,
                       fontSize: 13,
                       letterSpacing: 1,
                     ),
                   ),
                   Text(
                     entry.arrivals[key]!,
-                    style: const TextStyle(
-                      color: Color(0xFF888888),
+                    style: TextStyle(
+                      color: colors.textSecondary,
                       fontSize: 18,
                       letterSpacing: 2,
-                      fontFeatures: [FontFeature.tabularFigures()],
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ],
@@ -98,6 +101,7 @@ class _NextBusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final minutes = entry.minutesFromNow(now: now);
     final minLabel = _formatCountdown(minutes);
 
@@ -105,7 +109,7 @@ class _NextBusCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF00FF88), width: 1.5),
+        border: Border.all(color: AppColors.secondary, width: 1.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -113,32 +117,43 @@ class _NextBusCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(
-                switch (entry.direction) {
-                  BusDirection.fromChitose => '→ 科技大',
-                  BusDirection.fromMinamiChitose => '→ 科技大',
-                  BusDirection.fromKenkyutoToHonbuto => '→ 本部棟',
-                  BusDirection.fromKenkyutoToStation => '→ 千歳駅',
-                  BusDirection.fromHonbuto => '→ 千歳駅',
-                },
-                style: const TextStyle(
-                  color: Color(0xFF00FF88),
-                  fontSize: 14,
-                  letterSpacing: 2,
+              Row(children: [
+                const Text(
+                  '→ ',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 14,
+                    letterSpacing: 2,
+                  ),
                 ),
-              ),
+                Text(
+                  switch (entry.direction) {
+                    BusDirection.fromChitose => '科技大',
+                    BusDirection.fromMinamiChitose => '科技大',
+                    BusDirection.fromKenkyutoToHonbuto => '本部棟',
+                    BusDirection.fromKenkyutoToStation => '千歳駅',
+                    BusDirection.fromHonbuto => '千歳駅',
+                  },
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: 14,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ]),
               if (entry.routeLabel != null) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFF00FF88)),
+                    border: Border.all(color: AppColors.primary),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     entry.routeLabel!,
                     style: const TextStyle(
-                      color: Color(0xFF00FF88),
+                      color: AppColors.primary,
                       fontSize: 11,
                       letterSpacing: 1,
                     ),
@@ -150,20 +165,20 @@ class _NextBusCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             entry.time,
-            style: const TextStyle(
-              color: Color(0xFF00FF88),
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 64,
               fontWeight: FontWeight.bold,
               letterSpacing: 4,
-              fontFeatures: [FontFeature.tabularFigures()],
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
           if (showPlatform && entry.platformNumber != null) ...[
             const SizedBox(height: 4),
             Text(
               '${entry.platformNumber}番のりば',
-              style: const TextStyle(
-                color: Color(0xFF888888),
+              style: TextStyle(
+                color: colors.textSecondary,
                 fontSize: 13,
                 letterSpacing: 1,
               ),
@@ -173,9 +188,7 @@ class _NextBusCard extends StatelessWidget {
           Text(
             minLabel,
             style: TextStyle(
-              color: minutes <= 5
-                  ? const Color(0xFFFF4444)
-                  : const Color(0xFFFFB000),
+              color: minutes <= 5 ? AppColors.error : AppColors.warning,
               fontSize: 20,
               letterSpacing: 2,
             ),
@@ -183,9 +196,9 @@ class _NextBusCard extends StatelessWidget {
           // 到着時刻（arrivalsが空でない場合のみ表示）
           if (entry.arrivals.isNotEmpty) ...[
             const SizedBox(height: 12),
-            const Divider(color: Color(0xFF333333), height: 1),
+            Divider(color: colors.divider, height: 1),
             const SizedBox(height: 10),
-            ..._buildArrivalRows(entry),
+            ..._buildArrivalRows(entry, context),
           ],
         ],
       ),
@@ -208,18 +221,19 @@ class _NoMoreBusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF333333)),
+        border: Border.all(color: colors.divider),
         borderRadius: BorderRadius.circular(8),
       ),
       alignment: Alignment.center,
-      child: const Text(
+      child: Text(
         '本日の運行は終了しました',
         style: TextStyle(
-          color: Color(0xFF666666),
+          color: colors.textTertiary,
           fontSize: 16,
           letterSpacing: 2,
         ),

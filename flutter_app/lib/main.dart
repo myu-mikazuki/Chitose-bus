@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/theme/app_theme.dart';
 import 'presentation/views/home_screen.dart';
 
 void main() async {
@@ -15,18 +16,9 @@ class KagiBusApp extends StatelessWidget {
     return MaterialApp(
       title: 'Kagi-Bus',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00FF88),
-          brightness: Brightness.dark,
-        ),
-        scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-        fontFamily: 'monospace',
-        // バンドルした NotoSansJP をフォールバックに指定。
-        // monospace フォントに含まれない日本語グリフを NotoSansJP で補完し、
-        // Linux 環境での文字化け（tofu box）を解消する。
-        fontFamilyFallback: const ['NotoSansJP'],
-      ),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system,
       home: const HomeScreen(),
     );
   }

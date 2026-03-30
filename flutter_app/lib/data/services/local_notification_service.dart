@@ -68,9 +68,10 @@ class LocalNotificationService implements NotificationService {
   Future<void> scheduleNotification(
       BusEntry bus, NotificationSettings settings) async {
     await initialize();
-    final busTime = bus.toDateTimeToday();
+    final now = DateTime.now();
+    final busTime = bus.toDateTimeToday(now: now);
     final notifyAt = busTime.subtract(Duration(minutes: settings.minutesBefore));
-    if (notifyAt.isBefore(DateTime.now())) return;
+    if (notifyAt.isBefore(now)) return;
 
     final tzNotifyAt = tz.TZDateTime.from(notifyAt, tz.local);
     await _plugin.zonedSchedule(

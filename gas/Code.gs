@@ -182,6 +182,47 @@ function buildResponse(jsonString) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var description = data.description || '';
+    var steps = data.steps || '';
+
+    if (!description) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ error: 'description is required' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
+    var props = PropertiesService.getScriptProperties();
+
+    var sheetId = props.getProperty('BUG_REPORT_SHEET_ID');
+    if (sheetId) {
+      var sheet = SpreadsheetApp.openById(sheetId).getSheets()[0];
+      sheet.appendRow([now, description, steps]);
+    }
+
+    var notifyEmail = props.getProperty('BUG_REPORT_NOTIFY_EMAIL');
+    if (notifyEmail) {
+      var subject = '[Kagi-Bus] バグ報告が届きました';
+      var body = '日時: ' + now + '\n\nバグの内容:\n' + description + '\n\n発生手順:\n' + (steps || '（未入力）');
+      var mailOptions = {};
+      var fromEmail = props.getProperty('BUG_REPORT_FROM_EMAIL');
+      if (fromEmail) mailOptions.from = fromEmail;
+      GmailApp.sendEmail(notifyEmail, subject, body, mailOptions);
+    }
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ error: err.message || String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
 // ---- ハードコード時刻表 ----
 
 function getHardcodedTimetable() {
