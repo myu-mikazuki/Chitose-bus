@@ -17,6 +17,9 @@ class _BugReportScreenState extends State<BugReportScreen> {
   final _descriptionController = TextEditingController();
   final _stepsController = TextEditingController();
   bool _isSubmitting = false;
+  final _source = BugReportRemoteSource(
+    endpointUrl: AppConstants.gasEndpointUrl,
+  );
 
   @override
   void dispose() {
@@ -37,11 +40,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final source = BugReportRemoteSource(
-      endpointUrl: AppConstants.gasEndpointUrl,
-    );
     try {
-      await source.sendReport(
+      await _source.sendReport(
         description: _descriptionController.text.trim(),
         steps: _stepsController.text.trim(),
       );
