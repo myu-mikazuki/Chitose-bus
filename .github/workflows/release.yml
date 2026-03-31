@@ -69,6 +69,7 @@ jobs:
           TEAM_ID=$(security cms -D -i "$PROFILE_PATH" | plutil -extract TeamIdentifier.0 raw -)
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
           echo "TEAM_ID=$TEAM_ID" >> $GITHUB_ENV
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
 
       - name: Build IPA (release, signed)
         env:
@@ -108,9 +109,7 @@ jobs:
             -scheme Runner \
             -configuration Release \
             -archivePath "$GITHUB_WORKSPACE/build/Runner.xcarchive" \
-            CODE_SIGN_STYLE=Manual \
-            "CODE_SIGN_IDENTITY=Apple Distribution" \
-            "PROVISIONING_PROFILE_SPECIFIER=$IOS_PROVISIONING_PROFILE_NAME" \
+            "PROFILE_SPECIFIER=$PROFILE_UUID" \
             "DEVELOPMENT_TEAM=$TEAM_ID"
 
           xcodebuild -exportArchive \
