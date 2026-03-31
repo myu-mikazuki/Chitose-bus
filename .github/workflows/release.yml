@@ -72,8 +72,6 @@ jobs:
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
 
       - name: Build IPA (release, signed)
-        env:
-          IOS_PROVISIONING_PROFILE_NAME: ${{ vars.IOS_PROVISIONING_PROFILE_NAME }}
         run: |
           cat > ios/ExportOptions.plist << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -81,7 +79,7 @@ jobs:
           <plist version="1.0">
           <dict>
               <key>method</key>
-              <string>app-store</string>
+              <string>app-store-connect</string>
               <key>uploadBitcode</key>
               <false/>
               <key>uploadSymbols</key>
@@ -91,7 +89,7 @@ jobs:
               <key>provisioningProfiles</key>
               <dict>
                   <key>com.myu-mikazuki.kagibus</key>
-                  <string>${IOS_PROVISIONING_PROFILE_NAME}</string>
+                  <string>${PROFILE_UUID}</string>
               </dict>
           </dict>
           </plist>
