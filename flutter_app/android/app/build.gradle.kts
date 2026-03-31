@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "jp.yuzucchi.kagibus"
+    namespace = "com.myu_mikazuki.kagibus"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "jp.yuzucchi.kagibus"
+        applicationId = "com.myu_mikazuki.kagibus"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
