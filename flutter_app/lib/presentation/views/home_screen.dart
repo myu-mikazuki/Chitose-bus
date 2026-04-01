@@ -90,20 +90,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             orElse: () => const SizedBox.shrink(),
           ),
           scheduleAsync.maybeWhen(
-            data: (r) => r.current.pdfUrl.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.open_in_browser,
-                        color: Color(0xFF00FF88)),
-                    tooltip: '時刻表原文を開く',
-                    onPressed: () => launchUrl(
-                      Uri.parse(r.current.pdfUrl),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            orElse: () => const SizedBox.shrink(),
-          ),
-          scheduleAsync.maybeWhen(
             data: (r) => r.upcoming != null
                 ? IconButton(
                     icon: const Icon(Icons.calendar_month,
