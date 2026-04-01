@@ -140,38 +140,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ],
         ),
       ),
-      bottomNavigationBar: kIsWeb ? null : const _BannerAdWidget(),
-      body: scheduleAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-        error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('エラー: $e',
-                  style: const TextStyle(color: AppColors.error)),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () =>
-                    ref.read(scheduleViewModelProvider.notifier).refresh(),
-                child: const Text('再試行',
-                    style: TextStyle(color: AppColors.primary)),
+      body: Column(
+        children: [
+          Expanded(
+            child: scheduleAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
-            ],
+              error: (e, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('エラー: $e',
+                        style: const TextStyle(color: AppColors.error)),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () =>
+                          ref.read(scheduleViewModelProvider.notifier).refresh(),
+                      child: const Text('再試行',
+                          style: TextStyle(color: AppColors.primary)),
+                    ),
+                  ],
+                ),
+              ),
+              data: (response) {
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _DirectionTab(timetable: response.current, direction: BusDirection.fromChitose, updatedAt: response.updatedAt),
+                    _DirectionTab(timetable: response.current, direction: BusDirection.fromMinamiChitose, updatedAt: response.updatedAt),
+                    _KenkyutoTab(timetable: response.current, updatedAt: response.updatedAt),
+                    _DirectionTab(timetable: response.current, direction: BusDirection.fromHonbuto, updatedAt: response.updatedAt),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-        data: (response) {
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _DirectionTab(timetable: response.current, direction: BusDirection.fromChitose, updatedAt: response.updatedAt),
-              _DirectionTab(timetable: response.current, direction: BusDirection.fromMinamiChitose, updatedAt: response.updatedAt),
-              _KenkyutoTab(timetable: response.current, updatedAt: response.updatedAt),
-              _DirectionTab(timetable: response.current, direction: BusDirection.fromHonbuto, updatedAt: response.updatedAt),
-            ],
-          );
-        },
+          if (!kIsWeb) const _BannerAdWidget(),
+        ],
       ),
     );
   }
@@ -511,12 +517,10 @@ class _BannerAdWidgetState extends State<_BannerAdWidget> {
   @override
   Widget build(BuildContext context) {
     if (_bannerAd == null) return const SizedBox.shrink();
-    return SafeArea(
-      child: SizedBox(
-        width: _bannerAd!.size.width.toDouble(),
-        height: _bannerAd!.size.height.toDouble(),
-        child: AdWidget(ad: _bannerAd!),
-      ),
+    return SizedBox(
+      width: double.infinity,
+      height: _bannerAd!.size.height.toDouble(),
+      child: AdWidget(ad: _bannerAd!),
     );
   }
 }
