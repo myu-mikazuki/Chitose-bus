@@ -185,6 +185,7 @@ function buildResponse(jsonString) {
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
+    var category = data.category || '';
     var description = data.description || '';
     var steps = data.steps || '';
 
@@ -200,13 +201,13 @@ function doPost(e) {
     var sheetId = props.getProperty('BUG_REPORT_SHEET_ID');
     if (sheetId) {
       var sheet = SpreadsheetApp.openById(sheetId).getSheets()[0];
-      sheet.appendRow([now, description, steps]);
+      sheet.appendRow([now, category, description, steps]);
     }
 
     var notifyEmail = props.getProperty('BUG_REPORT_NOTIFY_EMAIL');
     if (notifyEmail) {
-      var subject = '[Kagi-Bus] バグ報告が届きました';
-      var body = '日時: ' + now + '\n\nバグの内容:\n' + description + '\n\n発生手順:\n' + (steps || '（未入力）');
+      var subject = '[Kagi-Bus] お問い合わせが届きました';
+      var body = '日時: ' + now + '\n\n種類: ' + (category || '（未選択）') + '\n\nお問い合わせ内容:\n' + description + '\n\n詳細:\n' + (steps || '（未入力）');
       var mailOptions = {};
       var fromEmail = props.getProperty('BUG_REPORT_FROM_EMAIL');
       if (fromEmail) mailOptions.from = fromEmail;

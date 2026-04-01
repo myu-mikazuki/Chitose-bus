@@ -3,28 +3,31 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
-import '../../data/sources/bug_report_remote_source.dart';
+import '../../data/sources/contact_remote_source.dart';
 
-class BugReportScreen extends StatefulWidget {
-  const BugReportScreen({super.key});
+const _categories = ['バグ報告', '機能要望', 'その他'];
+
+class ContactScreen extends StatefulWidget {
+  const ContactScreen({super.key});
 
   @override
-  State<BugReportScreen> createState() => _BugReportScreenState();
+  State<ContactScreen> createState() => _ContactScreenState();
 }
 
-class _BugReportScreenState extends State<BugReportScreen> {
+class _ContactScreenState extends State<ContactScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
-  final _stepsController = TextEditingController();
+  final _detailController = TextEditingController();
+  String _category = _categories.first;
   bool _isSubmitting = false;
-  final _source = BugReportRemoteSource(
+  final _source = ContactRemoteSource(
     endpointUrl: AppConstants.gasEndpointUrl,
   );
 
   @override
   void dispose() {
     _descriptionController.dispose();
-    _stepsController.dispose();
+    _detailController.dispose();
     super.dispose();
   }
 
@@ -42,17 +45,18 @@ class _BugReportScreenState extends State<BugReportScreen> {
 
     try {
       await _source.sendReport(
+        category: _category,
         description: _descriptionController.text.trim(),
-        steps: _stepsController.text.trim(),
+        steps: _detailController.text.trim(),
       );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('報告を送信しました。ありがとうございます！')),
+        const SnackBar(content: Text('送信しました。ありがとうございます！')),
       );
       Navigator.pop(context);
     } catch (e) {
-      debugPrint('BugReportScreen: send failed: $e');
+      debugPrint('ContactScreen: send failed: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('送信に失敗しました。しばらく後で再試行してください。')),
@@ -62,6 +66,11 @@ class _BugReportScreenState extends State<BugReportScreen> {
     }
   }
 
+  OutlineInputBorder _border(Color color) => OutlineInputBorder(
+        borderSide: BorderSide(color: color),
+        borderRadius: BorderRadius.circular(8),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,7 +79,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
         backgroundColor: context.appColors.background,
         foregroundColor: AppColors.primary,
         title: const Text(
-          'バグを報告',
+          'お問い合わせ',
           style: TextStyle(
             color: AppColors.primary,
             fontSize: 16,
@@ -84,7 +93,30 @@ class _BugReportScreenState extends State<BugReportScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             const Text(
-              'バグの内容',
+              'お問い合わせの種類',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 12,
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _category,
+              items: _categories
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+              onChanged: (v) => setState(() => _category = v!),
+              style: TextStyle(color: context.appColors.textPrimary),
+              dropdownColor: context.appColors.background,
+              decoration: InputDecoration(
+                enabledBorder: _border(context.appColors.border),
+                focusedBorder: _border(AppColors.primary),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'お問い合わせ内容',
               style: TextStyle(
                 color: AppColors.primary,
                 fontSize: 12,
@@ -96,32 +128,20 @@ class _BugReportScreenState extends State<BugReportScreen> {
               controller: _descriptionController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'どのような問題が起きましたか？',
+                hintText: 'お問い合わせの内容を入力してください',
                 hintStyle: TextStyle(color: context.appColors.textDisabled),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.appColors.border),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: AppColors.primary),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                enabledBorder: _border(context.appColors.border),
+                focusedBorder: _border(AppColors.primary),
+                errorBorder: _border(Colors.red.shade300),
+                focusedErrorBorder: _border(Colors.red.shade300),
               ),
               style: TextStyle(color: context.appColors.textPrimary),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'バグの内容を入力してください' : null,
+                  (v == null || v.trim().isEmpty) ? 'お問い合わせ内容を入力してください' : null,
             ),
             const SizedBox(height: 24),
             const Text(
-              '発生手順（任意）',
+              '詳細（任意）',
               style: TextStyle(
                 color: AppColors.primary,
                 fontSize: 12,
@@ -130,19 +150,13 @@ class _BugReportScreenState extends State<BugReportScreen> {
             ),
             const SizedBox(height: 8),
             TextFormField(
-              controller: _stepsController,
+              controller: _detailController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: '再現する手順があれば教えてください',
+                hintText: '詳細があれば教えてください',
                 hintStyle: TextStyle(color: context.appColors.textDisabled),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.appColors.border),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: AppColors.primary),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                enabledBorder: _border(context.appColors.border),
+                focusedBorder: _border(AppColors.primary),
               ),
               style: TextStyle(color: context.appColors.textPrimary),
             ),
