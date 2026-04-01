@@ -120,15 +120,12 @@ jobs:
             -archivePath "$GITHUB_WORKSPACE/build/Runner.xcarchive" \
             -exportOptionsPlist ios/ExportOptions.plist \
             -exportPath "$GITHUB_WORKSPACE/build/ios/ipa"
-
-          IPA_PATH=$(find "$GITHUB_WORKSPACE/build/ios/ipa" -name "*.ipa" | head -1)
-          echo "IPA_PATH=$IPA_PATH" >> $GITHUB_ENV
         working-directory: flutter_app
 
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
-          app-path: ${{ env.IPA_PATH }}
+          app-path: build/ios/ipa/*.ipa
           issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
