@@ -488,7 +488,6 @@ class _BannerAdWidgetState extends State<_BannerAdWidget> {
   @override
   void initState() {
     super.initState();
-    if (kIsWeb) return;
     _bannerAd = BannerAd(
       adUnitId: _adUnitId,
       request: const AdRequest(),
@@ -522,14 +521,19 @@ class _BannerAdWidgetState extends State<_BannerAdWidget> {
         ),
         GestureDetector(
           onTap: widget.onDismissed,
-          child: Container(
-            margin: const EdgeInsets.all(2),
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
-              color: Colors.black54,
-              shape: BoxShape.circle,
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
             ),
-            child: const Icon(Icons.close, size: 14, color: Colors.white),
           ),
         ),
       ],
