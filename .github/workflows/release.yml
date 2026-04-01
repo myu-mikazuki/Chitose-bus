@@ -44,29 +44,109 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
         working-directory: flutter_app
 
-      - name: Build iOS (release, no codesign)
+      - name: Install certificate and provisioning profile
+        env:
+          IOS_CERTIFICATE: ${{ secrets.IOS_CERTIFICATE }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
         run: |
+          set -e
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+          echo "$IOS_CERTIFICATE" | base64 --decode > "$CERTIFICATE_PATH"
+          security import "$CERTIFICATE_PATH" -P "$IOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          PROFILE_PATH=$RUNNER_TEMP/profile.mobileprovision
+          echo "$IOS_PROVISIONING_PROFILE" | base64 --decode > "$PROFILE_PATH"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_UUID=$(security cms -D -i "$PROFILE_PATH" | plutil -extract UUID raw -)
+          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID".mobileprovision
+          TEAM_ID=$(security cms -D -i "$PROFILE_PATH" | plutil -extract TeamIdentifier.0 raw -)
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
+          echo "TEAM_ID=$TEAM_ID" >> $GITHUB_ENV
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+
+      - name: Build IPA (release, signed)
+        env:
+          ADMOB_IOS_APP_ID: ${{ secrets.ADMOB_IOS_APP_ID }}
+        run: |
+          cat > ios/ExportOptions.plist << PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store-connect</string>
+              <key>uploadBitcode</key>
+              <false/>
+              <key>uploadSymbols</key>
+              <true/>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.myu-mikazuki.kagibus</key>
+                  <string>${PROFILE_UUID}</string>
+              </dict>
+          </dict>
+          </plist>
+          PLIST
+
+          if [ -n "$ADMOB_IOS_APP_ID" ]; then
+            sed -i '' "s|ADMOB_APP_ID = .*|ADMOB_APP_ID = $ADMOB_IOS_APP_ID|" ios/Flutter/Release.xcconfig
+          fi
+
           DART_DEFINE_ARGS=""
           if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
             DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
           fi
-          flutter build ios --no-codesign --release $DART_DEFINE_ARGS
+
+          flutter build ios --release --no-codesign $DART_DEFINE_ARGS
+
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath "$GITHUB_WORKSPACE/build/Runner.xcarchive" \
+            "PROFILE_SPECIFIER=$PROFILE_UUID" \
+            "DEVELOPMENT_TEAM=$TEAM_ID"
+
+          xcodebuild -exportArchive \
+            -archivePath "$GITHUB_WORKSPACE/build/Runner.xcarchive" \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath "$GITHUB_WORKSPACE/build/ios/ipa"
         working-directory: flutter_app
 
-      - name: Create IPA
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: build/ios/ipa/*.ipa
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+
+      - name: Rename IPA
         run: |
-          APP_PATH=$(find flutter_app/build/ios/iphoneos -name "*.app" -type d | head -1)
-          mkdir -p build/Payload
-          cp -R "$APP_PATH" build/Payload/
-          cd build
-          zip -rq "kagi_bus-${{ github.ref_name }}-ios.ipa" Payload
-          rm -rf Payload
+          IPA=$(find build/ios/ipa -name "*.ipa" | head -1)
+          mv "$IPA" "kagi_bus-${{ github.ref_name }}-ios.ipa"
 
       - uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
-          path: build/kagi_bus-${{ github.ref_name }}-ios.ipa
+          path: kagi_bus-${{ github.ref_name }}-ios.ipa
           if-no-files-found: error
+
+      - name: Cleanup signing
+        if: always()
+        run: |
+          if [ -n "$KEYCHAIN_PATH" ] && [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
 
   build-android:
     runs-on: ubuntu-latest

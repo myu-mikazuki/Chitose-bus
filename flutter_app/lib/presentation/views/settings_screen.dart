@@ -6,7 +6,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
 import '../viewmodels/app_info_viewmodel.dart';
-import 'bug_report_screen.dart';
+import 'contact_screen.dart';
 import 'notification_settings_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -59,10 +59,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.bug_report_outlined,
+                  leading: const Icon(Icons.contact_support_outlined,
                       color: AppColors.primary),
                   title: Text(
-                    'バグを報告',
+                    'お問い合わせ',
                     style: TextStyle(color: context.appColors.textPrimary),
                   ),
                   trailing: Icon(Icons.chevron_right,
@@ -70,7 +70,7 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const BugReportScreen()),
+                        builder: (_) => const ContactScreen()),
                   ),
                 ),
                 Divider(height: 1, color: context.appColors.border),

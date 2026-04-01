@@ -3,21 +3,22 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-class BugReportRemoteSource {
-  BugReportRemoteSource({required this.endpointUrl});
+class ContactRemoteSource {
+  ContactRemoteSource({required this.endpointUrl});
 
   final String endpointUrl;
 
   Future<void> sendReport({
+    required String category,
     required String description,
-    required String steps,
+    String steps = '',
     @visibleForTesting http.Client? client,
   }) async {
     final c = client ?? http.Client();
     try {
       final request = http.Request('POST', Uri.parse(endpointUrl))
         ..headers['Content-Type'] = 'application/json'
-        ..body = jsonEncode({'description': description, 'steps': steps})
+        ..body = jsonEncode({'category': category, 'description': description, 'steps': steps})
         ..followRedirects = false;
 
       final streamed =

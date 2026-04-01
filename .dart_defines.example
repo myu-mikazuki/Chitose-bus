@@ -1,3 +1,5 @@
 {
-  "GAS_ENDPOINT_URL": "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"
+  "GAS_ENDPOINT_URL": "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec",
+  "ADMOB_ANDROID_AD_UNIT_ID": "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX",
+  "ADMOB_IOS_AD_UNIT_ID": "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
 }

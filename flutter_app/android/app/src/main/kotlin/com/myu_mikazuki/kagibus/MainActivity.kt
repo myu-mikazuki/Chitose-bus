@@ -1,4 +1,4 @@
-package jp.yuzucchi.kagibus
+package com.myu_mikazuki.kagibus
 
 import io.flutter.embedding.android.FlutterActivity
 

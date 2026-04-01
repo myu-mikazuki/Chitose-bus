@@ -183,6 +183,7 @@ jobs:
           PROJECT_TYPE: ${{ steps.detect.outputs.type }}
           USE_SIGNING: ${{ inputs.use_signing }}
           CONFIGURATION: ${{ inputs.configuration }}
+          ADMOB_IOS_APP_ID: ${{ secrets.ADMOB_IOS_APP_ID }}
         run: |
           set -e
 
@@ -219,6 +220,10 @@ jobs:
           if [ "$PROJECT_TYPE" = "flutter" ]; then
             cd ..
             echo "Building Flutter iOS ($CONFIGURATION) via flutter build ios..."
+            # Inject AdMob App ID for release builds
+            if [ "$CONFIGURATION" = "Release" ] && [ -n "$ADMOB_IOS_APP_ID" ]; then
+              sed -i '' "s|ADMOB_APP_ID = .*|ADMOB_APP_ID = $ADMOB_IOS_APP_ID|" ios/Flutter/Release.xcconfig
+            fi
             # Build --dart-define flags from JSON file
             DART_DEFINE_ARGS=""
             if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then

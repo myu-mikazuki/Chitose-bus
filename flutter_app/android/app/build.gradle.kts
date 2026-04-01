@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "jp.yuzucchi.kagibus"
+    namespace = "com.myu_mikazuki.kagibus"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "jp.yuzucchi.kagibus"
+        applicationId = "com.myu_mikazuki.kagibus"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -44,7 +44,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+        }
         release {
+            manifestPlaceholders["admobAppId"] = System.getenv("ADMOB_ANDROID_APP_ID")
+                ?: "ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX"
             signingConfig = if (keystorePath != null) {
                 signingConfigs.getByName("release")
             } else {

@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
@@ -21,6 +25,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _bannerDismissed = false;
 
   @override
   void initState() {
@@ -122,37 +127,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ],
         ),
       ),
-      body: scheduleAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-        error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('エラー: $e',
-                  style: const TextStyle(color: AppColors.error)),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () =>
-                    ref.read(scheduleViewModelProvider.notifier).refresh(),
-                child: const Text('再試行',
-                    style: TextStyle(color: AppColors.primary)),
+      body: Stack(
+        children: [
+          scheduleAsync.when(
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+            error: (e, _) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('エラー: $e',
+                      style: const TextStyle(color: AppColors.error)),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () =>
+                        ref.read(scheduleViewModelProvider.notifier).refresh(),
+                    child: const Text('再試行',
+                        style: TextStyle(color: AppColors.primary)),
+                  ),
+                ],
               ),
-            ],
+            ),
+            data: (response) {
+              return TabBarView(
+                controller: _tabController,
+                children: [
+                  _DirectionTab(timetable: response.current, direction: BusDirection.fromChitose, updatedAt: response.updatedAt),
+                  _DirectionTab(timetable: response.current, direction: BusDirection.fromMinamiChitose, updatedAt: response.updatedAt),
+                  _KenkyutoTab(timetable: response.current, updatedAt: response.updatedAt),
+                  _DirectionTab(timetable: response.current, direction: BusDirection.fromHonbuto, updatedAt: response.updatedAt),
+                ],
+              );
+            },
           ),
-        ),
-        data: (response) {
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _DirectionTab(timetable: response.current, direction: BusDirection.fromChitose, updatedAt: response.updatedAt),
-              _DirectionTab(timetable: response.current, direction: BusDirection.fromMinamiChitose, updatedAt: response.updatedAt),
-              _KenkyutoTab(timetable: response.current, updatedAt: response.updatedAt),
-              _DirectionTab(timetable: response.current, direction: BusDirection.fromHonbuto, updatedAt: response.updatedAt),
-            ],
-          );
-        },
+          if (!kIsWeb && !_bannerDismissed)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _BannerAdWidget(
+                onDismissed: () => setState(() => _bannerDismissed = true),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -440,6 +458,82 @@ class _DirectionTab extends StatelessWidget {
           child: Text(
             '更新: $updatedAt  有効期間: ${timetable.validFrom} 〜 ${timetable.validTo}',
             style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BannerAdWidget extends StatefulWidget {
+  const _BannerAdWidget({required this.onDismissed});
+
+  final VoidCallback onDismissed;
+
+  @override
+  State<_BannerAdWidget> createState() => _BannerAdWidgetState();
+}
+
+class _BannerAdWidgetState extends State<_BannerAdWidget> {
+  BannerAd? _bannerAd;
+
+  static String get _adUnitId {
+    if (Platform.isAndroid) {
+      return AppConstants.admobAndroidAdUnitId;
+    } else {
+      return AppConstants.admobIosAdUnitId;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _bannerAd = BannerAd(
+      adUnitId: _adUnitId,
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) => setState(() {}),
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          setState(() => _bannerAd = null);
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_bannerAd == null) return const SizedBox.shrink();
+    return Stack(
+      alignment: Alignment.topRight,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: _bannerAd!.size.height.toDouble(),
+          child: AdWidget(ad: _bannerAd!),
+        ),
+        GestureDetector(
+          onTap: widget.onDismissed,
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
           ),
         ),
       ],
