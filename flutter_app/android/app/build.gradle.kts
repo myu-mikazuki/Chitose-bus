@@ -44,7 +44,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+        }
         release {
+            manifestPlaceholders["admobAppId"] = System.getenv("ADMOB_ANDROID_APP_ID")
+                ?: "ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX"
             signingConfig = if (keystorePath != null) {
                 signingConfigs.getByName("release")
             } else {

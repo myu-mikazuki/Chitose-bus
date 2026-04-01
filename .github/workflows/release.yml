@@ -72,6 +72,8 @@ jobs:
           echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
 
       - name: Build IPA (release, signed)
+        env:
+          ADMOB_IOS_APP_ID: ${{ secrets.ADMOB_IOS_APP_ID }}
         run: |
           cat > ios/ExportOptions.plist << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -94,6 +96,10 @@ jobs:
           </dict>
           </plist>
           PLIST
+
+          if [ -n "$ADMOB_IOS_APP_ID" ]; then
+            sed -i '' "s|ADMOB_APP_ID = .*|ADMOB_APP_ID = $ADMOB_IOS_APP_ID|" ios/Flutter/Release.xcconfig
+          fi
 
           DART_DEFINE_ARGS=""
           if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
