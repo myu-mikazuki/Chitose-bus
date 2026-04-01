@@ -25,6 +25,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _bannerDismissed = false;
 
   @override
   void initState() {
@@ -140,43 +141,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ],
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: scheduleAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
-              error: (e, _) => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('エラー: $e',
-                        style: const TextStyle(color: AppColors.error)),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () =>
-                          ref.read(scheduleViewModelProvider.notifier).refresh(),
-                      child: const Text('再試行',
-                          style: TextStyle(color: AppColors.primary)),
-                    ),
-                  ],
-                ),
-              ),
-              data: (response) {
-                return TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _DirectionTab(timetable: response.current, direction: BusDirection.fromChitose, updatedAt: response.updatedAt),
-                    _DirectionTab(timetable: response.current, direction: BusDirection.fromMinamiChitose, updatedAt: response.updatedAt),
-                    _KenkyutoTab(timetable: response.current, updatedAt: response.updatedAt),
-                    _DirectionTab(timetable: response.current, direction: BusDirection.fromHonbuto, updatedAt: response.updatedAt),
-                  ],
-                );
-              },
+          scheduleAsync.when(
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
             ),
+            error: (e, _) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('エラー: $e',
+                      style: const TextStyle(color: AppColors.error)),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () =>
+                        ref.read(scheduleViewModelProvider.notifier).refresh(),
+                    child: const Text('再試行',
+                        style: TextStyle(color: AppColors.primary)),
+                  ),
+                ],
+              ),
+            ),
+            data: (response) {
+              return TabBarView(
+                controller: _tabController,
+                children: [
+                  _DirectionTab(timetable: response.current, direction: BusDirection.fromChitose, updatedAt: response.updatedAt),
+                  _DirectionTab(timetable: response.current, direction: BusDirection.fromMinamiChitose, updatedAt: response.updatedAt),
+                  _KenkyutoTab(timetable: response.current, updatedAt: response.updatedAt),
+                  _DirectionTab(timetable: response.current, direction: BusDirection.fromHonbuto, updatedAt: response.updatedAt),
+                ],
+              );
+            },
           ),
-          if (!kIsWeb) const _BannerAdWidget(),
+          if (!kIsWeb && !_bannerDismissed)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _BannerAdWidget(
+                onDismissed: () => setState(() => _bannerDismissed = true),
+              ),
+            ),
         ],
       ),
     );
@@ -473,7 +480,9 @@ class _DirectionTab extends StatelessWidget {
 }
 
 class _BannerAdWidget extends StatefulWidget {
-  const _BannerAdWidget();
+  const _BannerAdWidget({required this.onDismissed});
+
+  final VoidCallback onDismissed;
 
   @override
   State<_BannerAdWidget> createState() => _BannerAdWidgetState();
@@ -517,10 +526,27 @@ class _BannerAdWidgetState extends State<_BannerAdWidget> {
   @override
   Widget build(BuildContext context) {
     if (_bannerAd == null) return const SizedBox.shrink();
-    return SizedBox(
-      width: double.infinity,
-      height: _bannerAd!.size.height.toDouble(),
-      child: AdWidget(ad: _bannerAd!),
+    return Stack(
+      alignment: Alignment.topRight,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: _bannerAd!.size.height.toDouble(),
+          child: AdWidget(ad: _bannerAd!),
+        ),
+        GestureDetector(
+          onTap: widget.onDismissed,
+          child: Container(
+            margin: const EdgeInsets.all(2),
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              color: Colors.black54,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.close, size: 14, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 }
