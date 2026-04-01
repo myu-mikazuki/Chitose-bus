@@ -7,6 +7,11 @@ import '../../data/sources/contact_remote_source.dart';
 
 const _categories = ['バグ報告', '機能要望', 'その他'];
 
+OutlineInputBorder _border(Color color) => OutlineInputBorder(
+      borderSide: BorderSide(color: color),
+      borderRadius: BorderRadius.circular(8),
+    );
+
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
 
@@ -66,11 +71,6 @@ class _ContactScreenState extends State<ContactScreen> {
     }
   }
 
-  OutlineInputBorder _border(Color color) => OutlineInputBorder(
-        borderSide: BorderSide(color: color),
-        borderRadius: BorderRadius.circular(8),
-      );
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,7 +106,7 @@ class _ContactScreenState extends State<ContactScreen> {
               items: _categories
                   .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                   .toList(),
-              onChanged: (v) => setState(() => _category = v!),
+              onChanged: (v) => setState(() => _category = v ?? _category),
               style: TextStyle(color: context.appColors.textPrimary),
               dropdownColor: context.appColors.background,
               decoration: InputDecoration(
