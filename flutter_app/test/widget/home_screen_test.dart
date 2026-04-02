@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/domain/entities/favorite_tab.dart';
+import 'package:kagi_bus/presentation/viewmodels/favorite_tab_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_theme.dart';
 
@@ -43,6 +46,27 @@ class _ErrorViewModel extends ScheduleViewModel {
 
   @override
   Future<ScheduleResponse> build() async => throw _error;
+}
+
+class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
+  final FavoriteTab _initial;
+  int? lastToggleIndex;
+
+  _FakeFavoriteTabNotifier(this._initial);
+
+  @override
+  Future<FavoriteTab> build() async => _initial;
+
+  @override
+  Future<void> toggleFavorite(int tabIndex) async {
+    lastToggleIndex = tabIndex;
+    final current = state.value!;
+    state = AsyncData(
+      current.tabIndex == tabIndex
+          ? const FavoriteTab()
+          : FavoriteTab(tabIndex: tabIndex),
+    );
+  }
 }
 
 /// Error VM that also tracks refresh() calls.
@@ -88,6 +112,10 @@ final _mockResponseWithUpcoming = ScheduleResponse(
 // ---------------------------------------------------------------------------
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('HomeScreen', () {
     testWidgets('loading状態: CircularProgressIndicatorが表示される', (tester) async {
       await tester.pumpWidget(
@@ -256,6 +284,90 @@ void main() {
         find.text('土日祝日はバスが運行していない場合があります'),
         findsNothing,
       );
+    });
+
+    group('お気に入りタブ', () {
+      testWidgets('お気に入り未設定: star_border アイコンが表示される', (tester) async {
+        final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byIcon(Icons.star_border), findsOneWidget);
+        expect(find.byIcon(Icons.star), findsNothing);
+      });
+
+      testWidgets('タブ0がお気に入り: star アイコンが表示される', (tester) async {
+        final favNotifier =
+            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 0));
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byIcon(Icons.star), findsOneWidget);
+        expect(find.byIcon(Icons.star_border), findsNothing);
+      });
+
+      testWidgets('タブ1がお気に入り: 別タブ表示中は star_border が表示される', (tester) async {
+        // タブ0を表示している状態で、タブ1がお気に入り → star_border
+        final favNotifier =
+            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 1));
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        // 初期表示はタブ0（千歳駅）
+        expect(find.byIcon(Icons.star_border), findsOneWidget);
+      });
+
+      testWidgets('スタータップ: toggleFavorite が現在タブのインデックスで呼ばれる',
+          (tester) async {
+        final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        await tester.tap(find.byIcon(Icons.star_border));
+        await tester.pump();
+
+        expect(favNotifier.lastToggleIndex, equals(0)); // タブ0が現在表示中
+      });
     });
   });
 }

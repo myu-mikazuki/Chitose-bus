@@ -9,6 +9,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
+import '../viewmodels/favorite_tab_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'settings_screen.dart';
 import 'widgets/next_bus_display.dart';
@@ -26,6 +27,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _bannerDismissed = false;
+  bool _favoriteApplied = false;
 
   @override
   void initState() {
@@ -42,6 +44,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
+
+    // お気に入りタブの初回適用（アプリ起動時のみ）
+    if (!_favoriteApplied) {
+      ref.watch(favoriteTabProvider).whenData((fav) {
+        _favoriteApplied = true;
+        if (fav.hasFavorite) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _tabController.index = fav.tabIndex!;
+          });
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: context.appColors.background,
@@ -99,6 +113,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   )
                 : const SizedBox.shrink(),
             orElse: () => const SizedBox.shrink(),
+          ),
+          AnimatedBuilder(
+            animation: _tabController,
+            builder: (context, _) {
+              final currentIndex = _tabController.index;
+              return Consumer(
+                builder: (context, ref, _) {
+                  final favoriteAsync = ref.watch(favoriteTabProvider);
+                  return favoriteAsync.maybeWhen(
+                    data: (fav) => IconButton(
+                      icon: Icon(
+                        fav.tabIndex == currentIndex
+                            ? Icons.star
+                            : Icons.star_border,
+                        color: fav.tabIndex == currentIndex
+                            ? AppColors.warning
+                            : AppColors.primary,
+                      ),
+                      tooltip: fav.tabIndex == currentIndex
+                          ? 'お気に入りを解除'
+                          : 'このタブをお気に入りに登録',
+                      onPressed: () => ref
+                          .read(favoriteTabProvider.notifier)
+                          .toggleFavorite(currentIndex),
+                    ),
+                    orElse: () => const SizedBox.shrink(),
+                  );
+                },
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.settings, color: AppColors.primary),
