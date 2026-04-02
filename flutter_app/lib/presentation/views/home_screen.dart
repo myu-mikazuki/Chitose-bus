@@ -9,6 +9,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
+import '../viewmodels/favorite_tab_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'settings_screen.dart';
 import 'widgets/next_bus_display.dart';
@@ -26,6 +27,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _bannerDismissed = false;
+  bool _favoriteApplied = false;
 
   @override
   void initState() {
@@ -39,9 +41,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
+  Tab _buildTab(String label, int index, int? favoriteTabIndex) {
+    final isFavorite = favoriteTabIndex == index;
+    return Tab(
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.center,
+            child: Text(label),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () =>
+                  ref.read(favoriteTabProvider.notifier).toggleFavorite(index),
+              child: Icon(
+                isFavorite ? Icons.star : Icons.star_border,
+                size: 20,
+                color: isFavorite ? AppColors.warning : null,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
+    final favoriteAsync = ref.watch(favoriteTabProvider);
+    final favoriteTabIndex = favoriteAsync.valueOrNull?.tabIndex;
+
+    // お気に入りタブの初回適用（アプリ起動時のみ）
+    // build() 内の副作用は ref.listen に委ねる（Riverpod 推奨パターン）
+    ref.listen(favoriteTabProvider, (prev, next) {
+      if (_favoriteApplied) return;
+      next.whenData((fav) {
+        _favoriteApplied = true;
+        if (fav.hasFavorite) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _tabController.index = fav.tabIndex!;
+          });
+        }
+      });
+    });
 
     return Scaffold(
       backgroundColor: context.appColors.background,
@@ -119,11 +164,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: context.appColors.textDisabled,
-          tabs: const [
-            Tab(text: '千歳駅'),
-            Tab(text: '南千歳'),
-            Tab(text: '研究棟'),
-            Tab(text: '本部棟'),
+          tabs: [
+            _buildTab('千歳駅', 0, favoriteTabIndex),
+            _buildTab('南千歳', 1, favoriteTabIndex),
+            _buildTab('研究棟', 2, favoriteTabIndex),
+            _buildTab('本部棟', 3, favoriteTabIndex),
           ],
         ),
       ),
