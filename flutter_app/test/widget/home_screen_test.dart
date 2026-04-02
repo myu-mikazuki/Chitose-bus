@@ -287,7 +287,8 @@ void main() {
     });
 
     group('お気に入りタブ', () {
-      testWidgets('お気に入り未設定: star_border アイコンが表示される', (tester) async {
+      testWidgets('お気に入り未設定: タブ4つ全てに star_border アイコンが表示される',
+          (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
@@ -302,11 +303,11 @@ void main() {
         );
         await tester.pump();
 
-        expect(find.byIcon(Icons.star_border), findsOneWidget);
+        expect(find.byIcon(Icons.star_border), findsNWidgets(4));
         expect(find.byIcon(Icons.star), findsNothing);
       });
 
-      testWidgets('タブ0がお気に入り: star アイコンが表示される', (tester) async {
+      testWidgets('タブ0がお気に入り: star 1個 + star_border 3個が表示される', (tester) async {
         final favNotifier =
             _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 0));
         await tester.pumpWidget(
@@ -323,32 +324,10 @@ void main() {
         await tester.pump();
 
         expect(find.byIcon(Icons.star), findsOneWidget);
-        expect(find.byIcon(Icons.star_border), findsNothing);
+        expect(find.byIcon(Icons.star_border), findsNWidgets(3));
       });
 
-      testWidgets('タブ1がお気に入り: 別タブ表示中は star_border が表示される', (tester) async {
-        // タブ0を表示している状態で、タブ1がお気に入り → star_border
-        final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 1));
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
-              favoriteTabProvider.overrideWith(() => favNotifier),
-              countdownOverride(),
-            ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
-          ),
-        );
-        await tester.pump();
-
-        // 初期表示はタブ0（千歳駅）
-        expect(find.byIcon(Icons.star_border), findsOneWidget);
-      });
-
-      testWidgets('スタータップ: toggleFavorite が現在タブのインデックスで呼ばれる',
-          (tester) async {
+      testWidgets('タブ0のスタータップ: toggleFavorite(0) が呼ばれる', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
@@ -363,10 +342,33 @@ void main() {
         );
         await tester.pump();
 
-        await tester.tap(find.byIcon(Icons.star_border));
+        // タブ0（千歳駅）の star_border をタップ
+        await tester.tap(find.byIcon(Icons.star_border).first);
         await tester.pump();
 
-        expect(favNotifier.lastToggleIndex, equals(0)); // タブ0が現在表示中
+        expect(favNotifier.lastToggleIndex, equals(0));
+      });
+
+      testWidgets('タブ2のスタータップ: toggleFavorite(2) が呼ばれる', (tester) async {
+        final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        // タブ2（研究棟）の star_border をタップ（3番目 = index 2）
+        await tester.tap(find.byIcon(Icons.star_border).at(2));
+        await tester.pump();
+
+        expect(favNotifier.lastToggleIndex, equals(2));
       });
     });
   });

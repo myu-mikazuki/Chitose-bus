@@ -41,13 +41,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
+  Tab _buildTab(String label, int index, int? favoriteTabIndex) {
+    final isFavorite = favoriteTabIndex == index;
+    return Tab(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label),
+          const SizedBox(width: 4),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () =>
+                ref.read(favoriteTabProvider.notifier).toggleFavorite(index),
+            child: Icon(
+              isFavorite ? Icons.star : Icons.star_border,
+              size: 14,
+              color: isFavorite ? AppColors.warning : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
+    final favoriteAsync = ref.watch(favoriteTabProvider);
+    final favoriteTabIndex = favoriteAsync.valueOrNull?.tabIndex;
 
     // お気に入りタブの初回適用（アプリ起動時のみ）
     if (!_favoriteApplied) {
-      ref.watch(favoriteTabProvider).whenData((fav) {
+      favoriteAsync.whenData((fav) {
         _favoriteApplied = true;
         if (fav.hasFavorite) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -114,36 +139,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 : const SizedBox.shrink(),
             orElse: () => const SizedBox.shrink(),
           ),
-          AnimatedBuilder(
-            animation: _tabController,
-            builder: (context, _) {
-              final currentIndex = _tabController.index;
-              return Consumer(
-                builder: (context, ref, _) {
-                  final favoriteAsync = ref.watch(favoriteTabProvider);
-                  return favoriteAsync.maybeWhen(
-                    data: (fav) => IconButton(
-                      icon: Icon(
-                        fav.tabIndex == currentIndex
-                            ? Icons.star
-                            : Icons.star_border,
-                        color: fav.tabIndex == currentIndex
-                            ? AppColors.warning
-                            : AppColors.primary,
-                      ),
-                      tooltip: fav.tabIndex == currentIndex
-                          ? 'お気に入りを解除'
-                          : 'このタブをお気に入りに登録',
-                      onPressed: () => ref
-                          .read(favoriteTabProvider.notifier)
-                          .toggleFavorite(currentIndex),
-                    ),
-                    orElse: () => const SizedBox.shrink(),
-                  );
-                },
-              );
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.settings, color: AppColors.primary),
             tooltip: '設定',
@@ -163,11 +158,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: context.appColors.textDisabled,
-          tabs: const [
-            Tab(text: '千歳駅'),
-            Tab(text: '南千歳'),
-            Tab(text: '研究棟'),
-            Tab(text: '本部棟'),
+          tabs: [
+            _buildTab('千歳駅', 0, favoriteTabIndex),
+            _buildTab('南千歳', 1, favoriteTabIndex),
+            _buildTab('研究棟', 2, favoriteTabIndex),
+            _buildTab('本部棟', 3, favoriteTabIndex),
           ],
         ),
       ),
