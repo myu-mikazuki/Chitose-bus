@@ -233,10 +233,30 @@ jobs:
             if [ "$CONFIGURATION" = "Debug" ]; then
               BUILD_MODE_FLAG="--debug"
             fi
-            flutter build ios \
-              --no-codesign \
-              $BUILD_MODE_FLAG \
-              $DART_DEFINE_ARGS
+            if [ "$USE_SIGNING" = "true" ]; then
+              # Create ExportOptions.plist for flutter build ipa
+              cat > "$GITHUB_WORKSPACE/ExportOptions.plist" <<'EXPORT_PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>development</string>
+    <key>signingStyle</key>
+    <string>automatic</string>
+</dict>
+</plist>
+EXPORT_PLIST
+              flutter build ipa \
+                --export-options-plist="$GITHUB_WORKSPACE/ExportOptions.plist" \
+                $BUILD_MODE_FLAG \
+                $DART_DEFINE_ARGS
+            else
+              flutter build ios \
+                --no-codesign \
+                $BUILD_MODE_FLAG \
+                $DART_DEFINE_ARGS
+            fi
             cd "$GITHUB_WORKSPACE/$IOS_PATH"
           elif [ "$PROJECT_TYPE" = "reactnative" ] || [ "$PROJECT_TYPE" = "expo" ]; then
             # Use xcodebuild directly for React Native/Expo
@@ -302,26 +322,36 @@ jobs:
 
           # Create IPA
           if [ "$USE_SIGNING" = "true" ]; then
-            # For signed builds, use xcodebuild -exportArchive
             cd "$GITHUB_WORKSPACE"
-            printf '%s\n' \
-              '<?xml version="1.0" encoding="UTF-8"?>' \
-              '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
-              '<plist version="1.0">' \
-              '<dict>' \
-              '    <key>method</key>' \
-              '    <string>development</string>' \
-              '    <key>signingStyle</key>' \
-              '    <string>automatic</string>' \
-              '</dict>' \
-              '</plist>' > ExportOptions.plist
-            xcodebuild -exportArchive \
-              -archivePath build/App.xcarchive \
-              -exportOptionsPlist ExportOptions.plist \
-              -exportPath build/export
-
-            # Move IPA to expected location
-            mv build/export/*.ipa "build/$BUILD_ID.ipa"
+            if [ "$PROJECT_TYPE" = "flutter" ]; then
+              # flutter build ipa already created the IPA under build/ios/ipa/
+              FLUTTER_ROOT=$(dirname "$IOS_PATH")
+              IPA_SRC=$(find "$GITHUB_WORKSPACE/$FLUTTER_ROOT/build/ios/ipa" -name "*.ipa" -type f 2>/dev/null | head -1)
+              if [ -z "$IPA_SRC" ]; then
+                echo "Error: Could not find IPA from flutter build ipa"
+                exit 1
+              fi
+              mkdir -p build
+              mv "$IPA_SRC" "build/$BUILD_ID.ipa"
+            else
+              # For non-Flutter signed builds, use xcodebuild -exportArchive
+              printf '%s\n' \
+                '<?xml version="1.0" encoding="UTF-8"?>' \
+                '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+                '<plist version="1.0">' \
+                '<dict>' \
+                '    <key>method</key>' \
+                '    <string>development</string>' \
+                '    <key>signingStyle</key>' \
+                '    <string>automatic</string>' \
+                '</dict>' \
+                '</plist>' > ExportOptions.plist
+              xcodebuild -exportArchive \
+                -archivePath build/App.xcarchive \
+                -exportOptionsPlist ExportOptions.plist \
+                -exportPath build/export
+              mv build/export/*.ipa "build/$BUILD_ID.ipa"
+            fi
             echo "Created signed IPA: build/$BUILD_ID.ipa"
           else
             # For unsigned builds, find .app and create IPA
