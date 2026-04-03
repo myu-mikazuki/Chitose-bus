@@ -176,6 +176,15 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
         working-directory: flutter_app
 
+      - name: Set DART_DEFINE_ARGS
+        run: |
+          if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
+            DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
+          else
+            DART_DEFINE_ARGS=""
+          fi
+          echo "DART_DEFINE_ARGS=$DART_DEFINE_ARGS" >> $GITHUB_ENV
+
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -189,12 +198,16 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          DART_DEFINE_ARGS=""
-          if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
-            DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
-          fi
-          flutter build apk --release $DART_DEFINE_ARGS
+        run: flutter build apk --release $DART_DEFINE_ARGS
+        working-directory: flutter_app
+
+      - name: Build AAB (release)
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/flutter_app/android/app/keystore/kagi_bus.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: flutter build appbundle --release $DART_DEFINE_ARGS
         working-directory: flutter_app
 
       - name: Cleanup keystore
@@ -204,10 +217,19 @@ jobs:
       - name: Rename APK
         run: mv flutter_app/build/app/outputs/flutter-apk/app-release.apk kagi_bus-${{ github.ref_name }}-android.apk
 
+      - name: Rename AAB
+        run: mv flutter_app/build/app/outputs/bundle/release/app-release.aab kagi_bus-${{ github.ref_name }}-android.aab
+
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: kagi_bus-${{ github.ref_name }}-android.apk
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: kagi_bus-${{ github.ref_name }}-android.aab
           if-no-files-found: error
 
   release:
@@ -224,6 +246,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: android-apk
+          path: artifacts/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-aab
           path: artifacts/
 
       - name: Create GitHub Release
