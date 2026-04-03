@@ -42,28 +42,76 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Tab _buildTab(String label, int index, int? favoriteTabIndex) {
-    final isFavorite = favoriteTabIndex == index;
     return Tab(
-      child: Stack(
-        children: [
-          Align(
-            alignment: Alignment.center,
-            child: Text(label),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () =>
-                  ref.read(favoriteTabProvider.notifier).toggleFavorite(index),
-              child: Icon(
-                isFavorite ? Icons.star : Icons.star_border,
-                size: 20,
-                color: isFavorite ? AppColors.warning : null,
-              ),
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isFavorite = favoriteTabIndex == index;
+          final tabWidth = constraints.maxWidth;
+
+          // タブ内のラベルスタイルでテキスト幅を計測
+          final textStyle = DefaultTextStyle.of(context).style;
+          final textPainter = TextPainter(
+            text: TextSpan(text: label, style: textStyle),
+            textDirection: TextDirection.ltr,
+          )..layout();
+          final textWidth = textPainter.width;
+
+          const starSize = 20.0;
+          const gap = 4.0;
+
+          Widget starIcon(double size) => GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => ref
+                    .read(favoriteTabProvider.notifier)
+                    .toggleFavorite(index),
+                child: Icon(
+                  isFavorite ? Icons.star : Icons.star_border,
+                  size: size,
+                  color: isFavorite ? AppColors.warning : null,
+                ),
+              );
+
+          // デフォルト: ラベル中央・スター右端（重ならない場合）
+          // 中央テキストの右端 = tabWidth/2 + textWidth/2
+          // スターの左端 = tabWidth - starSize
+          final stackFits =
+              tabWidth / 2 + textWidth / 2 + gap <= tabWidth - starSize;
+          if (stackFits) {
+            return Stack(
+              children: [
+                Align(alignment: Alignment.center, child: Text(label)),
+                Align(
+                    alignment: Alignment.centerRight,
+                    child: starIcon(starSize)),
+              ],
+            );
+          }
+
+          // 横並び（重なる場合）
+          final rowFits = textWidth + gap + starSize <= tabWidth;
+          if (rowFits) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(label),
+                const SizedBox(width: gap),
+                starIcon(starSize),
+              ],
+            );
+          }
+
+          // 縮小表示（横並びでも収まらない場合）
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 11)),
+              const SizedBox(width: 2),
+              starIcon(14),
+            ],
+          );
+        },
       ),
     );
   }
