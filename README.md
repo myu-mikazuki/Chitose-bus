@@ -2,6 +2,25 @@
 
 千歳科学技術大学のシャトルバス時刻表を表示する Flutter アプリと、その GAS バックエンドのリポジトリです。
 
+## ストア公開
+
+> **現在ベータテスト中です。**  
+> 正式公開に向けて TestFlight（iOS）および Google Play 内部テスト（Android）でテストを実施しています。
+
+| プラットフォーム | 状態 |
+|----------------|------|
+| iOS (TestFlight) | ベータテスト中 |
+| Android (Google Play) | ベータテスト中 |
+
+## 主な機能
+
+- 千歳駅・南千歳・研究棟・本部棟 各方向のバス時刻表を表示
+- 次のバスまでのカウントダウン表示
+- お気に入りタブ登録（起動時に自動選択）
+- バス出発前の通知
+- 来週のダイヤ表示
+- バナー広告（AdMob）
+
 ## システム構成
 
 ```
@@ -30,7 +49,8 @@
 └── .github/
     └── workflows/
         ├── test.yml      # Flutter テスト自動実行（push / PR）
-        └── ios-build.yml # iOS IPA ビルド
+        ├── ios-build.yml # iOS IPA ビルド（手動実行）
+        └── release.yml   # リリースビルド・GitHub Release 作成（タグ push で起動）
 ```
 
 ## セットアップ
@@ -99,16 +119,52 @@ flutter test
 
 詳細なテスト手順（Golden更新・統合テスト・fake_async など）は [`flutter_app/TESTING.md`](flutter_app/TESTING.md) を参照してください。
 
-### iOS IPA ビルド
+### リリースビルド（release.yml）
+
+`v*` タグを push すると自動で起動します。
+
+```bash
+git tag v0.7.0
+git push origin v0.7.0
+```
+
+| 成果物 | 内容 |
+|--------|------|
+| `kagi_bus-{version}-ios.ipa` | App Store Connect 提出用 IPA（署名済み）、TestFlight へ自動アップロード |
+| `kagi_bus-{version}-android.apk` | Android APK（リリース署名済み） |
+| `kagi_bus-{version}-android.aab` | Google Play 提出用 AAB（リリース署名済み） |
+
+成果物は GitHub Release のアセットにも自動添付されます。
+
+#### 必要な Secrets
+
+| Secret 名 | 内容 |
+|-----------|------|
+| `IOS_CERTIFICATE` | Apple Distribution 証明書（Base64） |
+| `IOS_CERTIFICATE_PASSWORD` | 証明書のパスワード |
+| `IOS_PROVISIONING_PROFILE` | Provisioning Profile（Base64） |
+| `APP_STORE_CONNECT_API_ISSUER_ID` | App Store Connect API Issuer ID |
+| `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API Key ID |
+| `APP_STORE_CONNECT_API_PRIVATE_KEY` | App Store Connect API 秘密鍵 |
+| `ADMOB_IOS_APP_ID` | AdMob iOS アプリ ID |
+| `KEYSTORE_BASE64` | Android キーストアファイル（Base64） |
+| `KEYSTORE_PASSWORD` | キーストアのパスワード |
+| `KEY_ALIAS` | キーエイリアス |
+| `KEY_PASSWORD` | キーのパスワード |
+
+### iOS 手動ビルド（ios-build.yml）
 
 GitHub Actions の **iOS Build** ワークフロー（`workflow_dispatch`）から実行します。
 
 - `build_id`: ビルド識別子（任意の文字列）
 - `configuration`: `Debug`（デフォルト）または `Release`
-- `use_signing`: コード署名を有効にする場合は `true`
-
-署名なしビルドで生成された `.ipa` は AltStore / Sideloadly でサイドロードできます。
+- `use_signing`: App Store Connect 提出用に署名する場合は `true`
 
 ## バージョン
 
-**v0.1.0** （[リリースノート](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.1.0)）
+| バージョン | 内容 |
+|-----------|------|
+| [v0.7.0](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.7.0) | お気に入りタブ機能追加、AAB ビルド追加 |
+| [v0.6.1](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.6.1) | iOS ビルド修正 |
+| [v0.6.0](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.6.0) | ストア初回公開（AdMob 広告、お問い合わせ機能） |
+| [v0.5.0](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.5.0) | バス出発前通知機能 |
