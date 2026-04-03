@@ -176,6 +176,15 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
         working-directory: flutter_app
 
+      - name: Set DART_DEFINE_ARGS
+        run: |
+          if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
+            DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
+          else
+            DART_DEFINE_ARGS=""
+          fi
+          echo "DART_DEFINE_ARGS=$DART_DEFINE_ARGS" >> $GITHUB_ENV
+
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -189,12 +198,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          DART_DEFINE_ARGS=""
-          if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
-            DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
-          fi
-          flutter build apk --release $DART_DEFINE_ARGS
+        run: flutter build apk --release $DART_DEFINE_ARGS
         working-directory: flutter_app
 
       - name: Build AAB (release)
@@ -203,12 +207,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          DART_DEFINE_ARGS=""
-          if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
-            DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
-          fi
-          flutter build appbundle --release $DART_DEFINE_ARGS
+        run: flutter build appbundle --release $DART_DEFINE_ARGS
         working-directory: flutter_app
 
       - name: Cleanup keystore
