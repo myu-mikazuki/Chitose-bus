@@ -20,7 +20,7 @@ flutter_launcher_icons:
 
 publish_to: 'none'
 
-version: 0.7.0+10
+version: 0.7.1+11
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
