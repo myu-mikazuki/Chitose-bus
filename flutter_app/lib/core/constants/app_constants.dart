@@ -16,7 +16,7 @@ class AppConstants {
 
   /// プライバシーポリシーの公開URL
   static const String privacyPolicyUrl =
-      'https://yuzucchi-cist.github.io/Chitose-bus/privacy_policy.html';
+      'https://myu-mikazuki.github.io/Chitose-bus/privacy_policy.html';
 
   /// AdMob バナー広告ユニット ID (Android)
   /// --dart-define=ADMOB_ANDROID_AD_UNIT_ID=ca-app-pub-xxx/xxx で渡す
