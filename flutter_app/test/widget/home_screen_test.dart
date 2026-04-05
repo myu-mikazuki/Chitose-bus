@@ -9,6 +9,7 @@ import 'package:kagi_bus/presentation/viewmodels/favorite_tab_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
+import 'package:kagi_bus/presentation/views/widgets/offline_cache_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_theme.dart';
@@ -374,6 +375,50 @@ void main() {
         await tester.pump();
 
         expect(favNotifier.lastToggleIndex, equals(2));
+      });
+    });
+
+    group('OfflineCacheBanner', () {
+      testWidgets('isFromCache: true のとき OfflineCacheBanner が表示される',
+          (tester) async {
+        final cachedResult = ScheduleResult(
+          data: ScheduleResponse(
+            updatedAt: '2024-01-01',
+            current: _emptyTimetable,
+          ),
+          isFromCache: true,
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(cachedResult)),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byType(OfflineCacheBanner), findsOneWidget);
+        expect(find.textContaining('オフラインモード'), findsOneWidget);
+      });
+
+      testWidgets('isFromCache: false のとき OfflineCacheBanner が表示されない',
+          (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byType(OfflineCacheBanner), findsNothing);
       });
     });
   });

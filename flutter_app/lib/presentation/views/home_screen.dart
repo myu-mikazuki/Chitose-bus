@@ -13,6 +13,7 @@ import '../viewmodels/favorite_tab_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import 'settings_screen.dart';
 import 'widgets/next_bus_display.dart';
+import 'widgets/offline_cache_banner.dart';
 import 'widgets/schedule_list.dart';
 import 'widgets/weekend_warning_banner.dart';
 
@@ -243,13 +244,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
             data: (result) {
-              return TabBarView(
-                controller: _tabController,
+              return Column(
                 children: [
-                  _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt),
-                  _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt),
-                  _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt),
-                  _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt),
+                  if (result.isFromCache)
+                    OfflineCacheBanner(updatedAt: result.data.updatedAt),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt),
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt),
+                        _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt),
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt),
+                      ],
+                    ),
+                  ),
                 ],
               );
             },
