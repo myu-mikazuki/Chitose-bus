@@ -24,6 +24,7 @@ class ScheduleLocalSource {
     await prefs.setString(_keyAt, DateTime.now().toIso8601String());
   }
 
+  // TODO(#71): 「最終更新: X分前」などの UI 表示に使用する予定
   Future<DateTime?> loadCachedAt() async {
     final prefs = await SharedPreferences.getInstance();
     final ts = prefs.getString(_keyAt);

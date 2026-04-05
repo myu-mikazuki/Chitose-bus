@@ -2,28 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
-import 'package:kagi_bus/data/sources/schedule_local_source.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
 
+import '../../helpers/fake_schedule_local_source.dart';
+
 class MockScheduleRemoteSource extends Mock implements ScheduleRemoteSource {}
-
-class FakeScheduleLocalSource implements ScheduleLocalSource {
-  ScheduleResponseModel? stored;
-  int saveCallCount = 0;
-
-  @override
-  Future<ScheduleResponseModel?> load() async => stored;
-
-  @override
-  Future<void> save(ScheduleResponseModel model) async {
-    stored = model;
-    saveCallCount++;
-  }
-
-  @override
-  Future<DateTime?> loadCachedAt() async =>
-      stored != null ? DateTime.now() : null;
-}
 
 const _responseModel = ScheduleResponseModel(
   updatedAt: '2024-01-01',
@@ -95,28 +78,7 @@ void main() {
       expect(fakeLocalSource.stored, _responseModel);
     });
 
-    test('returns isFromCache: false on remote success', () async {
-      when(() => mockRemoteSource.fetchSchedule())
-          .thenAnswer((_) async => _responseModel);
-
-      final result = await repository.fetchSchedule();
-
-      expect(result.isFromCache, isFalse);
-    });
-
-    test('returns cached data with isFromCache: true on remote failure',
-        () async {
-      when(() => mockRemoteSource.fetchSchedule())
-          .thenThrow(Exception('network error'));
-      fakeLocalSource.stored = _responseModel;
-
-      final result = await repository.fetchSchedule();
-
-      expect(result.isFromCache, isTrue);
-      expect(result.updatedAt, '2024-01-01');
-    });
-
-    test('rethrows exception when remote fails and no cache', () async {
+    test('propagates exception when remote fails', () async {
       when(() => mockRemoteSource.fetchSchedule())
           .thenThrow(Exception('network error'));
 
@@ -139,14 +101,13 @@ void main() {
       expect(await repository.getCached(), isNull);
     });
 
-    test('returns cached data with isFromCache: true', () async {
+    test('returns cached data', () async {
       fakeLocalSource.stored = _responseModel;
 
       final result = await repository.getCached();
 
       expect(result, isNotNull);
-      expect(result!.isFromCache, isTrue);
-      expect(result.updatedAt, '2024-01-01');
+      expect(result!.updatedAt, '2024-01-01');
     });
 
     test('returns cached upcoming timetable correctly', () async {

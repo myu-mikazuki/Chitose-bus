@@ -6,6 +6,7 @@ import '../../data/sources/schedule_remote_source.dart';
 import '../../data/sources/schedule_local_source.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../../domain/repositories/schedule_repository.dart';
+import 'schedule_result.dart';
 
 // ----- Providers -----
 
@@ -20,7 +21,7 @@ final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
 });
 
 final scheduleViewModelProvider =
-    AsyncNotifierProvider<ScheduleViewModel, ScheduleResponse>(
+    AsyncNotifierProvider<ScheduleViewModel, ScheduleResult>(
   ScheduleViewModel.new,
 );
 
@@ -33,31 +34,30 @@ final countdownProvider =
 
 // ----- ScheduleViewModel -----
 
-class ScheduleViewModel extends AsyncNotifier<ScheduleResponse> {
+class ScheduleViewModel extends AsyncNotifier<ScheduleResult> {
   Timer? _refreshTimer;
 
   @override
-  Future<ScheduleResponse> build() async {
+  Future<ScheduleResult> build() async {
     ref.onDispose(() => _refreshTimer?.cancel());
 
     final cached = await _repo.getCached();
     if (cached != null) {
       _startAutoRefresh();
       _fetchAndUpdateSilently();
-      return cached;
+      return ScheduleResult(data: cached, isFromCache: true);
     }
 
     _startAutoRefresh();
-    return _fetch();
+    return ScheduleResult(data: await _repo.fetchSchedule());
   }
 
   ScheduleRepository get _repo => ref.read(scheduleRepositoryProvider);
 
-  Future<ScheduleResponse> _fetch() => _repo.fetchSchedule();
-
   Future<void> _fetchAndUpdateSilently() async {
     try {
-      state = AsyncData(await _fetch());
+      final fresh = await _repo.fetchSchedule();
+      state = AsyncData(ScheduleResult(data: fresh));
     } catch (_) {
       // キャッシュを表示し続ける
     }
@@ -71,7 +71,17 @@ class ScheduleViewModel extends AsyncNotifier<ScheduleResponse> {
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(_fetch);
+    try {
+      final fresh = await _repo.fetchSchedule();
+      state = AsyncData(ScheduleResult(data: fresh));
+    } catch (e, st) {
+      final cached = await _repo.getCached();
+      if (cached != null) {
+        state = AsyncData(ScheduleResult(data: cached, isFromCache: true));
+      } else {
+        state = AsyncError(e, st);
+      }
+    }
   }
 }
 

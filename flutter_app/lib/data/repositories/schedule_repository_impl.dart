@@ -15,20 +15,14 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Future<ScheduleResponse> fetchSchedule() async {
-    try {
-      final model = await remoteSource.fetchSchedule();
-      await localSource.save(model);
-      return model.toEntity();
-    } catch (_) {
-      final cached = await localSource.load();
-      if (cached != null) return cached.toEntity().withIsFromCache(true);
-      rethrow;
-    }
+    final model = await remoteSource.fetchSchedule();
+    await localSource.save(model);
+    return model.toEntity();
   }
 
   @override
   Future<ScheduleResponse?> getCached() async {
     final cached = await localSource.load();
-    return cached?.toEntity().withIsFromCache(true);
+    return cached?.toEntity();
   }
 }

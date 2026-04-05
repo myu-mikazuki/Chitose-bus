@@ -4,25 +4,12 @@ import 'package:mocktail/mocktail.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
 import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
-import 'package:kagi_bus/data/sources/schedule_local_source.dart';
-import 'package:kagi_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 
+import '../../helpers/fake_schedule_local_source.dart';
+
 class MockScheduleRemoteSource extends Mock implements ScheduleRemoteSource {}
-
-class FakeScheduleLocalSource implements ScheduleLocalSource {
-  ScheduleResponseModel? stored;
-
-  @override
-  Future<ScheduleResponseModel?> load() async => stored;
-
-  @override
-  Future<void> save(ScheduleResponseModel model) async => stored = model;
-
-  @override
-  Future<DateTime?> loadCachedAt() async =>
-      stored != null ? DateTime.now() : null;
-}
 
 const _responseModel = ScheduleResponseModel(
   updatedAt: '2024-01-01',
@@ -69,9 +56,8 @@ void main() {
       addTearDown(container.dispose);
 
       final result = await container.read(scheduleViewModelProvider.future);
-      expect(result.updatedAt, '2024-01-01');
-      expect(result.current.schedules.length, 1);
-      expect(result.upcoming, isNull);
+      expect(result.data.updatedAt, '2024-01-01');
+      expect(result.data.current.schedules.length, 1);
       expect(result.isFromCache, isFalse);
     });
 
@@ -91,7 +77,6 @@ void main() {
 
     test('build() returns cached data immediately when cache exists', () async {
       fakeLocalSource.stored = _responseModel;
-      // remote は遅延して成功
       when(() => mockSource.fetchSchedule())
           .thenAnswer((_) async => _responseModel);
 
@@ -99,7 +84,6 @@ void main() {
       addTearDown(container.dispose);
 
       final result = await container.read(scheduleViewModelProvider.future);
-      // キャッシュから即返るので isFromCache: true
       expect(result.isFromCache, isTrue);
     });
 
@@ -112,10 +96,7 @@ void main() {
       final container = makeContainer();
       addTearDown(container.dispose);
 
-      // 初期値（キャッシュ）を取得
       await container.read(scheduleViewModelProvider.future);
-
-      // バックグラウンド更新が完了するまで待つ
       await Future<void>.delayed(Duration.zero);
 
       final updated = container.read(scheduleViewModelProvider).value;
@@ -134,7 +115,6 @@ void main() {
       await container.read(scheduleViewModelProvider.future);
       await Future<void>.delayed(Duration.zero);
 
-      // エラーにならずキャッシュが表示されたまま
       expect(container.read(scheduleViewModelProvider), isA<AsyncData>());
       expect(
         container.read(scheduleViewModelProvider).value!.isFromCache,
@@ -159,7 +139,7 @@ void main() {
       await refreshFuture;
       expect(
         container.read(scheduleViewModelProvider),
-        isA<AsyncData<ScheduleResponse>>(),
+        isA<AsyncData<ScheduleResult>>(),
       );
     });
 
@@ -170,16 +150,13 @@ void main() {
       final container = makeContainer();
       addTearDown(container.dispose);
 
-      // 初回成功でキャッシュが保存される
       await container.read(scheduleViewModelProvider.future);
 
-      // 以降のフェッチは失敗
       when(() => mockSource.fetchSchedule())
           .thenThrow(Exception('server error'));
 
       await container.read(scheduleViewModelProvider.notifier).refresh();
 
-      // キャッシュがあるので AsyncData(isFromCache: true) になる
       expect(container.read(scheduleViewModelProvider), isA<AsyncData>());
       expect(
         container.read(scheduleViewModelProvider).value!.isFromCache,

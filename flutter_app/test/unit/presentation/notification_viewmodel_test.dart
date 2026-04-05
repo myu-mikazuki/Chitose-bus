@@ -7,6 +7,7 @@ import 'package:kagi_bus/domain/entities/notification_settings.dart';
 import 'package:kagi_bus/domain/services/notification_service.dart';
 import 'package:kagi_bus/data/repositories/notification_settings_repository.dart';
 import 'package:kagi_bus/presentation/viewmodels/notification_viewmodel.dart';
+import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -113,16 +114,20 @@ ProviderContainer makeContainer({
 
   final scheduleOverride = timetable != null
       ? scheduleViewModelProvider.overrideWith(() => _FakeScheduleViewModel(
-            ScheduleResponse(
-              updatedAt: '2026-01-01',
-              current: timetable,
+            ScheduleResult(
+              data: ScheduleResponse(
+                updatedAt: '2026-01-01',
+                current: timetable,
+              ),
             ),
           ))
       : scheduleViewModelProvider.overrideWith(
           () => _FakeScheduleViewModel(
-            ScheduleResponse(
-              updatedAt: '2026-01-01',
-              current: futureTimetable(direction),
+            ScheduleResult(
+              data: ScheduleResponse(
+                updatedAt: '2026-01-01',
+                current: futureTimetable(direction),
+              ),
             ),
           ),
         );
@@ -139,17 +144,17 @@ ProviderContainer makeContainer({
 
 /// テスト用のスタブ ScheduleViewModel
 class _FakeScheduleViewModel extends ScheduleViewModel {
-  _FakeScheduleViewModel(this._response);
-  final ScheduleResponse _response;
+  _FakeScheduleViewModel(this._result);
+  final ScheduleResult _result;
 
   @override
-  Future<ScheduleResponse> build() async => _response;
+  Future<ScheduleResult> build() async => _result;
 }
 
 /// scheduleViewModelProvider が永遠にロード中のままのスタブ
 class _FakeLoadingScheduleViewModel extends ScheduleViewModel {
   @override
-  Future<ScheduleResponse> build() => Completer<ScheduleResponse>().future;
+  Future<ScheduleResult> build() => Completer<ScheduleResult>().future;
 }
 
 /// fromChitose と fromHonbuto が混在する BusTimetable
