@@ -401,7 +401,7 @@ void main() {
         await tester.pump();
 
         expect(find.byType(OfflineCacheBanner), findsOneWidget);
-        expect(find.textContaining('オフラインモード'), findsOneWidget);
+        expect(find.textContaining('キャッシュデータを表示中'), findsOneWidget);
       });
 
       testWidgets('isFromCache: false のとき OfflineCacheBanner が表示されない',

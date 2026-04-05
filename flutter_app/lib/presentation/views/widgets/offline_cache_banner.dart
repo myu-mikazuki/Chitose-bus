@@ -11,15 +11,19 @@ class OfflineCacheBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: AppColors.warningBackground,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          const Icon(Icons.wifi_off, color: AppColors.warning, size: 14),
+          const Icon(Icons.wifi_off, color: AppColors.warning, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'オフラインモード - キャッシュデータを表示中（データ更新: $updatedAt）',
-              style: const TextStyle(color: AppColors.warning, fontSize: 11),
+              'キャッシュデータを表示中（データ更新: $updatedAt）',
+              style: const TextStyle(
+                color: AppColors.warning,
+                fontSize: 12,
+                letterSpacing: 1,
+              ),
             ),
           ),
         ],
