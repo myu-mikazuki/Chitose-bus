@@ -3,18 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
 import '../../data/sources/schedule_remote_source.dart';
+import '../../data/sources/schedule_local_source.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../../domain/repositories/schedule_repository.dart';
+import 'schedule_result.dart';
 
 // ----- Providers -----
 
+final scheduleLocalSourceProvider = Provider<ScheduleLocalSource>((ref) {
+  return ScheduleLocalSource();
+});
+
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
-  final source = ScheduleRemoteSource(endpointUrl: AppConstants.gasEndpointUrl);
-  return ScheduleRepositoryImpl(remoteSource: source);
+  final remote = ScheduleRemoteSource(endpointUrl: AppConstants.gasEndpointUrl);
+  final local = ref.read(scheduleLocalSourceProvider);
+  return ScheduleRepositoryImpl(remoteSource: remote, localSource: local);
 });
 
 final scheduleViewModelProvider =
-    AsyncNotifierProvider<ScheduleViewModel, ScheduleResponse>(
+    AsyncNotifierProvider<ScheduleViewModel, ScheduleResult>(
   ScheduleViewModel.new,
 );
 
@@ -27,30 +34,54 @@ final countdownProvider =
 
 // ----- ScheduleViewModel -----
 
-class ScheduleViewModel extends AsyncNotifier<ScheduleResponse> {
+class ScheduleViewModel extends AsyncNotifier<ScheduleResult> {
   Timer? _refreshTimer;
 
   @override
-  Future<ScheduleResponse> build() async {
+  Future<ScheduleResult> build() async {
     ref.onDispose(() => _refreshTimer?.cancel());
+
+    final cached = await _repo.getCached();
+    if (cached != null) {
+      _startAutoRefresh();
+      _fetchAndUpdateSilently();
+      return ScheduleResult(data: cached, isFromCache: true);
+    }
+
     _startAutoRefresh();
-    return _fetch();
+    return ScheduleResult(data: await _repo.fetchSchedule());
   }
 
-  Future<ScheduleResponse> _fetch() {
-    final repo = ref.read(scheduleRepositoryProvider);
-    return repo.fetchSchedule();
+  ScheduleRepository get _repo => ref.read(scheduleRepositoryProvider);
+
+  Future<void> _fetchAndUpdateSilently() async {
+    try {
+      final fresh = await _repo.fetchSchedule();
+      state = AsyncData(ScheduleResult(data: fresh));
+    } catch (_) {
+      // キャッシュを表示し続ける
+    }
   }
 
   void _startAutoRefresh() {
     _refreshTimer = Timer.periodic(AppConstants.scheduleRefreshInterval, (_) {
-      refresh();
+      _fetchAndUpdateSilently();
     });
   }
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(_fetch);
+    try {
+      final fresh = await _repo.fetchSchedule();
+      state = AsyncData(ScheduleResult(data: fresh));
+    } catch (e, st) {
+      final cached = await _repo.getCached();
+      if (cached != null) {
+        state = AsyncData(ScheduleResult(data: cached, isFromCache: true));
+      } else {
+        state = AsyncError(e, st);
+      }
+    }
   }
 }
 

@@ -169,13 +169,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             }),
           ],
           scheduleAsync.maybeWhen(
-            data: (r) => r.current.pdfUrl.isNotEmpty
+            data: (r) => r.data.current.pdfUrl.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.open_in_browser,
                         color: AppColors.primary),
                     tooltip: '時刻表原文を開く',
                     onPressed: () => launchUrl(
-                      Uri.parse(r.current.pdfUrl),
+                      Uri.parse(r.data.current.pdfUrl),
                       mode: LaunchMode.externalApplication,
                     ),
                   )
@@ -183,12 +183,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             orElse: () => const SizedBox.shrink(),
           ),
           scheduleAsync.maybeWhen(
-            data: (r) => r.upcoming != null
+            data: (r) => r.data.upcoming != null
                 ? IconButton(
                     icon: const Icon(Icons.calendar_month,
                         color: AppColors.warning),
                     tooltip: '来週のダイヤ',
-                    onPressed: () => _showUpcomingSheet(context, r.upcoming!),
+                    onPressed: () => _showUpcomingSheet(context, r.data.upcoming!),
                   )
                 : const SizedBox.shrink(),
             orElse: () => const SizedBox.shrink(),
@@ -242,14 +242,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ],
               ),
             ),
-            data: (response) {
+            data: (result) {
               return TabBarView(
                 controller: _tabController,
                 children: [
-                  _DirectionTab(timetable: response.current, direction: BusDirection.fromChitose, updatedAt: response.updatedAt),
-                  _DirectionTab(timetable: response.current, direction: BusDirection.fromMinamiChitose, updatedAt: response.updatedAt),
-                  _KenkyutoTab(timetable: response.current, updatedAt: response.updatedAt),
-                  _DirectionTab(timetable: response.current, direction: BusDirection.fromHonbuto, updatedAt: response.updatedAt),
+                  _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt),
+                  _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt),
+                  _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt),
+                  _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt),
                 ],
               );
             },

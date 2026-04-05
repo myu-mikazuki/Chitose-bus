@@ -4,6 +4,8 @@ import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
 
+import '../../helpers/fake_schedule_local_source.dart';
+
 class MockScheduleRemoteSource extends Mock implements ScheduleRemoteSource {}
 
 const _responseModel = ScheduleResponseModel(
@@ -41,11 +43,16 @@ const _responseModelWithUpcoming = ScheduleResponseModel(
 
 void main() {
   late MockScheduleRemoteSource mockRemoteSource;
+  late FakeScheduleLocalSource fakeLocalSource;
   late ScheduleRepositoryImpl repository;
 
   setUp(() {
     mockRemoteSource = MockScheduleRemoteSource();
-    repository = ScheduleRepositoryImpl(remoteSource: mockRemoteSource);
+    fakeLocalSource = FakeScheduleLocalSource();
+    repository = ScheduleRepositoryImpl(
+      remoteSource: mockRemoteSource,
+      localSource: fakeLocalSource,
+    );
   });
 
   group('ScheduleRepositoryImpl.fetchSchedule', () {
@@ -61,7 +68,17 @@ void main() {
       expect(result.upcoming, isNull);
     });
 
-    test('propagates exception thrown by remoteSource', () async {
+    test('saves to local cache on success', () async {
+      when(() => mockRemoteSource.fetchSchedule())
+          .thenAnswer((_) async => _responseModel);
+
+      await repository.fetchSchedule();
+
+      expect(fakeLocalSource.saveCallCount, 1);
+      expect(fakeLocalSource.stored, _responseModel);
+    });
+
+    test('propagates exception when remote fails', () async {
       when(() => mockRemoteSource.fetchSchedule())
           .thenThrow(Exception('network error'));
 
@@ -75,6 +92,30 @@ void main() {
       final result = await repository.fetchSchedule();
 
       expect(result.upcoming, isNotNull);
+      expect(result.upcoming!.validFrom, '2024-04-01');
+    });
+  });
+
+  group('ScheduleRepositoryImpl.getCached', () {
+    test('returns null when no cache exists', () async {
+      expect(await repository.getCached(), isNull);
+    });
+
+    test('returns cached data', () async {
+      fakeLocalSource.stored = _responseModel;
+
+      final result = await repository.getCached();
+
+      expect(result, isNotNull);
+      expect(result!.updatedAt, '2024-01-01');
+    });
+
+    test('returns cached upcoming timetable correctly', () async {
+      fakeLocalSource.stored = _responseModelWithUpcoming;
+
+      final result = await repository.getCached();
+
+      expect(result!.upcoming, isNotNull);
       expect(result.upcoming!.validFrom, '2024-04-01');
     });
   });

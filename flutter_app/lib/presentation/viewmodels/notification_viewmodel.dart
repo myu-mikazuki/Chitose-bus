@@ -83,7 +83,7 @@ class NotificationSettingsNotifier
     if (!settings.enabled || settings.scheduledBusKeys.isEmpty) return;
 
     final timetable =
-        ref.read(scheduleViewModelProvider).valueOrNull?.current;
+        ref.read(scheduleViewModelProvider).valueOrNull?.data.current;
     if (timetable == null) return;
 
     final service = ref.read(notificationServiceProvider);
