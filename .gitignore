@@ -8,6 +8,7 @@ flutter_app/**/*.g.dart
 
 # Dart defines（シークレット含む実行時設定）
 .dart_defines
+.dart_defines.*
 
 # GAS / clasp
 .clasp.json
