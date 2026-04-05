@@ -9,25 +9,25 @@ Git Flow をベースとした戦略を採用しています。
 ```
 main（本番）
 ├── develop（統合ブランチ）
-│   ├── feature/issue-XX         → develop (PR)
-│   ├── feature/issue-XX-pr-N    → develop (PR)
-│   └── fix/issue-XX             → develop (PR)
+│   ├── feature/issue-XX              → develop (squash merge PR)
+│   │   └── feature/issue-XX-pr-N    → feature/issue-XX (squash merge PR)
+│   └── fix/issue-XX                 → develop (squash merge PR)
 ├── release/vX.X.X（develop → main の中継）
-│   └── → main (PR) + タグ
-└── hotfix/issue-XX              → main (PR) + develop にもマージ
+│   └── → main (マージコミット PR) + タグ
+└── hotfix/issue-XX              → main (マージコミット PR) + develop にもマージ
 ```
 
 ### ブランチ種別
 
-| ブランチ | 派生元 | マージ先 | 用途 |
-|---------|--------|----------|------|
-| `main` | - | - | 本番リリース済みコード。直接 push 禁止。 |
-| `develop` | main | - | 統合ブランチ。常に次のリリース候補を含む。 |
-| `feature/issue-XX` | develop | develop（PR） | 機能追加 |
-| `feature/issue-XX-pr-N` | develop | develop（PR） | 大規模機能の段階的PR（N=a,b,c...） |
-| `fix/issue-XX` | develop | develop（PR） | バグ修正 |
-| `hotfix/issue-XX` | main | main（PR）＋ develop | 本番緊急修正 |
-| `release/vX.X.X` | develop | main（PR）＋ develop | リリース準備・バージョンバンプ |
+| ブランチ | 派生元 | マージ先 | マージ方法 | 用途 |
+|---------|--------|----------|-----------|------|
+| `main` | - | - | - | 本番リリース済みコード。直接 push 禁止。 |
+| `develop` | main | - | - | 統合ブランチ。常に次のリリース候補を含む。 |
+| `feature/issue-XX` | develop | develop（PR） | squash merge | 機能追加 |
+| `feature/issue-XX-pr-N` | `feature/issue-XX` | `feature/issue-XX`（PR） | squash merge | 大規模機能の段階的PR（N=a,b,c...） |
+| `fix/issue-XX` | develop | develop（PR） | squash merge | バグ修正 |
+| `hotfix/issue-XX` | main | main（PR）＋ develop | squash merge | 本番緊急修正 |
+| `release/vX.X.X` | develop | main（PR）＋ develop | マージコミット | リリース準備・バージョンバンプ |
 
 ### 命名規則
 
@@ -46,8 +46,10 @@ develop → feature/issue-XX → PR → develop
 
 **大規模機能（複数PR）**
 ```
-develop → feature/issue-XX-pr-a → PR → develop
-develop → feature/issue-XX-pr-b → PR → develop
+develop → feature/issue-XX
+feature/issue-XX → feature/issue-XX-pr-a → squash merge PR → feature/issue-XX
+feature/issue-XX → feature/issue-XX-pr-b → squash merge PR → feature/issue-XX
+feature/issue-XX → squash merge PR → develop
 ```
 
 **リリース**
