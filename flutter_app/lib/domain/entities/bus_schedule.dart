@@ -94,9 +94,18 @@ class ScheduleResponse {
     required this.updatedAt,
     required this.current,
     this.upcoming,
+    this.isFromCache = false,
   });
 
   final String updatedAt;
   final BusTimetable current;
   final BusTimetable? upcoming;
+  final bool isFromCache;
+
+  ScheduleResponse withIsFromCache(bool value) => ScheduleResponse(
+        updatedAt: updatedAt,
+        current: current,
+        upcoming: upcoming,
+        isFromCache: value,
+      );
 }
