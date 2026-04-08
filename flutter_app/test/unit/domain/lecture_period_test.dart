@@ -12,6 +12,10 @@ void main() {
       expect(LecturePeriodCalculator.fromArrivalTime(''), isNull);
     });
 
+    test('":" を含まない不正フォーマット → null（クラッシュしない）', () {
+      expect(LecturePeriodCalculator.fromArrivalTime('0900'), isNull);
+    });
+
     test('08:59 → period1 (1講)', () {
       expect(
         LecturePeriodCalculator.fromArrivalTime('08:59'),

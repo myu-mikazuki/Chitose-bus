@@ -28,6 +28,7 @@ class LecturePeriodCalculator {
   static LecturePeriod? fromArrivalTime(String? time) {
     if (time == null || time.isEmpty) return null;
     final parts = time.split(':');
+    if (parts.length < 2) return null;
     final total = int.parse(parts[0]) * 60 + int.parse(parts[1]);
     if (total < 9 * 60) return LecturePeriod.period1;
     if (total < 10 * 60 + 45) return LecturePeriod.period2;

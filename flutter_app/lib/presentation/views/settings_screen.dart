@@ -57,6 +57,9 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           _SectionHeader(label: '表示'),
           _SectionCard(
+            // ConsumerWidget の ref を使わず Consumer を挟むことで、
+            // displaySettingsProvider の変化時に SwitchListTile のみを再ビルドし
+            // 画面全体（アプリ情報セクション等）の再ビルドを抑制する。
             child: Consumer(
               builder: (context, ref, _) {
                 final settings =
