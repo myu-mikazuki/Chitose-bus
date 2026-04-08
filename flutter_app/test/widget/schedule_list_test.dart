@@ -7,10 +7,31 @@ import 'package:kagi_bus/domain/entities/notification_settings.dart';
 import 'package:kagi_bus/presentation/viewmodels/notification_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/widgets/schedule_list.dart';
 
+import 'package:kagi_bus/domain/entities/display_settings.dart';
+import 'package:kagi_bus/presentation/viewmodels/display_settings_viewmodel.dart';
+
 import '../helpers/test_theme.dart';
 
 // 未来の出発時刻を返す（kTestNow=09:00 の 5分後 = 09:05）
 String get _futureDeparture => safeFutureHhmm(5);
+
+class _FakeDisplaySettingsNotifier extends DisplaySettingsNotifier {
+  _FakeDisplaySettingsNotifier(this._settings);
+  final DisplaySettings _settings;
+
+  @override
+  Future<DisplaySettings> build() async => _settings;
+}
+
+Widget _wrapWithDisplay(Widget child, DisplaySettings settings) => ProviderScope(
+      overrides: [
+        countdownOverride(),
+        displaySettingsProvider.overrideWith(
+          () => _FakeDisplaySettingsNotifier(settings),
+        ),
+      ],
+      child: MaterialApp(theme: buildTestTheme(), home: Scaffold(body: child)),
+    );
 
 Widget _wrap(Widget child) => ProviderScope(
       overrides: [countdownOverride()],
@@ -534,6 +555,32 @@ void main() {
           _wrap(ScheduleList(
               timetable: timetable, direction: BusDirection.fromChitose)),
         );
+        for (final label in ['1講', '2講', '昼休み', '3講', '4講', '5講', '放課後']) {
+          expect(find.text(label), findsNothing);
+        }
+      });
+
+      testWidgets('showLectureTags=false → タグが表示されない', (tester) async {
+        final timetable = BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-03-31',
+          schedules: [
+            BusEntry(
+              time: _futureDeparture,
+              direction: BusDirection.fromChitose,
+              destination: '千歳科技大',
+              arrivals: const {'honbuto': '10:00'},
+            ),
+          ],
+        );
+        await tester.pumpWidget(
+          _wrapWithDisplay(
+            ScheduleList(
+                timetable: timetable, direction: BusDirection.fromChitose),
+            const DisplaySettings(showLectureTags: false),
+          ),
+        );
+        await tester.pump();
         for (final label in ['1講', '2講', '昼休み', '3講', '4講', '5講', '放課後']) {
           expect(find.text(label), findsNothing);
         }

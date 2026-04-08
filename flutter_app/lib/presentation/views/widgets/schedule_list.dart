@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_colors_theme.dart';
 import '../../../domain/entities/bus_schedule.dart';
 import '../../../domain/entities/lecture_period.dart';
+import '../../viewmodels/display_settings_viewmodel.dart';
 import '../../viewmodels/notification_viewmodel.dart';
 import '../../viewmodels/schedule_viewmodel.dart';
 
@@ -163,6 +164,9 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   }
 
   List<Widget> _buildLectureTagWidgets() {
+    final showTags =
+        ref.watch(displaySettingsProvider).valueOrNull?.showLectureTags ?? true;
+    if (!showTags) return const [];
     final period = LecturePeriodCalculator.forBus(widget.bus);
     if (period == null) return const [];
     final color = _lectureTagColor(period);

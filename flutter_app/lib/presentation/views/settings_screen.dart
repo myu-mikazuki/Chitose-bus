@@ -6,6 +6,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
 import '../viewmodels/app_info_viewmodel.dart';
+import '../viewmodels/display_settings_viewmodel.dart';
 import 'contact_screen.dart';
 import 'notification_settings_screen.dart';
 
@@ -51,6 +52,37 @@ class SettingsScreen extends ConsumerWidget {
                 MaterialPageRoute(
                     builder: (_) => const NotificationSettingsScreen()),
               ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _SectionHeader(label: '表示'),
+          _SectionCard(
+            child: Consumer(
+              builder: (context, ref, _) {
+                final settings =
+                    ref.watch(displaySettingsProvider).valueOrNull;
+                return SwitchListTile(
+                  secondary: const Icon(Icons.label_outline,
+                      color: AppColors.primary),
+                  title: Text(
+                    '講時タグを表示',
+                    style: TextStyle(color: context.appColors.textPrimary),
+                  ),
+                  subtitle: Text(
+                    'バスが間に合う講時を時刻表に表示します',
+                    style: TextStyle(
+                        color: context.appColors.textTertiary, fontSize: 12),
+                  ),
+                  value: settings?.showLectureTags ?? true,
+                  activeColor: AppColors.primary,
+                  onChanged: settings == null
+                      ? null
+                      : (v) => ref
+                          .read(displaySettingsProvider.notifier)
+                          .saveSettings(
+                              settings.copyWith(showLectureTags: v)),
+                );
+              },
             ),
           ),
           const SizedBox(height: 24),
