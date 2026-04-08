@@ -187,12 +187,12 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   }
 
   static Color _lectureTagColor(LecturePeriod period) => switch (period) {
-        LecturePeriod.period1    => const Color(0xFF64B5F6), // 青（朝）
-        LecturePeriod.period2    => const Color(0xFF4DD0E1), // シアン
-        LecturePeriod.lunchBreak => const Color(0xFFFFD54F), // 黄（昼）
-        LecturePeriod.period3    => const Color(0xFF81C784), // 緑
-        LecturePeriod.period4    => const Color(0xFFFFB74D), // オレンジ
-        LecturePeriod.period5    => const Color(0xFFFF8A65), // 深オレンジ
+        LecturePeriod.period1 => const Color(0xFF64B5F6), // 青（朝）
+        LecturePeriod.period2 => const Color(0xFF4DD0E1), // シアン
+        LecturePeriod.lunchBreak => const Color(0xFFF2CB4B), // 黄（昼）
+        LecturePeriod.period3 => const Color(0xFF81C784), // 緑
+        LecturePeriod.period4 => const Color(0xFFFFB74D), // オレンジ
+        LecturePeriod.period5 => const Color(0xFFFF8A65), // 深オレンジ
         LecturePeriod.afterSchool => const Color(0xFFCE93D8), // 紫
       };
 
@@ -294,7 +294,8 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                 const SizedBox(width: 8),
                 if (widget.bus.routeLabel != null) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: widget.isNext
@@ -317,8 +318,8 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                 ..._buildLectureTagWidgets(),
                 Text(
                   widget.bus.destination,
-                  style:
-                      TextStyle(color: textColor, fontSize: 14, letterSpacing: 1),
+                  style: TextStyle(
+                      color: textColor, fontSize: 14, letterSpacing: 1),
                 ),
                 // ベルアイコンを右端に配置するため全行に Spacer を挿入。
                 // isPast 行はベルを SizedBox.shrink() で返すため視覚的影響はない。
