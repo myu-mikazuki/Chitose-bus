@@ -26,23 +26,28 @@
 <!-- 日本語 -->
 <div class="lang-section" lang="ja">
   <h1>プライバシーポリシー</h1>
-  <p>最終更新日：2026年3月27日</p>
+  <p>最終更新日：2026年4月9日</p>
 
   <h2>1. はじめに</h2>
   <p>Kagi-Bus（以下「本アプリ」）は、千歳科学技術大学のバス時刻表を表示するアプリです。本ポリシーは、本アプリが収集・利用する情報について説明します。</p>
 
   <h2>2. 収集する情報</h2>
-  <p>本アプリが収集・保存する情報は以下のみです。</p>
+  <p>本アプリが収集・保存する情報は以下のとおりです。</p>
   <ul>
     <li><strong>通知設定</strong>（有効／無効、通知タイミング）：お使いの端末内にのみ保存され、外部へ送信されることはありません。</li>
+    <li><strong>クラッシュレポート・エラーログ</strong>：アプリが異常終了した場合や API エラーが発生した場合に、端末情報（OS バージョン、端末モデル、アプリバージョン）およびエラーの発生状況を自動的に収集します。これらはアプリの安定性向上を目的として Firebase Crashlytics（Google LLC）へ送信されます。</li>
   </ul>
   <p>氏名・メールアドレス・位置情報などの個人情報は一切収集しません。</p>
 
   <h2>3. 外部通信</h2>
-  <p>本アプリはバス時刻表データを取得するため、Google Apps Script（GAS）が提供する API にアクセスします。このリクエストには個人を特定できる情報は含まれません。</p>
+  <p>本アプリは以下の外部サービスと通信します。</p>
+  <ul>
+    <li><strong>Google Apps Script（GAS）API</strong>：バス時刻表データの取得に使用します。このリクエストには個人を特定できる情報は含まれません。</li>
+    <li><strong>Firebase Crashlytics（Google LLC）</strong>：クラッシュレポート・エラーログの収集に使用します。収集されたデータは Google のプライバシーポリシー（<a href="https://policies.google.com/privacy">https://policies.google.com/privacy</a>）に従って処理されます。</li>
+  </ul>
 
-  <h2>4. 個人情報の第三者提供</h2>
-  <p>本アプリは個人情報を収集しないため、第三者への提供は行いません。</p>
+  <h2>4. 情報の第三者提供</h2>
+  <p>本アプリはクラッシュレポート・エラーログを Firebase Crashlytics（Google LLC）へ送信します。それ以外の第三者への個人情報の提供は行いません。</p>
 
   <h2>5. お問い合わせ</h2>
   <p>本ポリシーに関するご質問は、以下の GitHub Issues よりお問い合わせください。</p>
@@ -54,23 +59,28 @@
 <!-- English -->
 <div class="lang-section" lang="en">
   <h1>Privacy Policy</h1>
-  <p>Last updated: March 27, 2026</p>
+  <p>Last updated: April 9, 2026</p>
 
   <h2>1. Introduction</h2>
   <p>Kagi-Bus (the "App") displays bus timetables for Chitose Institute of Science and Technology. This policy describes what information the App collects and how it is used.</p>
 
   <h2>2. Information We Collect</h2>
-  <p>The App collects and stores only the following information:</p>
+  <p>The App collects and stores the following information:</p>
   <ul>
     <li><strong>Notification settings</strong> (enabled/disabled, timing preference): stored locally on your device only and never transmitted externally.</li>
+    <li><strong>Crash reports and error logs</strong>: when the App crashes or an API error occurs, device information (OS version, device model, app version) and error details are automatically collected. This data is sent to Firebase Crashlytics (Google LLC) for the purpose of improving app stability.</li>
   </ul>
   <p>We do not collect any personal information such as name, email address, or location data.</p>
 
   <h2>3. External Communication</h2>
-  <p>The App accesses an API provided by Google Apps Script (GAS) to retrieve bus timetable data. These requests do not include any personally identifiable information.</p>
+  <p>The App communicates with the following external services:</p>
+  <ul>
+    <li><strong>Google Apps Script (GAS) API</strong>: used to retrieve bus timetable data. These requests do not include any personally identifiable information.</li>
+    <li><strong>Firebase Crashlytics (Google LLC)</strong>: used to collect crash reports and error logs. Data collected is processed in accordance with Google's Privacy Policy (<a href="https://policies.google.com/privacy">https://policies.google.com/privacy</a>).</li>
+  </ul>
 
   <h2>4. Sharing of Information</h2>
-  <p>Because the App does not collect personal information, no personal data is shared with third parties.</p>
+  <p>The App sends crash reports and error logs to Firebase Crashlytics (Google LLC). No other personal data is shared with third parties.</p>
 
   <h2>5. Contact</h2>
   <p>If you have any questions about this policy, please contact us via GitHub Issues:</p>
