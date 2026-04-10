@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "71474238035",
+    "project_id": "kagi-bus",
+    "storage_bucket": "kagi-bus.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71474238035:android:c8b3e30b78585ce37a2ca6",
+        "android_client_info": {
+          "package_name": "com.myu_mikazuki.kagibus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkXeRV9V7mHb94V9UEZWgx18fYZIEvqJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

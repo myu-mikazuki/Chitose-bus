@@ -1,21 +1,31 @@
 import 'dart:async';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
+import '../../data/services/crashlytics_error_reporter.dart';
 import '../../data/sources/schedule_remote_source.dart';
 import '../../data/sources/schedule_local_source.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../../domain/repositories/schedule_repository.dart';
+import '../../domain/services/error_reporter.dart';
 import 'schedule_result.dart';
 
 // ----- Providers -----
+
+final errorReporterProvider = Provider<ErrorReporter>((ref) {
+  return CrashlyticsErrorReporter(FirebaseCrashlytics.instance);
+});
 
 final scheduleLocalSourceProvider = Provider<ScheduleLocalSource>((ref) {
   return ScheduleLocalSource();
 });
 
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
-  final remote = ScheduleRemoteSource(endpointUrl: AppConstants.gasEndpointUrl);
+  final remote = ScheduleRemoteSource(
+    endpointUrl: AppConstants.gasEndpointUrl,
+    errorReporter: ref.read(errorReporterProvider),
+  );
   final local = ref.read(scheduleLocalSourceProvider);
   return ScheduleRepositoryImpl(remoteSource: remote, localSource: local);
 });
@@ -58,7 +68,8 @@ class ScheduleViewModel extends AsyncNotifier<ScheduleResult> {
     try {
       final fresh = await _repo.fetchSchedule();
       state = AsyncData(ScheduleResult(data: fresh));
-    } catch (_) {
+    } catch (e, stack) {
+      ref.read(errorReporterProvider).recordError(e, stack);
       // キャッシュを表示し続ける
     }
   }

@@ -4,12 +4,18 @@ import 'package:mocktail/mocktail.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
 import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
+import 'package:kagi_bus/domain/services/error_reporter.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 
 import '../../helpers/fake_schedule_local_source.dart';
 
 class MockScheduleRemoteSource extends Mock implements ScheduleRemoteSource {}
+
+class FakeErrorReporter implements ErrorReporter {
+  @override
+  Future<void> recordError(Object error, StackTrace stack) async {}
+}
 
 const _responseModel = ScheduleResponseModel(
   updatedAt: '2024-01-01',
@@ -36,6 +42,7 @@ void main() {
   ProviderContainer makeContainer() {
     return ProviderContainer(
       overrides: [
+        errorReporterProvider.overrideWithValue(FakeErrorReporter()),
         scheduleLocalSourceProvider.overrideWithValue(fakeLocalSource),
         scheduleRepositoryProvider.overrideWith(
           (ref) => ScheduleRepositoryImpl(

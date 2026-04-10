@@ -3,8 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:http/http.dart' as http;
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
+import 'package:kagi_bus/domain/services/error_reporter.dart';
 
 class MockHttpClient extends Mock implements http.Client {}
+
+class FakeErrorReporter implements ErrorReporter {
+  final List<Object> recordedErrors = [];
+
+  @override
+  Future<void> recordError(Object error, StackTrace stack) async {
+    recordedErrors.add(error);
+  }
+}
 
 const _validJson = {
   'updatedAt': '2024-01-01',
@@ -26,6 +36,7 @@ const _validJson = {
 
 void main() {
   late MockHttpClient mockClient;
+  late FakeErrorReporter fakeReporter;
   late ScheduleRemoteSource source;
   const endpointUrl = 'http://example.com/schedule';
 
@@ -35,7 +46,12 @@ void main() {
 
   setUp(() {
     mockClient = MockHttpClient();
-    source = ScheduleRemoteSource(endpointUrl: endpointUrl, client: mockClient);
+    fakeReporter = FakeErrorReporter();
+    source = ScheduleRemoteSource(
+      endpointUrl: endpointUrl,
+      client: mockClient,
+      errorReporter: fakeReporter,
+    );
   });
 
   group('ScheduleRemoteSource.fetchSchedule', () {
@@ -91,6 +107,33 @@ void main() {
       await source.fetchSchedule();
 
       verify(() => mockClient.get(Uri.parse(endpointUrl))).called(1);
+    });
+
+    test('recordError が呼ばれる: non-200 response', () async {
+      when(() => mockClient.get(any())).thenAnswer(
+        (_) async => http.Response('Not Found', 404),
+      );
+
+      await expectLater(() => source.fetchSchedule(), throwsException);
+      expect(fakeReporter.recordedErrors, hasLength(1));
+    });
+
+    test('recordError が呼ばれる: body に error キーがある場合', () async {
+      when(() => mockClient.get(any())).thenAnswer(
+        (_) async => http.Response(jsonEncode({'error': 'fail'}), 200),
+      );
+
+      await expectLater(() => source.fetchSchedule(), throwsException);
+      expect(fakeReporter.recordedErrors, hasLength(1));
+    });
+
+    test('正常時は recordError が呼ばれない', () async {
+      when(() => mockClient.get(any())).thenAnswer(
+        (_) async => http.Response(jsonEncode(_validJson), 200),
+      );
+
+      await source.fetchSchedule();
+      expect(fakeReporter.recordedErrors, isEmpty);
     });
   });
 }
