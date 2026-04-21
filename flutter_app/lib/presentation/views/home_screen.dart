@@ -25,7 +25,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
   bool _bannerDismissed = false;
   bool _favoriteApplied = false;
@@ -124,14 +124,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final favoriteTabIndex = favoriteAsync.valueOrNull?.tabIndex;
 
     // お気に入りタブの初回適用（アプリ起動時のみ）
-    // build() 内の副作用は ref.listen に委ねる（Riverpod 推奨パターン）
+    // addPostFrameCallback で index を変更する方式だと、TabBarView が未生成の状態で
+    // index が変わり、TabBarView 初回生成時に PageView の initialPage と
+    // TabController の内部状態がずれて SegmentedButton の高さが 0 になる場合がある。
+    // initialIndex を正しく設定した新しい TabController を作り直すことで回避する。
     ref.listen(favoriteTabProvider, (prev, next) {
       if (_favoriteApplied) return;
       next.whenData((fav) {
         _favoriteApplied = true;
         if (fav.hasFavorite) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _tabController.index = fav.tabIndex!;
+            if (!mounted) return;
+            setState(() {
+              _tabController.dispose();
+              _tabController = TabController(
+                length: 4,
+                initialIndex: fav.tabIndex!,
+                vsync: this,
+              );
+            });
           });
         }
       });

@@ -71,6 +71,26 @@ class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
   }
 }
 
+/// スケジュールの解決を外部から制御できる VM。
+/// favoriteTabProvider が先に解決した後に scheduleAsync が解決するシナリオを再現する。
+class _DelayedScheduleViewModel extends ScheduleViewModel {
+  _DelayedScheduleViewModel(this._result);
+
+  final ScheduleResult _result;
+  final _completer = Completer<void>();
+
+  void complete() => _completer.complete();
+
+  @override
+  Future<ScheduleResult> build() async {
+    await _completer.future;
+    return _result;
+  }
+
+  @override
+  Future<void> refresh() async {}
+}
+
 /// Error VM that also tracks refresh() calls.
 class _TrackingErrorViewModel extends ScheduleViewModel {
   bool refreshCalled = false;
@@ -375,6 +395,141 @@ void main() {
         await tester.pump();
 
         expect(favNotifier.lastToggleIndex, equals(2));
+      });
+
+      testWidgets('タブ2がお気に入り未設定でタブ2に切り替え: → 本部棟・→ 千歳駅の選択肢が見える',
+          (tester) async {
+        final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        // 研究棟タブをタップ
+        await tester.tap(find.text('研究棟'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('→ 本部棟'), findsOneWidget);
+        expect(find.text('→ 千歳駅'), findsOneWidget);
+      });
+
+      testWidgets('タブ2がお気に入りで起動: 研究棟タブが表示され → 本部棟・→ 千歳駅の選択肢が見える',
+          (tester) async {
+        final favNotifier =
+            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('→ 本部棟'), findsOneWidget);
+        expect(find.text('→ 千歳駅'), findsOneWidget);
+      });
+
+      testWidgets('タブ2がお気に入り: star 1個 + star_border 3個が表示される',
+          (tester) async {
+        final favNotifier =
+            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byIcon(Icons.star), findsOneWidget);
+        expect(find.byIcon(Icons.star_border), findsNWidgets(3));
+      });
+
+      // 再現テスト: issue #126
+      // favoriteTabProvider が先に解決して addPostFrameCallback が index=2 をセットした後、
+      // scheduleAsync が遅れて解決して TabBarView が初めて作られるシナリオ。
+      // find.text() はツリー存在のみ確認するため、サイズ 0 のバグを見逃す。
+      // tester.getSize() で実際にレンダリングされた高さを検証する。
+      testWidgets(
+          'SegmentedButton のサイズが 0 でない（build より前に index が変更される再現）',
+          (tester) async {
+        final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => scheduleVM),
+              favoriteTabProvider.overrideWith(
+                () => _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2)),
+              ),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+
+        // favoriteAsync 解決 → ref.listen 発火 → addPostFrameCallback 登録
+        await tester.pump();
+        // addPostFrameCallback 実行 → _tabController.index = 2（TabBarView 未生成）
+        await tester.pump();
+
+        // scheduleAsync を解決 → TabBarView が index=2 の状態で初めて生成される
+        scheduleVM.complete();
+        await tester.pump();
+
+        final segmentedFinder = find.byType(SegmentedButton<BusDirection>);
+        expect(segmentedFinder, findsOneWidget);
+
+        // バグが再現すると高さが 0 になる
+        final size = tester.getSize(segmentedFinder);
+        expect(size.height, greaterThan(0));
+      });
+
+      testWidgets('タブ2がお気に入りで起動後: 千歳駅タブをタップするとタブ切り替えできる',
+          (tester) async {
+        final favNotifier =
+            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              favoriteTabProvider.overrideWith(() => favNotifier),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // タブ2（研究棟）のSegmentedButtonが表示されている
+        expect(find.text('→ 本部棟'), findsOneWidget);
+
+        // 千歳駅タブをタップ（ラベルをタップ）
+        await tester.tap(find.text('千歳駅'));
+        await tester.pumpAndSettle();
+
+        // タブ0（千歳駅）に切り替わり、研究棟のSegmentedButtonは表示されない
+        expect(find.text('→ 本部棟'), findsNothing);
       });
     });
 
