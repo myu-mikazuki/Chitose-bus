@@ -225,6 +225,34 @@ void main() {
       expect(find.text('あと 1:30'), findsOneWidget);
     });
 
+    testWidgets('showPlatform=true かつ platformNumber が "5番" の場合: "5番のりば" と表示される',
+        (tester) async {
+      final busTime = safeFutureHhmm(60);
+      final timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-03-31',
+        schedules: [
+          BusEntry(
+            time: busTime,
+            direction: BusDirection.fromChitose,
+            destination: '科技大',
+            platformNumber: '5番',
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        _wrap(NextBusDisplay(
+          timetable: timetable,
+          direction: BusDirection.fromChitose,
+          showPlatform: true,
+        )),
+      );
+
+      expect(find.text('5番のりば'), findsOneWidget);
+      expect(find.textContaining('番番'), findsNothing);
+    });
+
     testWidgets('arrivalsに値がある場合: 到着停留所・時刻が表示される', (tester) async {
       final busTime = safeFutureHhmm(60);
       final arrivalTime = safeFutureHhmm(80);

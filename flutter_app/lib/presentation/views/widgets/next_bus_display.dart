@@ -176,7 +176,7 @@ class _NextBusCard extends StatelessWidget {
           if (showPlatform && entry.platformNumber != null) ...[
             const SizedBox(height: 4),
             Text(
-              '${entry.platformNumber}番のりば',
+              '${entry.platformNumber}のりば',
               style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: 13,
