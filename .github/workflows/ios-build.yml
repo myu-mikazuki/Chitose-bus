@@ -95,6 +95,10 @@ jobs:
           DART_DEFINE_CONTENTS: ${{ vars.DART_DEFINE_CONTENTS }}
         run: echo "$DART_DEFINE_CONTENTS" > .dart_defines
 
+      - name: Disable Swift Package Manager
+        if: steps.detect.outputs.type == 'flutter'
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Flutter pub get
         if: steps.detect.outputs.type == 'flutter'
         run: |
