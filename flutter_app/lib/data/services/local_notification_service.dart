@@ -66,6 +66,7 @@ class LocalNotificationService implements NotificationService {
     final ios = _plugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>();
+    // iOS プラグインが取得できない場合（Web 等）は権限未取得として false を返す。
     return await ios?.requestPermissions(
           alert: true,
           badge: true,
@@ -101,28 +102,22 @@ class LocalNotificationService implements NotificationService {
     const interpretation =
         UILocalNotificationDateInterpretation.absoluteTime;
 
+    final id = NotificationService.busNotificationId(bus);
+    final title = 'バスが出発します';
+    final body = '${settings.minutesBefore}分後に ${bus.destination} 行きバスが出発します';
+
+    Future<void> schedule(AndroidScheduleMode mode) => _plugin.zonedSchedule(
+          id, title, body, tzNotifyAt, details,
+          androidScheduleMode: mode,
+          uiLocalNotificationDateInterpretation: interpretation,
+        );
+
     try {
-      await _plugin.zonedSchedule(
-        NotificationService.busNotificationId(bus),
-        'バスが出発します',
-        '${settings.minutesBefore}分後に ${bus.destination} 行きバスが出発します',
-        tzNotifyAt,
-        details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation: interpretation,
-      );
+      await schedule(AndroidScheduleMode.exactAllowWhileIdle);
     } on PlatformException catch (e) {
       if (e.code != 'exact_alarms_not_permitted') rethrow;
       // SCHEDULE_EXACT_ALARM 未付与時は inexact でフォールバック
-      await _plugin.zonedSchedule(
-        NotificationService.busNotificationId(bus),
-        'バスが出発します',
-        '${settings.minutesBefore}分後に ${bus.destination} 行きバスが出発します',
-        tzNotifyAt,
-        details,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation: interpretation,
-      );
+      await schedule(AndroidScheduleMode.inexactAllowWhileIdle);
     }
   }
 
