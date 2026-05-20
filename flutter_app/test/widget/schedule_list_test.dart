@@ -38,10 +38,11 @@ Widget _wrap(Widget child) => ProviderScope(
       child: MaterialApp(theme: buildTestTheme(), home: Scaffold(body: child)),
     );
 
-Widget _wrapWithNotification(Widget child, NotificationSettings settings) =>
+Widget _wrapWithNotification(Widget child, NotificationSettings settings,
+        {DateTime? now}) =>
     ProviderScope(
       overrides: [
-        countdownOverride(),
+        countdownOverride(now: now),
         notificationSettingsProvider.overrideWith(
           () => _FakeNotificationSettingsNotifier(settings),
         ),
@@ -427,6 +428,53 @@ void main() {
           capturedSettings.scheduledBusKeys,
           contains(NotificationSettingsNotifier.busKey(bus)),
         );
+      });
+
+      testWidgets('minutesBefore 以内の便: ベルアイコンが非表示', (tester) async {
+        // kTestNow=09:00、minutesBefore=10 → 09:10 出発の便は通知時刻が過去のためベル非表示
+        const minutesBefore = 10;
+        final busTime = safeFutureHhmm(minutesBefore);
+        final timetable = BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-12-31',
+          schedules: [
+            BusEntry(
+                time: busTime,
+                direction: BusDirection.fromChitose,
+                destination: '千歳科技大'),
+          ],
+        );
+        await tester.pumpWidget(_wrapWithNotification(
+          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          NotificationSettings(enabled: true, minutesBefore: minutesBefore),
+        ));
+        await tester.pump();
+
+        expect(find.byIcon(Icons.notifications_off_outlined), findsNothing);
+        expect(find.byIcon(Icons.notifications), findsNothing);
+      });
+
+      testWidgets('minutesBefore+1分の便: ベルアイコンが表示される', (tester) async {
+        // kTestNow=09:00、minutesBefore=10 → 09:11 出発の便は通知可能のためベル表示
+        const minutesBefore = 10;
+        final busTime = safeFutureHhmm(minutesBefore + 1);
+        final timetable = BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-12-31',
+          schedules: [
+            BusEntry(
+                time: busTime,
+                direction: BusDirection.fromChitose,
+                destination: '千歳科技大'),
+          ],
+        );
+        await tester.pumpWidget(_wrapWithNotification(
+          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          NotificationSettings(enabled: true, minutesBefore: minutesBefore),
+        ));
+        await tester.pump();
+
+        expect(find.byIcon(Icons.notifications_off_outlined), findsOneWidget);
       });
     });
 

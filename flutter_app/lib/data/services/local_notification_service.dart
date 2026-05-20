@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -48,20 +49,30 @@ class LocalNotificationService implements NotificationService {
 
   @override
   Future<bool> requestPermission() async {
-    final ios = _plugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-    final granted = await ios?.requestPermissions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    // Android 13+ permissions are requested via the plugin's Android implementation
     final android = _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
-    await android?.requestNotificationsPermission();
-    return granted ?? true;
+    if (android != null) {
+      final granted = await android.requestNotificationsPermission() ?? false;
+      if (!granted) return false;
+      // Android 12+ では正確なアラーム権限が別途必要。未付与の場合はシステム設定画面を開く。
+      // ユーザーが設定画面で許可しなくても通知自体は有効にする（inexact フォールバックあり）。
+      final canExact =
+          await android.canScheduleExactNotifications() ?? false;
+      if (!canExact) await android.requestExactAlarmsPermission();
+      return true;
+    }
+
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+    // iOS プラグインが取得できない場合（Web 等）は権限未取得として false を返す。
+    return await ios?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        ) ??
+        false;
   }
 
   @override
@@ -74,29 +85,40 @@ class LocalNotificationService implements NotificationService {
     if (notifyAt.isBefore(now)) return;
 
     final tzNotifyAt = tz.TZDateTime.from(notifyAt, tz.local);
-    await _plugin.zonedSchedule(
-      NotificationService.busNotificationId(bus),
-      'バスが出発します',
-      '${settings.minutesBefore}分後に ${bus.destination} 行きバスが出発します',
-      tzNotifyAt,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'bus_departure',
-          'バス出発通知',
-          channelDescription: '次のバスの出発前に通知します',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'bus_departure',
+        'バス出発通知',
+        channelDescription: '次のバスの出発前に通知します',
+        importance: Importance.high,
+        priority: Priority.high,
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
     );
+    const interpretation =
+        UILocalNotificationDateInterpretation.absoluteTime;
+
+    final id = NotificationService.busNotificationId(bus);
+    final title = 'バスが出発します';
+    final body = '${settings.minutesBefore}分後に ${bus.destination} 行きバスが出発します';
+
+    Future<void> schedule(AndroidScheduleMode mode) => _plugin.zonedSchedule(
+          id, title, body, tzNotifyAt, details,
+          androidScheduleMode: mode,
+          uiLocalNotificationDateInterpretation: interpretation,
+        );
+
+    try {
+      await schedule(AndroidScheduleMode.exactAllowWhileIdle);
+    } on PlatformException catch (e) {
+      if (e.code != 'exact_alarms_not_permitted') rethrow;
+      // SCHEDULE_EXACT_ALARM 未付与時は inexact でフォールバック
+      await schedule(AndroidScheduleMode.inexactAllowWhileIdle);
+    }
   }
 
   @override
