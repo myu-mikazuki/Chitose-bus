@@ -48,20 +48,22 @@ class LocalNotificationService implements NotificationService {
 
   @override
   Future<bool> requestPermission() async {
-    final ios = _plugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-    final granted = await ios?.requestPermissions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    // Android 13+ permissions are requested via the plugin's Android implementation
     final android = _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
-    await android?.requestNotificationsPermission();
-    return granted ?? true;
+    if (android != null) {
+      return await android.requestNotificationsPermission() ?? false;
+    }
+
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+    return await ios?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        ) ??
+        false;
   }
 
   @override
