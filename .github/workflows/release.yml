@@ -21,6 +21,9 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Disable Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Create .dart_define
         if: vars.DART_DEFINE_CONTENTS != ''
         env:
@@ -161,6 +164,9 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - name: Disable Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
 
       - name: Create .dart_define
         if: vars.DART_DEFINE_CONTENTS != ''
