@@ -205,6 +205,11 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
     final settings = ref.watch(notificationSettingsProvider).valueOrNull;
     if (settings == null || !settings.enabled) return const SizedBox.shrink();
 
+    final now = ref.watch(countdownProvider);
+    if (widget.bus.minutesFromNow(now: now) <= settings.minutesBefore) {
+      return const SizedBox.shrink();
+    }
+
     final isScheduled = settings.scheduledBusKeys
         .contains(NotificationSettingsNotifier.busKey(widget.bus));
     return IconButton(
