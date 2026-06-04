@@ -104,9 +104,9 @@ jobs:
             sed -i '' "s|ADMOB_APP_ID = .*|ADMOB_APP_ID = $ADMOB_IOS_APP_ID|" ios/Flutter/Release.xcconfig
           fi
 
-          DART_DEFINE_ARGS=""
+          DART_DEFINE_ARGS="--dart-define=USE_TEST_ADS=false"
           if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
-            DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
+            DART_DEFINE_ARGS="$DART_DEFINE_ARGS $(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")"
           fi
 
           flutter build ios --release --no-codesign $DART_DEFINE_ARGS
@@ -184,10 +184,9 @@ jobs:
 
       - name: Set DART_DEFINE_ARGS
         run: |
+          DART_DEFINE_ARGS="--dart-define=USE_TEST_ADS=false"
           if [ -f "$GITHUB_WORKSPACE/.dart_defines" ]; then
-            DART_DEFINE_ARGS=$(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")
-          else
-            DART_DEFINE_ARGS=""
+            DART_DEFINE_ARGS="$DART_DEFINE_ARGS $(python3 -c "import json; d=json.load(open('$GITHUB_WORKSPACE/.dart_defines')); print(' '.join(f'--dart-define={k}={v}' for k, v in d.items()))")"
           fi
           echo "DART_DEFINE_ARGS=$DART_DEFINE_ARGS" >> $GITHUB_ENV
 
