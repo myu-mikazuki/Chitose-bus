@@ -18,19 +18,22 @@ class AppConstants {
   static const String privacyPolicyUrl =
       'https://myu-mikazuki.github.io/Chitose-bus/privacy_policy.html';
 
-  /// AdMob バナー広告ユニット ID (Android)
-  /// --dart-define=ADMOB_ANDROID_AD_UNIT_ID=ca-app-pub-xxx/xxx で渡す
-  /// デフォルトはテスト用ID
-  static const String admobAndroidAdUnitId = String.fromEnvironment(
-    'ADMOB_ANDROID_AD_UNIT_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/6300978111',
+  /// false を渡すと本番の広告ユニット ID を使用する（CI リリースビルド用）
+  /// デフォルトは true（テスト用 ID）
+  static const bool _useTestAds = bool.fromEnvironment(
+    'USE_TEST_ADS',
+    defaultValue: true,
   );
 
+  /// AdMob バナー広告ユニット ID (Android)
+  /// 本番: --dart-define=USE_TEST_ADS=false --dart-define=ADMOB_ANDROID_AD_UNIT_ID=ca-app-pub-xxx/xxx
+  static const String admobAndroidAdUnitId = _useTestAds
+      ? 'ca-app-pub-3940256099942544/6300978111'
+      : String.fromEnvironment('ADMOB_ANDROID_AD_UNIT_ID');
+
   /// AdMob バナー広告ユニット ID (iOS)
-  /// --dart-define=ADMOB_IOS_AD_UNIT_ID=ca-app-pub-xxx/xxx で渡す
-  /// デフォルトはテスト用ID
-  static const String admobIosAdUnitId = String.fromEnvironment(
-    'ADMOB_IOS_AD_UNIT_ID',
-    defaultValue: 'ca-app-pub-3940256099942544/2934735716',
-  );
+  /// 本番: --dart-define=USE_TEST_ADS=false --dart-define=ADMOB_IOS_AD_UNIT_ID=ca-app-pub-xxx/xxx
+  static const String admobIosAdUnitId = _useTestAds
+      ? 'ca-app-pub-3940256099942544/2934735716'
+      : String.fromEnvironment('ADMOB_IOS_AD_UNIT_ID');
 }
