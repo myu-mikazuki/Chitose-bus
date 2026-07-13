@@ -27,6 +27,10 @@ final scheduleViewModelProvider =
 
 final debugTimeProvider = StateProvider<DateTime?>((ref) => null);
 
+/// 当日以外のダイヤ表示モード。null = 当日のダイヤを表示（通常表示）。
+/// 非 null の場合、指定したダイヤ種別（平日 / 土日祝）の全便を表示する。
+final dayTypeOverrideProvider = StateProvider<DayType?>((ref) => null);
+
 final countdownProvider =
     StateNotifierProvider<CountdownNotifier, DateTime>((ref) {
   return CountdownNotifier(ref);

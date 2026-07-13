@@ -312,6 +312,129 @@ void main() {
       );
     });
 
+    group('当日以外のダイヤ表示', () {
+      testWidgets('表示モード切替アイコンが表示される', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byIcon(Icons.event_repeat), findsOneWidget);
+      });
+
+      testWidgets('アイコンタップ: 平日/土日祝ダイヤの切替ボタンが表示され NEXT BUS が非表示になる',
+          (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        // 当日表示: 切替ボタンなし・NEXT BUS あり
+        expect(find.byType(SegmentedButton<DayType>), findsNothing);
+        expect(find.text('NEXT BUS'), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+
+        // 当日以外表示: 切替ボタンあり・NEXT BUS なし・SCHEDULE ラベル
+        expect(find.byType(SegmentedButton<DayType>), findsOneWidget);
+        expect(find.text('平日ダイヤ'), findsOneWidget);
+        expect(find.text('土日祝ダイヤ'), findsOneWidget);
+        expect(find.text('NEXT BUS'), findsNothing);
+        expect(find.text('SCHEDULE'), findsOneWidget);
+      });
+
+      testWidgets('切替ボタンでダイヤ種別を変更できる', (tester) async {
+        // 平日限定・土日祝限定の便を含むタイムテーブル
+        final result = ScheduleResult(
+          data: ScheduleResponse(
+            updatedAt: '2024-01-01',
+            current: BusTimetable(
+              validFrom: '2024-01-01',
+              validTo: '2024-12-31',
+              schedules: const [
+                BusEntry(
+                  time: '09:00',
+                  direction: BusDirection.fromChitose,
+                  destination: '千歳科技大',
+                  weekdayOnly: true,
+                ),
+                BusEntry(
+                  time: '10:00',
+                  direction: BusDirection.fromChitose,
+                  destination: '千歳科技大',
+                  weekendOnly: true,
+                ),
+              ],
+            ),
+          ),
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(result)),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+
+        // 平日ダイヤを選択 → weekdayOnly の便のみ表示
+        await tester.tap(find.text('平日ダイヤ'));
+        await tester.pumpAndSettle();
+        expect(find.text('09:00'), findsOneWidget);
+        expect(find.text('10:00'), findsNothing);
+
+        // 土日祝ダイヤへ切替 → weekendOnly の便のみ表示
+        await tester.tap(find.text('土日祝ダイヤ'));
+        await tester.pumpAndSettle();
+        expect(find.text('09:00'), findsNothing);
+        expect(find.text('10:00'), findsOneWidget);
+      });
+
+      testWidgets('アイコン再タップ: 当日表示に戻る', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+        expect(find.byType(SegmentedButton<DayType>), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+        expect(find.byType(SegmentedButton<DayType>), findsNothing);
+        expect(find.text('NEXT BUS'), findsOneWidget);
+      });
+    });
+
     group('お気に入りタブ', () {
       testWidgets('お気に入り未設定: タブ4つ全てに star_border アイコンが表示される',
           (tester) async {
