@@ -658,6 +658,126 @@ void main() {
       });
     });
 
+    group('ダイヤ種別表示（dayType 指定時）', () {
+      // 平日限定・土日祝限定・毎日運行の3便を含むタイムテーブル
+      final mixedTimetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-12-31',
+        schedules: const [
+          BusEntry(
+            time: '09:00',
+            direction: BusDirection.fromChitose,
+            destination: '千歳科技大',
+            weekdayOnly: true,
+          ),
+          BusEntry(
+            time: '10:00',
+            direction: BusDirection.fromChitose,
+            destination: '千歳科技大',
+            weekendOnly: true,
+          ),
+          BusEntry(
+            time: '11:00',
+            direction: BusDirection.fromChitose,
+            destination: '千歳科技大',
+          ),
+        ],
+      );
+
+      testWidgets('weekday 指定: weekendOnly の便が表示されない', (tester) async {
+        await tester.pumpWidget(
+          _wrap(ScheduleList(
+            timetable: mixedTimetable,
+            direction: BusDirection.fromChitose,
+            dayType: DayType.weekday,
+          )),
+        );
+
+        expect(find.text('09:00'), findsOneWidget);
+        expect(find.text('10:00'), findsNothing);
+        expect(find.text('11:00'), findsOneWidget);
+      });
+
+      testWidgets('weekendHoliday 指定: weekdayOnly の便が表示されない', (tester) async {
+        await tester.pumpWidget(
+          _wrap(ScheduleList(
+            timetable: mixedTimetable,
+            direction: BusDirection.fromChitose,
+            dayType: DayType.weekendHoliday,
+          )),
+        );
+
+        expect(find.text('09:00'), findsNothing);
+        expect(find.text('10:00'), findsOneWidget);
+        expect(find.text('11:00'), findsOneWidget);
+      });
+
+      testWidgets('NEXT ハイライトが表示されない', (tester) async {
+        // kTestNow=09:00 なので当日表示なら 11:00 が NEXT になるが、
+        // dayType 指定時は NEXT の概念がない
+        await tester.pumpWidget(
+          _wrap(ScheduleList(
+            timetable: mixedTimetable,
+            direction: BusDirection.fromChitose,
+            dayType: DayType.weekday,
+          )),
+        );
+
+        expect(find.text('◀ NEXT'), findsNothing);
+      });
+
+      testWidgets('過去時刻の便もグレーアウトされない', (tester) async {
+        // kTestNow=09:00 に対して 00:01 は過去だが、dayType 指定時は通常色
+        final timetable = BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-12-31',
+          schedules: const [
+            BusEntry(
+              time: '00:01',
+              direction: BusDirection.fromChitose,
+              destination: '千歳科技大',
+            ),
+          ],
+        );
+        await tester.pumpWidget(
+          _wrap(ScheduleList(
+            timetable: timetable,
+            direction: BusDirection.fromChitose,
+            dayType: DayType.weekday,
+          )),
+        );
+
+        final timeText = tester.widget<Text>(find.text('00:01'));
+        expect(timeText.style?.color, const Color(0xFFCCCCCC));
+      });
+
+      testWidgets('通知ベルが表示されない', (tester) async {
+        final busTime = safeFutureHhmm(60);
+        final timetable = BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-12-31',
+          schedules: [
+            BusEntry(
+                time: busTime,
+                direction: BusDirection.fromChitose,
+                destination: '千歳科技大'),
+          ],
+        );
+        await tester.pumpWidget(_wrapWithNotification(
+          ScheduleList(
+            timetable: timetable,
+            direction: BusDirection.fromChitose,
+            dayType: DayType.weekday,
+          ),
+          NotificationSettings(enabled: true),
+        ));
+        await tester.pump();
+
+        expect(find.byIcon(Icons.notifications_off_outlined), findsNothing);
+        expect(find.byIcon(Icons.notifications), findsNothing);
+      });
+    });
+
     testWidgets('NEXTバスが画面外にあっても初期表示でスクロールされて見える', (tester) async {
       // kTestNow = 09:00。過去便を18件並べてNEXTを画面外に追いやる
       final pastTimes = List.generate(

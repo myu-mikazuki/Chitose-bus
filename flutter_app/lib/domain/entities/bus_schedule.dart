@@ -6,6 +6,18 @@ enum BusDirection {
   fromHonbuto,
 }
 
+/// ダイヤ種別（平日 / 土日祝日）
+enum DayType {
+  weekday,
+  weekendHoliday;
+
+  static DayType fromDate(DateTime date) {
+    final isWeekend = date.weekday == DateTime.saturday ||
+        date.weekday == DateTime.sunday;
+    return isWeekend ? DayType.weekendHoliday : DayType.weekday;
+  }
+}
+
 class BusEntry {
   const BusEntry({
     required this.time,
@@ -27,13 +39,13 @@ class BusEntry {
   final bool weekdayOnly;
   final bool weekendOnly;
 
-  bool isRunningToday(DateTime now) {
-    final weekday = now.weekday;
-    final isWeekend = weekday == DateTime.saturday || weekday == DateTime.sunday;
-    if (isWeekend && weekdayOnly) return false;
-    if (!isWeekend && weekendOnly) return false;
+  bool runsOn(DayType dayType) {
+    if (dayType == DayType.weekendHoliday && weekdayOnly) return false;
+    if (dayType == DayType.weekday && weekendOnly) return false;
     return true;
   }
+
+  bool isRunningToday(DateTime now) => runsOn(DayType.fromDate(now));
 
   DateTime toDateTimeToday({DateTime? now}) {
     final base = now ?? DateTime.now();
@@ -81,8 +93,12 @@ class BusTimetable {
 
   List<BusEntry> todayBuses(BusDirection direction, {DateTime? now}) {
     final current = now ?? DateTime.now();
+    return busesFor(direction, DayType.fromDate(current));
+  }
+
+  List<BusEntry> busesFor(BusDirection direction, DayType dayType) {
     final filtered = schedules
-        .where((e) => e.direction == direction && e.isRunningToday(current))
+        .where((e) => e.direction == direction && e.runsOn(dayType))
         .toList();
     filtered.sort((a, b) => a.time.compareTo(b.time));
     return filtered;

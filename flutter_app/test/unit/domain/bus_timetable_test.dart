@@ -195,6 +195,97 @@ void main() {
         final result = timetable.todayBuses(BusDirection.fromChitose);
         expect(result, isEmpty);
       });
+
+      test('土曜日: weekdayOnly の便は含まれず weekendOnly の便は含まれる', () {
+        final saturday = DateTime(2024, 6, 15, 8, 0); // 土曜日
+        const timetable = BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-12-31',
+          schedules: [
+            BusEntry(
+              time: '09:00',
+              direction: BusDirection.fromChitose,
+              destination: '千歳科技大',
+              weekdayOnly: true,
+            ),
+            BusEntry(
+              time: '10:00',
+              direction: BusDirection.fromChitose,
+              destination: '千歳科技大',
+              weekendOnly: true,
+            ),
+          ],
+        );
+
+        final result =
+            timetable.todayBuses(BusDirection.fromChitose, now: saturday);
+        expect(result.length, 1);
+        expect(result.first.time, '10:00');
+      });
+    });
+
+    group('busesFor', () {
+      const timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-12-31',
+        schedules: [
+          BusEntry(
+            time: '10:00',
+            direction: BusDirection.fromChitose,
+            destination: '千歳科技大',
+            weekendOnly: true,
+          ),
+          BusEntry(
+            time: '09:00',
+            direction: BusDirection.fromChitose,
+            destination: '千歳科技大',
+            weekdayOnly: true,
+          ),
+          BusEntry(
+            time: '11:00',
+            direction: BusDirection.fromChitose,
+            destination: '千歳科技大',
+          ),
+          BusEntry(
+            time: '08:00',
+            direction: BusDirection.fromMinamiChitose,
+            destination: '南千歳',
+          ),
+        ],
+      );
+
+      test('平日ダイヤ: weekendOnly の便を除外し時刻順に返す', () {
+        final result =
+            timetable.busesFor(BusDirection.fromChitose, DayType.weekday);
+        expect(result.map((e) => e.time), ['09:00', '11:00']);
+      });
+
+      test('土日祝ダイヤ: weekdayOnly の便を除外し時刻順に返す', () {
+        final result = timetable.busesFor(
+            BusDirection.fromChitose, DayType.weekendHoliday);
+        expect(result.map((e) => e.time), ['10:00', '11:00']);
+      });
+
+      test('指定方向の便のみ返す', () {
+        final result = timetable.busesFor(
+            BusDirection.fromMinamiChitose, DayType.weekday);
+        expect(result.length, 1);
+        expect(result.first.direction, BusDirection.fromMinamiChitose);
+      });
+    });
+  });
+
+  group('DayType', () {
+    test('fromDate: 平日は weekday を返す', () {
+      expect(DayType.fromDate(DateTime(2024, 6, 17)), DayType.weekday); // 月
+      expect(DayType.fromDate(DateTime(2024, 6, 21)), DayType.weekday); // 金
+    });
+
+    test('fromDate: 土日は weekendHoliday を返す', () {
+      expect(
+          DayType.fromDate(DateTime(2024, 6, 15)), DayType.weekendHoliday); // 土
+      expect(
+          DayType.fromDate(DateTime(2024, 6, 16)), DayType.weekendHoliday); // 日
     });
   });
 }

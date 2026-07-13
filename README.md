@@ -164,7 +164,15 @@ GitHub Actions の **iOS Build** ワークフロー（`workflow_dispatch`）か�
 
 | バージョン | 内容 |
 |-----------|------|
-| [v0.7.0](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.7.0) | お気に入りタブ機能追加、AAB ビルド追加 |
-| [v0.6.1](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.6.1) | iOS ビルド修正 |
-| [v0.6.0](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.6.0) | ストア初回公開（AdMob 広告、お問い合わせ機能） |
-| [v0.5.0](https://github.com/Yuzucchi-cist/Chitose-bus/releases/tag/v0.5.0) | バス出発前通知機能 |
+| [v1.1.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.1.0) | 当日以外の時刻表を表示できる機能を追加、直17系統の運行日誤りを修正 |
+| [v1.0.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.0.0) | 正式リリース、AdMob 広告のテスト/本番切り替え対応 |
+| [v0.8.3](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.8.3) | iOS ビルドの CocoaPods/SPM 混在エラーを修正 |
+| [v0.8.1](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.8.1) | 千歳駅のりば表示・お気に入りタブの不具合を修正 |
+| [v0.8.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.8.0) | オフライン対応、講時タグ表示機能を追加 |
+| [v0.7.3](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.7.3) | Android リリース版の起動直後クラッシュを修正 |
+| [v0.7.2](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.7.2) | GitHub ユーザー名変更に伴う修正 |
+| [v0.7.1](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.7.1) | iPad 対応を無効化（iPhone 専用に変更） |
+| [v0.7.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.7.0) | お気に入りタブ機能追加、AAB ビルド追加 |
+| [v0.6.1](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.6.1) | iOS ビルド修正 |
+| [v0.6.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.6.0) | ストア初回公開（AdMob 広告、お問い合わせ機能） |
+| [v0.5.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.5.0) | バス出発前通知機能 |

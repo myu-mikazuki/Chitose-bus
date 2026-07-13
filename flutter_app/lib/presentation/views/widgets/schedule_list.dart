@@ -13,10 +13,16 @@ class ScheduleList extends ConsumerStatefulWidget {
     super.key,
     required this.timetable,
     required this.direction,
+    this.dayType,
   });
 
   final BusTimetable timetable;
   final BusDirection direction;
+
+  /// 非 null の場合、当日ではなく指定ダイヤ種別（平日 / 土日祝）の全便を表示する。
+  /// このとき現在時刻に依存する表示（NEXT ハイライト・過去便のグレーアウト・
+  /// 通知ベル・NEXT への自動スクロール）は行わない。
+  final DayType? dayType;
 
   @override
   ConsumerState<ScheduleList> createState() => _ScheduleListState();
@@ -58,8 +64,14 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
   Widget build(BuildContext context) {
     final now = ref.watch(countdownProvider);
 
-    final buses = widget.timetable.todayBuses(widget.direction);
-    final nextBus = widget.timetable.nextBus(widget.direction, now: now);
+    final dayType = widget.dayType;
+    final buses = dayType == null
+        ? widget.timetable.todayBuses(widget.direction)
+        : widget.timetable.busesFor(widget.direction, dayType);
+    // 当日以外の表示では NEXT の概念がないため null とする
+    final nextBus = dayType == null
+        ? widget.timetable.nextBus(widget.direction, now: now)
+        : null;
 
     if (buses.isEmpty) {
       return Center(
@@ -83,13 +95,15 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
         final rows = List.generate(buses.length, (index) {
           final bus = buses[index];
-          final isPast = bus.minutesFromNow(now: now) < 0;
+          final isPast =
+              dayType == null && bus.minutesFromNow(now: now) < 0;
           final isNext = index == nextBusIndex;
           return _ScheduleRow(
             key: isNext ? _nextBusKey : null,
             bus: bus,
             isPast: isPast,
             isNext: isNext,
+            showBell: dayType == null,
           );
         });
 
@@ -123,11 +137,16 @@ class _ScheduleRow extends ConsumerStatefulWidget {
     required this.bus,
     required this.isPast,
     required this.isNext,
+    this.showBell = true,
   });
 
   final BusEntry bus;
   final bool isPast;
   final bool isNext;
+
+  /// 通知ベルは当日の便に対してのみ意味を持つため、
+  /// 当日以外のダイヤ表示では false を渡して非表示にする。
+  final bool showBell;
 
   @override
   ConsumerState<_ScheduleRow> createState() => _ScheduleRowState();
@@ -201,6 +220,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
       };
 
   Widget _buildBellIcon() {
+    if (!widget.showBell) return const SizedBox.shrink();
     if (widget.isPast) return const SizedBox.shrink();
     final settings = ref.watch(notificationSettingsProvider).valueOrNull;
     if (settings == null || !settings.enabled) return const SizedBox.shrink();

@@ -23,6 +23,68 @@ void main() {
       });
     });
 
+    group('runsOn', () {
+      test('weekdayOnly=true: 平日ダイヤでは運行、土日祝ダイヤでは運休', () {
+        const entry = BusEntry(
+          time: '09:30',
+          direction: BusDirection.fromChitose,
+          destination: '千歳科技大',
+          weekdayOnly: true,
+        );
+        expect(entry.runsOn(DayType.weekday), isTrue);
+        expect(entry.runsOn(DayType.weekendHoliday), isFalse);
+      });
+
+      test('weekendOnly=true: 土日祝ダイヤでは運行、平日ダイヤでは運休', () {
+        const entry = BusEntry(
+          time: '09:30',
+          direction: BusDirection.fromChitose,
+          destination: '千歳科技大',
+          weekendOnly: true,
+        );
+        expect(entry.runsOn(DayType.weekday), isFalse);
+        expect(entry.runsOn(DayType.weekendHoliday), isTrue);
+      });
+
+      test('フラグなし: どちらのダイヤでも運行', () {
+        const entry = BusEntry(
+          time: '09:30',
+          direction: BusDirection.fromChitose,
+          destination: '千歳科技大',
+        );
+        expect(entry.runsOn(DayType.weekday), isTrue);
+        expect(entry.runsOn(DayType.weekendHoliday), isTrue);
+      });
+    });
+
+    group('isRunningToday', () {
+      test('weekdayOnly=true: 土曜日は運休、月曜日は運行', () {
+        const entry = BusEntry(
+          time: '09:30',
+          direction: BusDirection.fromChitose,
+          destination: '千歳科技大',
+          weekdayOnly: true,
+        );
+        final saturday = DateTime(2024, 6, 15); // 土曜日
+        final monday = DateTime(2024, 6, 17); // 月曜日
+        expect(entry.isRunningToday(saturday), isFalse);
+        expect(entry.isRunningToday(monday), isTrue);
+      });
+
+      test('weekendOnly=true: 月曜日は運休、日曜日は運行', () {
+        const entry = BusEntry(
+          time: '09:30',
+          direction: BusDirection.fromChitose,
+          destination: '千歳科技大',
+          weekendOnly: true,
+        );
+        final sunday = DateTime(2024, 6, 16); // 日曜日
+        final monday = DateTime(2024, 6, 17); // 月曜日
+        expect(entry.isRunningToday(monday), isFalse);
+        expect(entry.isRunningToday(sunday), isTrue);
+      });
+    });
+
     group('minutesFromNow', () {
       test('returns positive value for future time', () {
         const entry = BusEntry(

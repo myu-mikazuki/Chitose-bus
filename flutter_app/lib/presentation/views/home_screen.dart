@@ -117,11 +117,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
+  void _toggleDayTypeView() {
+    final notifier = ref.read(dayTypeOverrideProvider.notifier);
+    if (notifier.state != null) {
+      notifier.state = null;
+      return;
+    }
+    // 当日以外モードに入るときは、当日と逆のダイヤを初期表示する
+    // （平日に土日祝ダイヤを確認する、が主なユースケースのため）
+    final today = DayType.fromDate(DateTime.now());
+    notifier.state = today == DayType.weekday
+        ? DayType.weekendHoliday
+        : DayType.weekday;
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
     final favoriteAsync = ref.watch(favoriteTabProvider);
     final favoriteTabIndex = favoriteAsync.valueOrNull?.tabIndex;
+    final dayType = ref.watch(dayTypeOverrideProvider);
 
     // お気に入りタブの初回適用（アプリ起動時のみ）
     // addPostFrameCallback で index を変更する方式だと、TabBarView が未生成の状態で
@@ -206,6 +221,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             orElse: () => const SizedBox.shrink(),
           ),
           IconButton(
+            icon: Icon(
+              Icons.event_repeat,
+              color: dayType != null ? AppColors.warning : AppColors.primary,
+            ),
+            tooltip: dayType != null ? '当日のダイヤに戻る' : '当日以外のダイヤを表示',
+            onPressed: _toggleDayTypeView,
+          ),
+          IconButton(
             icon: const Icon(Icons.settings, color: AppColors.primary),
             tooltip: '設定',
             onPressed: () => Navigator.push(
@@ -259,14 +282,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 children: [
                   if (result.isFromCache)
                     OfflineCacheBanner(updatedAt: result.data.updatedAt),
+                  if (dayType != null) _DayTypeSelector(dayType: dayType),
                   Expanded(
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt),
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt),
-                        _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt),
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt),
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt, dayType: dayType),
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt, dayType: dayType),
+                        _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt, dayType: dayType),
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt, dayType: dayType),
                       ],
                     ),
                   ),
@@ -409,10 +433,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 }
 
+/// 当日以外モードで表示するダイヤ種別（平日 / 土日祝）の切り替えボタン。
+/// 全タブ共通の設定のため TabBarView の外（上部）に配置する。
+class _DayTypeSelector extends ConsumerWidget {
+  const _DayTypeSelector({required this.dayType});
+
+  final DayType dayType;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: SegmentedButton<DayType>(
+        segments: const [
+          ButtonSegment(
+            value: DayType.weekday,
+            label: Text('平日ダイヤ'),
+          ),
+          ButtonSegment(
+            value: DayType.weekendHoliday,
+            label: Text('土日祝ダイヤ'),
+          ),
+        ],
+        selected: {dayType},
+        onSelectionChanged: (selection) =>
+            ref.read(dayTypeOverrideProvider.notifier).state = selection.first,
+        style: SegmentedButton.styleFrom(
+          backgroundColor: context.appColors.surface,
+          foregroundColor: context.appColors.textTertiary,
+          selectedBackgroundColor: AppColors.primary,
+          selectedForegroundColor: AppColors.onPrimary,
+        ),
+      ),
+    );
+  }
+}
+
 class _KenkyutoTab extends StatefulWidget {
-  const _KenkyutoTab({required this.timetable, required this.updatedAt});
+  const _KenkyutoTab({
+    required this.timetable,
+    required this.updatedAt,
+    this.dayType,
+  });
   final BusTimetable timetable;
   final String updatedAt;
+  final DayType? dayType;
 
   @override
   State<_KenkyutoTab> createState() => _KenkyutoTabState();
@@ -460,32 +525,36 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('NEXT BUS', style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
-              const SizedBox(height: 8),
-              // IndexedStack で両方向の NextBusDisplay を常時保持し、
-              // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
-              // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-              // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
-              // これにより TabBarView（PageView）への伝播を防ぐ。
-              GestureDetector(
-                onVerticalDragUpdate: (_) {},
-                child: IndexedStack(
-                  index: _direction == BusDirection.fromKenkyutoToHonbuto ? 0 : 1,
-                  children: [
-                    NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToHonbuto),
-                    NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToStation),
-                  ],
+              // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
+              if (widget.dayType == null) ...[
+                Text('NEXT BUS', style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
+                const SizedBox(height: 8),
+                // IndexedStack で両方向の NextBusDisplay を常時保持し、
+                // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
+                // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
+                // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
+                // これにより TabBarView（PageView）への伝播を防ぐ。
+                GestureDetector(
+                  onVerticalDragUpdate: (_) {},
+                  child: IndexedStack(
+                    index: _direction == BusDirection.fromKenkyutoToHonbuto ? 0 : 1,
+                    children: [
+                      NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToHonbuto),
+                      NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToStation),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Text("TODAY'S SCHEDULE", style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
+                const SizedBox(height: 24),
+              ],
+              Text(widget.dayType == null ? "TODAY'S SCHEDULE" : 'SCHEDULE', style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
             ],
           ),
         ),
         // IndexedStack で両 ScheduleList の State を常時保持することで
         // 本部棟↔千歳駅切り替え時にスクロール位置が独立して維持される。
-        // PageStorageKey でスクロール位置を方向ごとに永続化する。
+        // PageStorageKey でスクロール位置を方向ごとに永続化する
+        // （当日/ダイヤ種別ごとに独立させるため dayType もキーに含める）。
         // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
         // ジェスチャーアリーナに参加し、スクロール不可時の縦スワイプを消費する。
         // これにより TabBarView（PageView）への伝播を防ぐ。
@@ -496,14 +565,18 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
               index: _direction == BusDirection.fromKenkyutoToHonbuto ? 0 : 1,
               children: [
                 ScheduleList(
-                  key: const PageStorageKey('kenkyuto_honbuto'),
+                  key: PageStorageKey(
+                      'kenkyuto_honbuto_${widget.dayType?.name ?? 'today'}'),
                   timetable: widget.timetable,
                   direction: BusDirection.fromKenkyutoToHonbuto,
+                  dayType: widget.dayType,
                 ),
                 ScheduleList(
-                  key: const PageStorageKey('kenkyuto_chitose'),
+                  key: PageStorageKey(
+                      'kenkyuto_chitose_${widget.dayType?.name ?? 'today'}'),
                   timetable: widget.timetable,
                   direction: BusDirection.fromKenkyutoToStation,
+                  dayType: widget.dayType,
                 ),
               ],
             ),
@@ -526,11 +599,13 @@ class _DirectionTab extends StatelessWidget {
     required this.timetable,
     required this.direction,
     required this.updatedAt,
+    this.dayType,
   });
 
   final BusTimetable timetable;
   final BusDirection direction;
   final String updatedAt;
+  final DayType? dayType;
 
   @override
   Widget build(BuildContext context) {
@@ -548,29 +623,32 @@ class _DirectionTab extends StatelessWidget {
             children: [
               const WeekendWarningBanner(),
               const SizedBox(height: 8),
-              Text(
-                'NEXT BUS',
-                style: TextStyle(
-                  color: context.appColors.textTertiary,
-                  fontSize: 12,
-                  letterSpacing: 3,
+              // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
+              if (dayType == null) ...[
+                Text(
+                  'NEXT BUS',
+                  style: TextStyle(
+                    color: context.appColors.textTertiary,
+                    fontSize: 12,
+                    letterSpacing: 3,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-              // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
-              // これにより TabBarView（PageView）への伝播を防ぐ。
-              GestureDetector(
-                onVerticalDragUpdate: (_) {},
-                child: NextBusDisplay(
-                  timetable: timetable,
-                  direction: direction,
-                  showPlatform: direction == BusDirection.fromChitose,
+                const SizedBox(height: 8),
+                // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
+                // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
+                // これにより TabBarView（PageView）への伝播を防ぐ。
+                GestureDetector(
+                  onVerticalDragUpdate: (_) {},
+                  child: NextBusDisplay(
+                    timetable: timetable,
+                    direction: direction,
+                    showPlatform: direction == BusDirection.fromChitose,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
+              ],
               Text(
-                'TODAY\'S SCHEDULE',
+                dayType == null ? 'TODAY\'S SCHEDULE' : 'SCHEDULE',
                 style: TextStyle(
                   color: context.appColors.textTertiary,
                   fontSize: 12,
@@ -587,7 +665,15 @@ class _DirectionTab extends StatelessWidget {
         Expanded(
           child: GestureDetector(
             onVerticalDragUpdate: (_) {},
-            child: ScheduleList(timetable: timetable, direction: direction),
+            // dayType をキーに含めて表示モード切替時に State を再生成し、
+            // 当日表示に戻ったとき NEXT への自動スクロールを再実行させる。
+            child: ScheduleList(
+              key: ValueKey(
+                  '${direction.name}_${dayType?.name ?? 'today'}'),
+              timetable: timetable,
+              direction: direction,
+              dayType: dayType,
+            ),
           ),
         ),
         Padding(
