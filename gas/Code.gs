@@ -303,7 +303,7 @@ function buildRoute1Inbound(schedules) {
  * 系統2 往路（千歳駅3番乗り場 → 直通 → 科技大）
  *
  * データソース: 時刻表データ_系統2.csv「系統2 to 本部棟」
- * フラグ行なし → 全便 平日・休日ともに運行
+ * 全便平日のみ運行（土日祝の運行なし）
  */
 function buildRoute2Outbound(schedules) {
   var trips = [
@@ -329,8 +329,8 @@ function buildRoute2Outbound(schedules) {
     ['17:51', '18:09', '18:12'],
   ];
   trips.forEach(function(tr) {
-    schedules.push({ time: tr[0], direction: 'from_chitose',             destination: '科技大', routeLabel: '直通', platformNumber: '3番', weekdayOnly: false, weekendOnly: false, arrivals: { kenkyuto: tr[1], honbuto: tr[2] } });
-    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_honbuto', destination: '科技大', routeLabel: '直通', platformNumber: null,  weekdayOnly: false, weekendOnly: false, arrivals: { honbuto: tr[2] } });
+    schedules.push({ time: tr[0], direction: 'from_chitose',             destination: '科技大', routeLabel: '直通', platformNumber: '3番', weekdayOnly: true, weekendOnly: false, arrivals: { kenkyuto: tr[1], honbuto: tr[2] } });
+    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_honbuto', destination: '科技大', routeLabel: '直通', platformNumber: null,  weekdayOnly: true, weekendOnly: false, arrivals: { honbuto: tr[2] } });
   });
 }
 
@@ -338,7 +338,7 @@ function buildRoute2Outbound(schedules) {
  * 系統2 復路（科技大 → 直通 → 千歳駅）
  *
  * データソース: 時刻表データ_系統2.csv「系統2 to 千歳駅」
- * フラグ行なし → 全便 平日・休日ともに運行
+ * 全便平日のみ運行（土日祝の運行なし）
  * 直通のため南千歳駅は経由しない
  */
 function buildRoute2Inbound(schedules) {
@@ -355,8 +355,8 @@ function buildRoute2Inbound(schedules) {
     ['18:27', '18:30', '18:49'],
   ];
   trips.forEach(function(tr) {
-    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '直通', platformNumber: null, weekdayOnly: false, weekendOnly: false, arrivals: { kenkyuto: tr[1], chitose: tr[2] } });
-    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '直通', platformNumber: null, weekdayOnly: false, weekendOnly: false, arrivals: { chitose: tr[2] } });
+    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '直通', platformNumber: null, weekdayOnly: true, weekendOnly: false, arrivals: { kenkyuto: tr[1], chitose: tr[2] } });
+    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '直通', platformNumber: null, weekdayOnly: true, weekendOnly: false, arrivals: { chitose: tr[2] } });
   });
 }
 
