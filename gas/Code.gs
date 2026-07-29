@@ -3,10 +3,12 @@
  *
  * 事前準備:
  *   - Webアプリとしてデプロイ（アクセス: 全員）
+ *
+ * 時刻表はハードコードされており、doGet は外部 I/O なしで応答を組み立てる。
+ * 意図的にキャッシュを持たない設計のため、再デプロイすれば即座に反映される。
+ * かつては CacheService に6時間キャッシュしていたが、コードを更新しても
+ * 旧データが配信され続ける事故が起きたため廃止した（Issue #153）。
  */
-
-var CACHE_KEY = 'bus_timetable_v5';
-var CACHE_EXPIRY_SECONDS = 6 * 60 * 60; // 6時間
 
 // ---- 旧スクレイピング処理（コメントアウト） ----
 /*
@@ -161,14 +163,9 @@ function testPdfText() {
 */
 
 function doGet(e) {
-  var cache = CacheService.getScriptCache();
-  var cached = cache.get(CACHE_KEY);
-  if (cached) return buildResponse(cached);
   try {
     var result = getHardcodedTimetable();
-    var json = JSON.stringify(result);
-    cache.put(CACHE_KEY, json, CACHE_EXPIRY_SECONDS);
-    return buildResponse(json);
+    return buildResponse(JSON.stringify(result));
   } catch (err) {
     return ContentService
       .createTextOutput(JSON.stringify({ error: err.message || String(err) }))
@@ -406,9 +403,4 @@ function buildRoute3Inbound(schedules) {
 function testHardcoded() {
   var result = getHardcodedTimetable();
   Logger.log(JSON.stringify(result, null, 2));
-}
-
-function clearCache() {
-  CacheService.getScriptCache().remove(CACHE_KEY);
-  Logger.log('Cache cleared');
 }
