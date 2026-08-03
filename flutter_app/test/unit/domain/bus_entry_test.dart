@@ -31,8 +31,8 @@ void main() {
           destination: '千歳科技大',
           weekdayOnly: true,
         );
-        expect(entry.runsOn(DayType.weekday), isTrue);
-        expect(entry.runsOn(DayType.weekendHoliday), isFalse);
+        expect(entry.runsOn(DayType.weekday, SeasonType.academic), isTrue);
+        expect(entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isFalse);
       });
 
       test('weekendOnly=true: 土日祝ダイヤでは運行、平日ダイヤでは運休', () {
@@ -42,8 +42,8 @@ void main() {
           destination: '千歳科技大',
           weekendOnly: true,
         );
-        expect(entry.runsOn(DayType.weekday), isFalse);
-        expect(entry.runsOn(DayType.weekendHoliday), isTrue);
+        expect(entry.runsOn(DayType.weekday, SeasonType.academic), isFalse);
+        expect(entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isTrue);
       });
 
       test('フラグなし: どちらのダイヤでも運行', () {
@@ -52,8 +52,8 @@ void main() {
           direction: BusDirection.fromChitose,
           destination: '千歳科技大',
         );
-        expect(entry.runsOn(DayType.weekday), isTrue);
-        expect(entry.runsOn(DayType.weekendHoliday), isTrue);
+        expect(entry.runsOn(DayType.weekday, SeasonType.academic), isTrue);
+        expect(entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isTrue);
       });
     });
 

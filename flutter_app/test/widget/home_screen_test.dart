@@ -356,6 +356,10 @@ void main() {
         expect(find.text('土日祝ダイヤ'), findsOneWidget);
         expect(find.text('NEXT BUS'), findsNothing);
         expect(find.text('SCHEDULE'), findsOneWidget);
+        // 期別（授業期 / 学休期）の切替ボタンも表示される
+        expect(find.byType(SegmentedButton<SeasonType>), findsOneWidget);
+        expect(find.text('授業期'), findsOneWidget);
+        expect(find.text('学休期'), findsOneWidget);
       });
 
       testWidgets('切替ボタンでダイヤ種別を変更できる', (tester) async {
