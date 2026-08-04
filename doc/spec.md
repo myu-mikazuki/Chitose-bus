@@ -47,17 +47,10 @@ data/
   4. テキストをパースして時刻・方面・到着時刻を構造化
   5. CacheService に6時間キャッシュして返却
 
-- **データバージョン**: レスポンスの `dataVersion` は `gas/Code.gs` の
-  `TIMETABLE_DATA_VERSION` の値。GAS は Apps Script への手動デプロイが必要なため、
-  デプロイ漏れを検知できるようにこの値を返している。
-  **時刻表データを変更したら必ず更新する**（形式: `YYYY-MM-DD.N`）。
-  アプリでは設定画面の「時刻表データ」に表示される。
-
 - **レスポンス形式**:
 ```json
 {
   "updatedAt": "2025-03-08",
-  "dataVersion": "2026-08-04.1",
   "current": {
     "validFrom": "2025-03-01",
     "validTo": "2025-03-31",
