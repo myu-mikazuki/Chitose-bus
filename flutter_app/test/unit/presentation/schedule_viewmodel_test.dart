@@ -18,7 +18,7 @@ const _responseModel = ScheduleResponseModel(
     validTo: '2024-03-31',
     pdfUrl: '',
     schedules: [
-      BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '科技大'),
+      BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '千歳科技大'),
     ],
   ),
   upcoming: null,

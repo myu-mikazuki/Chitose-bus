@@ -1,5 +1,5 @@
 name: kagi_bus
-description: Kagi-Bus - 千歳の大学へ通う人のバス時刻表アプリ
+description: Kagi-Bus - 千歳科学技術大学 バス時刻表アプリ
 flutter_native_splash:
   color: "#FE9616"
   image: assets/icon/icon_adaptive_foreground.png

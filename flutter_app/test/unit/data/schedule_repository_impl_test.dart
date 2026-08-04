@@ -18,7 +18,7 @@ const _responseModel = ScheduleResponseModel(
       BusEntryModel(
         time: '09:30',
         direction: 'from_chitose',
-        destination: '科技大',
+        destination: '千歳科技大',
       ),
     ],
   ),

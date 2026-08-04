@@ -1,5 +1,5 @@
 /**
- * Kagi-Bus バス時刻表 GAS バックエンド
+ * 千歳科学技術大学 シャトルバス時刻表 GAS バックエンド
  *
  * 事前準備:
  *   - Webアプリとしてデプロイ（アクセス: 全員）
@@ -103,9 +103,9 @@ function parseTimetableText(text) {
       if (kenkyutoTime) outboundArrivals['kenkyuto'] = kenkyutoTime;
       if (honbutoTime)  outboundArrivals['honbuto']  = honbutoTime;
       if (pendingTimes.length > 0)
-        schedules.push({ time: pendingTimes[0], direction: 'from_chitose',           destination: '科技大', arrivals: outboundArrivals });
+        schedules.push({ time: pendingTimes[0], direction: 'from_chitose',           destination: '千歳科学技術大学', arrivals: outboundArrivals });
       if (pendingTimes.length > 1)
-        schedules.push({ time: pendingTimes[1], direction: 'from_minami_chitose',    destination: '科技大', arrivals: outboundArrivals });
+        schedules.push({ time: pendingTimes[1], direction: 'from_minami_chitose',    destination: '千歳科学技術大学', arrivals: outboundArrivals });
       if (pendingTimes.length > 2) {
         var kenkyutoArrivals = {};
         if (honbutoTime) kenkyutoArrivals['honbuto'] = honbutoTime;

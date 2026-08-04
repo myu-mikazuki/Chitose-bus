@@ -23,7 +23,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '科技大',
+            destination: '千歳科技大',
           ),
         ],
       );
@@ -63,7 +63,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '科技大',
+            destination: '千歳科技大',
           ),
         ],
       );
@@ -101,7 +101,7 @@ void main() {
           BusEntry(
             time: nearFuture,
             direction: BusDirection.fromChitose,
-            destination: '科技大',
+            destination: '千歳科技大',
           ),
         ],
       );
@@ -146,7 +146,7 @@ void main() {
           BusEntry(
             time: '00:01',
             direction: BusDirection.fromChitose,
-            destination: '科技大',
+            destination: '千歳科技大',
           ),
         ],
       );
@@ -168,7 +168,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '科技大',
+            destination: '千歳科技大',
           ),
         ],
       );
@@ -190,7 +190,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '科技大',
+            destination: '千歳科技大',
           ),
         ],
       );
@@ -212,7 +212,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '科技大',
+            destination: '千歳科技大',
           ),
         ],
       );
@@ -263,7 +263,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '科技大',
+            destination: '千歳科技大',
             arrivals: {'kenkyuto': arrivalTime},
           ),
         ],
