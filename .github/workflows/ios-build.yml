@@ -52,6 +52,12 @@ on:
         type: string
         default: ''
 
+# 同じ PR に連続で push した場合、古い実行を打ち切る。
+# main / develop への push は各コミットの結果を残したいので打ち切らない。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: macos-latest
