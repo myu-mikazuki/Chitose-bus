@@ -423,6 +423,10 @@ function buildRoute1Outbound(schedules) {
  *
  * 授業期と学休期の差分は 15:24 便のみ。学休期は南千歳駅を経由しない。
  * それ以外の便は両期で同一。
+ *
+ * 17:52 / 19:02 便は運行日ラベルが空欄＝毎日運行で、南千歳駅を経由しない
+ * （Issue #159）。同種の便は空港国内線28番・エアカーゴ前・朝日町4丁目なども
+ * あわせて通過する。
  */
 function buildRoute1Inbound(schedules) {
   var trips = [
@@ -437,8 +441,8 @@ function buildRoute1Inbound(schedules) {
     ['15:24', '15:27', '15:39', '15:50', 'B', 'A'],
     ['15:24', '15:27', null,    '15:50', 'B', 'V'],
     ['16:47', '16:50', '17:02', '17:13', 'B', ''],
-    ['17:52', '17:55', '18:07', '18:18', 'B', ''],
-    ['19:02', '19:05', '19:17', '19:28', 'B', ''],
+    ['17:52', '17:55', null,    '18:18', 'B', ''],
+    ['19:02', '19:05', null,    '19:28', 'B', ''],
     ['19:42', '19:45', '19:57', '20:08', 'D', ''],
     ['21:22', '21:25', '21:37', '21:48', 'D', ''],
   ];
@@ -575,19 +579,22 @@ function buildRoute3Outbound(schedules) {
 /**
  * 系統3 復路（科技大 → 長都行き → 千歳駅）
  *
- * データソース: 時刻表データ_系統3.csv「系統3 to 千歳駅」
+ * データソース: 美々空港線 時刻表 PDF「＜復路＞【空17・空18】千歳駅・長都駅東口行き」
  * フラグ行なし → 全便 平日・休日ともに運行
  * ※バスは千歳駅前（4番）通過後に長都駅東口まで続行
+ *
+ * 2便とも南千歳駅は経由しない（Issue #159）。運行日ラベルが空欄＝毎日運行の便は
+ * 空港国内線28番・エアカーゴ前・朝日町4丁目などとあわせて南千歳駅も通過する。
  */
 function buildRoute3Inbound(schedules) {
   var trips = [
-    // [本部棟, 研究棟, 南千歳, 千歳]
-    ['20:32', '20:35', '20:47', '21:00'],
-    ['22:02', '22:05', '22:17', '22:30'],
+    // [本部棟, 研究棟, 千歳]
+    ['20:32', '20:35', '21:00'],
+    ['22:02', '22:05', '22:30'],
   ];
   trips.forEach(function(tr) {
-    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '長都行き', platformNumber: null, weekdayOnly: false, weekendOnly: false, academicOnly: false, vacationOnly: false, arrivals: { kenkyuto: tr[1], minamiChitose: tr[2], chitose: tr[3] } });
-    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '長都行き', platformNumber: null, weekdayOnly: false, weekendOnly: false, academicOnly: false, vacationOnly: false, arrivals: { minamiChitose: tr[2], chitose: tr[3] } });
+    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '長都行き', platformNumber: null, weekdayOnly: false, weekendOnly: false, academicOnly: false, vacationOnly: false, arrivals: { kenkyuto: tr[1], chitose: tr[2] } });
+    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '長都行き', platformNumber: null, weekdayOnly: false, weekendOnly: false, academicOnly: false, vacationOnly: false, arrivals: { chitose: tr[2] } });
   });
 }
 
