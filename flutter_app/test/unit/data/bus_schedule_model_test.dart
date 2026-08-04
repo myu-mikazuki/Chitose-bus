@@ -46,6 +46,42 @@ void main() {
       expect(entity.destination, '千歳科技大');
       expect(entity.arrivals, {'stop_a': '12:50'});
     });
+
+    test('期別フラグが entity に引き継がれる', () {
+      const model = BusEntryModel(
+        time: '08:10',
+        direction: 'from_chitose',
+        destination: '科技大',
+        weekdayOnly: true,
+        vacationOnly: true,
+      );
+      final entity = model.toEntity();
+      expect(entity.weekdayOnly, isTrue);
+      expect(entity.vacationOnly, isTrue);
+      expect(entity.academicOnly, isFalse);
+    });
+
+    test('fromJson: 期別フラグを省略した JSON は両期運行として扱う', () {
+      final model = BusEntryModel.fromJson(const {
+        'time': '07:20',
+        'direction': 'from_chitose',
+        'destination': '科技大',
+      });
+      expect(model.academicOnly, isFalse);
+      expect(model.vacationOnly, isFalse);
+    });
+
+    test('fromJson: 期別フラグを読み取れる', () {
+      final model = BusEntryModel.fromJson(const {
+        'time': '08:10',
+        'direction': 'from_chitose',
+        'destination': '科技大',
+        'academicOnly': false,
+        'vacationOnly': true,
+      });
+      expect(model.vacationOnly, isTrue);
+      expect(model.toEntity().vacationOnly, isTrue);
+    });
   });
 
   group('BusTimetableModelMapper', () {

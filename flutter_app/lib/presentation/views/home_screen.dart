@@ -15,6 +15,7 @@ import 'settings_screen.dart';
 import 'widgets/next_bus_display.dart';
 import 'widgets/offline_cache_banner.dart';
 import 'widgets/schedule_list.dart';
+import 'widgets/season_notice_banner.dart';
 import 'widgets/weekend_warning_banner.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -118,17 +119,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   void _toggleDayTypeView() {
-    final notifier = ref.read(dayTypeOverrideProvider.notifier);
-    if (notifier.state != null) {
-      notifier.state = null;
+    final dayNotifier = ref.read(dayTypeOverrideProvider.notifier);
+    final seasonNotifier = ref.read(seasonOverrideProvider.notifier);
+    if (dayNotifier.state != null) {
+      dayNotifier.state = null;
+      seasonNotifier.state = null;
       return;
     }
     // 当日以外モードに入るときは、当日と逆のダイヤを初期表示する
     // （平日に土日祝ダイヤを確認する、が主なユースケースのため）
-    final today = DayType.fromDate(DateTime.now());
-    notifier.state = today == DayType.weekday
+    final now = DateTime.now();
+    final today = DayType.fromDate(now);
+    dayNotifier.state = today == DayType.weekday
         ? DayType.weekendHoliday
         : DayType.weekday;
+    // 期別は当日のものを初期値とする（主目的は曜日ダイヤの確認のため）
+    seasonNotifier.state = SeasonType.fromDate(now);
   }
 
   @override
@@ -137,6 +143,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final favoriteAsync = ref.watch(favoriteTabProvider);
     final favoriteTabIndex = favoriteAsync.valueOrNull?.tabIndex;
     final dayType = ref.watch(dayTypeOverrideProvider);
+    final season = ref.watch(seasonOverrideProvider);
 
     // お気に入りタブの初回適用（アプリ起動時のみ）
     // addPostFrameCallback で index を変更する方式だと、TabBarView が未生成の状態で
@@ -282,15 +289,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 children: [
                   if (result.isFromCache)
                     OfflineCacheBanner(updatedAt: result.data.updatedAt),
-                  if (dayType != null) _DayTypeSelector(dayType: dayType),
+                  if (dayType != null) ...[
+                    _DayTypeSelector(dayType: dayType),
+                    _SeasonSelector(
+                      season: season ?? SeasonType.fromDate(DateTime.now()),
+                    ),
+                  ],
                   Expanded(
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt, dayType: dayType),
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt, dayType: dayType),
-                        _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt, dayType: dayType),
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt, dayType: dayType),
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
                       ],
                     ),
                   ),
@@ -469,15 +481,54 @@ class _DayTypeSelector extends ConsumerWidget {
   }
 }
 
+/// 当日以外モードで表示する期別（授業期 / 学休期）の切り替えボタン。
+/// 学休期は美々空港線の直通便が大幅に減便されるため、平日/土日祝とは
+/// 独立した軸として選択できるようにしている（Issue #132）。
+class _SeasonSelector extends ConsumerWidget {
+  const _SeasonSelector({required this.season});
+
+  final SeasonType season;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: SegmentedButton<SeasonType>(
+        segments: const [
+          ButtonSegment(
+            value: SeasonType.academic,
+            label: Text('授業期'),
+          ),
+          ButtonSegment(
+            value: SeasonType.vacation,
+            label: Text('学休期'),
+          ),
+        ],
+        selected: {season},
+        onSelectionChanged: (selection) =>
+            ref.read(seasonOverrideProvider.notifier).state = selection.first,
+        style: SegmentedButton.styleFrom(
+          backgroundColor: context.appColors.surface,
+          foregroundColor: context.appColors.textTertiary,
+          selectedBackgroundColor: AppColors.primary,
+          selectedForegroundColor: AppColors.onPrimary,
+        ),
+      ),
+    );
+  }
+}
+
 class _KenkyutoTab extends StatefulWidget {
   const _KenkyutoTab({
     required this.timetable,
     required this.updatedAt,
     this.dayType,
+    this.season,
   });
   final BusTimetable timetable;
   final String updatedAt;
   final DayType? dayType;
+  final SeasonType? season;
 
   @override
   State<_KenkyutoTab> createState() => _KenkyutoTabState();
@@ -493,7 +544,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: WeekendWarningBanner(),
+          child: SeasonNoticeBanner(),
         ),
         // SegmentedButton で本部棟/千歳駅を切り替え
         Padding(
@@ -566,17 +617,19 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
               children: [
                 ScheduleList(
                   key: PageStorageKey(
-                      'kenkyuto_honbuto_${widget.dayType?.name ?? 'today'}'),
+                      'kenkyuto_honbuto_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
                   timetable: widget.timetable,
                   direction: BusDirection.fromKenkyutoToHonbuto,
                   dayType: widget.dayType,
+                  season: widget.season,
                 ),
                 ScheduleList(
                   key: PageStorageKey(
-                      'kenkyuto_chitose_${widget.dayType?.name ?? 'today'}'),
+                      'kenkyuto_chitose_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
                   timetable: widget.timetable,
                   direction: BusDirection.fromKenkyutoToStation,
                   dayType: widget.dayType,
+                  season: widget.season,
                 ),
               ],
             ),
@@ -600,12 +653,14 @@ class _DirectionTab extends StatelessWidget {
     required this.direction,
     required this.updatedAt,
     this.dayType,
+    this.season,
   });
 
   final BusTimetable timetable;
   final BusDirection direction;
   final String updatedAt;
   final DayType? dayType;
+  final SeasonType? season;
 
   @override
   Widget build(BuildContext context) {
@@ -622,6 +677,7 @@ class _DirectionTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const WeekendWarningBanner(),
+              const SeasonNoticeBanner(),
               const SizedBox(height: 8),
               // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
               if (dayType == null) ...[
@@ -669,10 +725,11 @@ class _DirectionTab extends StatelessWidget {
             // 当日表示に戻ったとき NEXT への自動スクロールを再実行させる。
             child: ScheduleList(
               key: ValueKey(
-                  '${direction.name}_${dayType?.name ?? 'today'}'),
+                  '${direction.name}_${dayType?.name ?? 'today'}_${season?.name ?? ''}'),
               timetable: timetable,
               direction: direction,
               dayType: dayType,
+              season: season,
             ),
           ),
         ),

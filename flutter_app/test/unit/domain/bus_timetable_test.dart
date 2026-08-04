@@ -256,19 +256,19 @@ void main() {
 
       test('平日ダイヤ: weekendOnly の便を除外し時刻順に返す', () {
         final result =
-            timetable.busesFor(BusDirection.fromChitose, DayType.weekday);
+            timetable.busesFor(BusDirection.fromChitose, DayType.weekday, SeasonType.academic);
         expect(result.map((e) => e.time), ['09:00', '11:00']);
       });
 
       test('土日祝ダイヤ: weekdayOnly の便を除外し時刻順に返す', () {
         final result = timetable.busesFor(
-            BusDirection.fromChitose, DayType.weekendHoliday);
+            BusDirection.fromChitose, DayType.weekendHoliday, SeasonType.academic);
         expect(result.map((e) => e.time), ['10:00', '11:00']);
       });
 
       test('指定方向の便のみ返す', () {
         final result = timetable.busesFor(
-            BusDirection.fromMinamiChitose, DayType.weekday);
+            BusDirection.fromMinamiChitose, DayType.weekday, SeasonType.academic);
         expect(result.length, 1);
         expect(result.first.direction, BusDirection.fromMinamiChitose);
       });

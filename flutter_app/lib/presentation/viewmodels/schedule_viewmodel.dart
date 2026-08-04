@@ -31,6 +31,10 @@ final debugTimeProvider = StateProvider<DateTime?>((ref) => null);
 /// 非 null の場合、指定したダイヤ種別（平日 / 土日祝）の全便を表示する。
 final dayTypeOverrideProvider = StateProvider<DayType?>((ref) => null);
 
+/// 当日以外のダイヤ表示モードで表示する期別（授業期 / 学休期）。
+/// [dayTypeOverrideProvider] と同時に設定・解除される。
+final seasonOverrideProvider = StateProvider<SeasonType?>((ref) => null);
+
 final countdownProvider =
     StateNotifierProvider<CountdownNotifier, DateTime>((ref) {
   return CountdownNotifier(ref);

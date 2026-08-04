@@ -8,6 +8,24 @@
  * 意図的にキャッシュを持たない設計のため、再デプロイすれば即座に反映される。
  * かつては CacheService に6時間キャッシュしていたが、コードを更新しても
  * 旧データが配信され続ける事故が起きたため廃止した（Issue #153）。
+ *
+ * 便ごとに以下のフラグを持つ。
+ *   weekdayOnly / weekendOnly … 平日のみ / 土日祝のみ
+ *   academicOnly / vacationOnly … 授業期のみ / 学休期のみ（Issue #132）
+ *
+ * ---- スキーマバージョン（?v=）----
+ *
+ * GAS は Apps Script への手動デプロイ、アプリはストア審査を挟むリリースのため、
+ * 両者の反映タイミングは必ずずれる。さらに更新しないユーザーの旧バージョンは
+ * 永続的に残る。そこでリクエストの ?v= でレスポンス形式を出し分ける。
+ *
+ *   v=1（無指定を含む）… 期別フラグを知らない旧アプリ向け。
+ *                        サーバ側で当日の期別に絞り、期別フラグを取り除いて返す。
+ *                        運行日（平日/土日祝）の絞り込みは旧アプリでも行えるため残す。
+ *   v=2 ……………………… 全便 + 期別フラグ。アプリ側で絞り込む（期別セレクタ用）。
+ *
+ * これによりデプロイ順を気にせず GAS を更新できる。
+ * 新しい形式を足すときは v を増やし、既存の v の挙動は変えないこと。
  */
 
 // ---- 旧スクレイピング処理（コメントアウト） ----
@@ -165,12 +183,75 @@ function testPdfText() {
 function doGet(e) {
   try {
     var result = getHardcodedTimetable();
+    if (requestedSchemaVersion(e) < 2) {
+      result = toLegacyResponse(result);
+    }
     return buildResponse(JSON.stringify(result));
   } catch (err) {
     return ContentService
       .createTextOutput(JSON.stringify({ error: err.message || String(err) }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/** リクエストの ?v= を読む。未指定・不正値は 1（旧形式）として扱う。 */
+function requestedSchemaVersion(e) {
+  if (!e || !e.parameter || !e.parameter.v) return 1;
+  var v = parseInt(e.parameter.v, 10);
+  return isNaN(v) ? 1 : v;
+}
+
+/**
+ * v=1（期別を知らない旧アプリ）向けにレスポンスを変換する。
+ *
+ * 旧アプリは academicOnly / vacationOnly を無視するため、全便をそのまま返すと
+ * 授業期と学休期の便が混ざって表示される（学休期の千歳駅発が 14便 → 33便になる）。
+ * そのためサーバ側で当日の期別に絞り、期別フラグを取り除いて返す。
+ */
+function toLegacyResponse(result) {
+  var ymd = parseYmd(result.updatedAt);
+  var current = result.current;
+
+  // 年末年始は全便運休。旧アプリはこれを判定できないため空で返す
+  if (isSuspendedYmd(ymd)) {
+    return {
+      updatedAt: result.updatedAt,
+      current: {
+        validFrom: current.validFrom,
+        validTo: current.validTo,
+        schedules: []
+      },
+      upcoming: null
+    };
+  }
+
+  var season = seasonForYmd(ymd);
+  var schedules = current.schedules
+    .filter(function(en) {
+      if (season === 'vacation' && en.academicOnly) return false;
+      if (season === 'academic' && en.vacationOnly) return false;
+      return true;
+    })
+    .map(stripSeasonFlags);
+
+  return {
+    updatedAt: result.updatedAt,
+    current: {
+      validFrom: current.validFrom,
+      validTo: current.validTo,
+      schedules: schedules
+    },
+    upcoming: result.upcoming
+  };
+}
+
+function stripSeasonFlags(entry) {
+  var out = {};
+  for (var k in entry) {
+    if (k === 'academicOnly' || k === 'vacationOnly') continue;
+    out[k] = entry[k];
+  }
+  return out;
 }
 
 function buildResponse(jsonString) {
@@ -221,8 +302,70 @@ function doPost(e) {
   }
 }
 
+// ---- 期別・特例日の判定（v=1 向けのサーバ側絞り込み用）----
+//
+// アプリ側 SeasonType.fromDate / ServiceCalendar.isSuspended と同一のロジック。
+// 片方だけ変更すると v=1 と v=2 で結果が食い違うため、必ず両方を揃えること。
+// 境界値は flutter_app/test/unit/domain/season_type_test.dart と
+// scripts/check_gas_season.js が担保している。
+//
+// 日付は JST の 'yyyy-MM-dd' 文字列から取り出し、比較は UTC で行う。
+// GAS のスクリプトタイムゾーンに依存させないため。
+
+/** 'yyyy-MM-dd' → { y, m, d }（m は 1 始まり） */
+function parseYmd(dateString) {
+  return {
+    y: parseInt(dateString.substring(0, 4), 10),
+    m: parseInt(dateString.substring(5, 7), 10),
+    d: parseInt(dateString.substring(8, 10), 10)
+  };
+}
+
+/**
+ * year年month月の第n【weekday】曜日を UTC ミリ秒で返す。
+ * weekday は Dart の DateTime.weekday に合わせて 1=月 … 7=日。
+ */
+function nthWeekdayUtc(year, month, weekday, n) {
+  var firstDow = new Date(Date.UTC(year, month - 1, 1)).getUTCDay(); // 0=日
+  var firstWeekday = firstDow === 0 ? 7 : firstDow;
+  var offset = (weekday - firstWeekday + 7) % 7;
+  return Date.UTC(year, month - 1, 1 + offset + (n - 1) * 7);
+}
+
+/**
+ * 期別を返す（'academic' | 'vacation'）。
+ * - 夏季: 8月第1月曜日 〜 9月第4金曜日
+ * - 冬季: 2月第1月曜日 〜 3月31日
+ * - お盆: 8/13 〜 8/16
+ */
+function seasonForYmd(ymd) {
+  var day = Date.UTC(ymd.y, ymd.m - 1, ymd.d);
+
+  // お盆（夏季学休期に内包されるが、PDF に明記されているため独立して判定する）
+  if (ymd.m === 8 && ymd.d >= 13 && ymd.d <= 16) return 'vacation';
+
+  var summerFrom = nthWeekdayUtc(ymd.y, 8, 1, 1); // 8月第1月曜日
+  var summerTo   = nthWeekdayUtc(ymd.y, 9, 5, 4); // 9月第4金曜日
+  if (day >= summerFrom && day <= summerTo) return 'vacation';
+
+  var winterFrom = nthWeekdayUtc(ymd.y, 2, 1, 1); // 2月第1月曜日
+  var winterTo   = Date.UTC(ymd.y, 2, 31);        // 3月31日
+  if (day >= winterFrom && day <= winterTo) return 'vacation';
+
+  return 'academic';
+}
+
+/** 年末年始（12/31 〜 1/3）は全便運休 */
+function isSuspendedYmd(ymd) {
+  return (ymd.m === 12 && ymd.d === 31) || (ymd.m === 1 && ymd.d <= 3);
+}
+
 // ---- ハードコード時刻表 ----
 
+/**
+ * 全便（授業期・学休期の両方）を含む時刻表を返す。
+ * 期別・運行日の絞り込みはアプリ側で行うため、ここでは日付による選別をしない。
+ */
 function getHardcodedTimetable() {
   var today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
   var schedules = [];
@@ -249,6 +392,9 @@ function getHardcodedTimetable() {
  * データソース: 時刻表データ_系統1.csv「系統１ to 科技大」
  * フラグ行: ,,★,★,☆,☆,☆,,,,
  * B=平日・休日ともに運行 / D=平日のみ(☆) / E=休日のみ(★)
+ *
+ * 授業期・学休期で時刻・運行日ともに同一のため、期別フラグは立てない。
+ * （学休期は 13:20 便が平日／土日祝の2行に分かれるが、合わせて毎日運行で等価）
  */
 function buildRoute1Outbound(schedules) {
   var trips = [
@@ -263,9 +409,9 @@ function buildRoute1Outbound(schedules) {
   ];
   trips.forEach(function(tr) {
     var wdOnly = tr[4] === 'D', weOnly = tr[4] === 'E';
-    schedules.push({ time: tr[0], direction: 'from_chitose',             destination: '科技大', routeLabel: '空港経由', platformNumber: '5番', weekdayOnly: wdOnly, weekendOnly: weOnly, arrivals: { minamiChitose: tr[1], kenkyuto: tr[2], honbuto: tr[3] } });
-    schedules.push({ time: tr[1], direction: 'from_minami_chitose',      destination: '科技大', routeLabel: '空港経由', platformNumber: null,  weekdayOnly: wdOnly, weekendOnly: weOnly, arrivals: { kenkyuto: tr[2], honbuto: tr[3] } });
-    schedules.push({ time: tr[2], direction: 'from_kenkyuto_to_honbuto', destination: '科技大', routeLabel: '空港経由', platformNumber: null,  weekdayOnly: wdOnly, weekendOnly: weOnly, arrivals: { honbuto: tr[3] } });
+    schedules.push({ time: tr[0], direction: 'from_chitose',             destination: '科技大', routeLabel: '空港経由', platformNumber: '5番', weekdayOnly: wdOnly, weekendOnly: weOnly, academicOnly: false, vacationOnly: false, arrivals: { minamiChitose: tr[1], kenkyuto: tr[2], honbuto: tr[3] } });
+    schedules.push({ time: tr[1], direction: 'from_minami_chitose',      destination: '科技大', routeLabel: '空港経由', platformNumber: null,  weekdayOnly: wdOnly, weekendOnly: weOnly, academicOnly: false, vacationOnly: false, arrivals: { kenkyuto: tr[2], honbuto: tr[3] } });
+    schedules.push({ time: tr[2], direction: 'from_kenkyuto_to_honbuto', destination: '科技大', routeLabel: '空港経由', platformNumber: null,  weekdayOnly: wdOnly, weekendOnly: weOnly, academicOnly: false, vacationOnly: false, arrivals: { honbuto: tr[3] } });
   });
 }
 
@@ -274,36 +420,55 @@ function buildRoute1Outbound(schedules) {
  *
  * データソース: 時刻表データ_系統1.csv「系統１ to 千歳駅」
  * フラグ行: 停留所名,☆,★,☆,★,,,,,☆,☆
+ *
+ * 授業期と学休期の差分は 15:24 便のみ。学休期は南千歳駅を経由しない。
+ * それ以外の便は両期で同一。
  */
 function buildRoute1Inbound(schedules) {
   var trips = [
-    // [本部棟, 研究棟, 南千歳, 千歳, フラグ]
-    ['11:36', '11:39', '11:51', '12:02', 'D'],
-    ['12:42', '12:45', '12:57', '13:08', 'E'],
-    ['13:35', '13:38', '13:50', '14:01', 'D'],
-    ['14:32', '14:35', '14:47', '14:58', 'E'],
-    ['15:24', '15:27', '15:39', '15:50', 'B'],
-    ['16:47', '16:50', '17:02', '17:13', 'B'],
-    ['17:52', '17:55', '18:07', '18:18', 'B'],
-    ['19:02', '19:05', '19:17', '19:28', 'B'],
-    ['19:42', '19:45', '19:57', '20:08', 'D'],
-    ['21:22', '21:25', '21:37', '21:48', 'D'],
+    // [本部棟, 研究棟, 南千歳, 千歳, 運行日, 期別]
+    // 運行日: B=毎日 / D=平日のみ / E=土日祝のみ
+    // 期別:   ''=授業期・学休期共通 / A=授業期のみ / V=学休期のみ
+    // 南千歳が null の便は南千歳駅を経由しない
+    ['11:36', '11:39', '11:51', '12:02', 'D', ''],
+    ['12:42', '12:45', '12:57', '13:08', 'E', ''],
+    ['13:35', '13:38', '13:50', '14:01', 'D', ''],
+    ['14:32', '14:35', '14:47', '14:58', 'E', ''],
+    ['15:24', '15:27', '15:39', '15:50', 'B', 'A'],
+    ['15:24', '15:27', null,    '15:50', 'B', 'V'],
+    ['16:47', '16:50', '17:02', '17:13', 'B', ''],
+    ['17:52', '17:55', '18:07', '18:18', 'B', ''],
+    ['19:02', '19:05', '19:17', '19:28', 'B', ''],
+    ['19:42', '19:45', '19:57', '20:08', 'D', ''],
+    ['21:22', '21:25', '21:37', '21:48', 'D', ''],
   ];
   trips.forEach(function(tr) {
     var wdOnly = tr[4] === 'D', weOnly = tr[4] === 'E';
-    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '空港経由', platformNumber: null, weekdayOnly: wdOnly, weekendOnly: weOnly, arrivals: { kenkyuto: tr[1], minamiChitose: tr[2], chitose: tr[3] } });
-    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '空港経由', platformNumber: null, weekdayOnly: wdOnly, weekendOnly: weOnly, arrivals: { minamiChitose: tr[2], chitose: tr[3] } });
+    var acOnly = tr[5] === 'A', vcOnly = tr[5] === 'V';
+    var honbutoArrivals = { kenkyuto: tr[1] };
+    var kenkyutoArrivals = {};
+    if (tr[2]) {
+      honbutoArrivals.minamiChitose = tr[2];
+      kenkyutoArrivals.minamiChitose = tr[2];
+    }
+    honbutoArrivals.chitose = tr[3];
+    kenkyutoArrivals.chitose = tr[3];
+    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '空港経由', platformNumber: null, weekdayOnly: wdOnly, weekendOnly: weOnly, academicOnly: acOnly, vacationOnly: vcOnly, arrivals: honbutoArrivals });
+    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '空港経由', platformNumber: null, weekdayOnly: wdOnly, weekendOnly: weOnly, academicOnly: acOnly, vacationOnly: vcOnly, arrivals: kenkyutoArrivals });
   });
 }
 
 /**
  * 系統2 往路（千歳駅3番乗り場 → 直通 → 科技大）
  *
- * データソース: 時刻表データ_系統2.csv「系統2 to 本部棟」
+ * データソース: 時刻表データ_系統2.csv「系統2 to 本部棟」／美々空港線 時刻表 PDF
  * 全便平日のみ運行（土日祝の運行なし）
+ *
+ * 授業期（19便）と学休期（6便）で時刻が全く異なるため、両方を別便として登録し
+ * academicOnly / vacationOnly で出し分ける。
  */
 function buildRoute2Outbound(schedules) {
-  var trips = [
+  var academicTrips = [
     // [千歳, 研究棟, 本部棟]
     ['07:14', '07:32', '07:35'],
     ['07:29', '07:47', '07:50'],
@@ -325,21 +490,37 @@ function buildRoute2Outbound(schedules) {
     ['16:04', '16:22', '16:25'],
     ['17:51', '18:09', '18:12'],
   ];
+  var vacationTrips = [
+    // [千歳, 研究棟, 本部棟]
+    ['08:10', '08:28', '08:31'],
+    ['08:40', '08:58', '09:01'],
+    ['09:10', '09:28', '09:31'],
+    ['09:50', '10:08', '10:11'],
+    ['16:00', '16:18', '16:21'],
+    ['18:00', '18:18', '18:21'],
+  ];
+  pushRoute2Outbound(schedules, academicTrips, true,  false);
+  pushRoute2Outbound(schedules, vacationTrips, false, true);
+}
+
+function pushRoute2Outbound(schedules, trips, academicOnly, vacationOnly) {
   trips.forEach(function(tr) {
-    schedules.push({ time: tr[0], direction: 'from_chitose',             destination: '科技大', routeLabel: '直通', platformNumber: '3番', weekdayOnly: true, weekendOnly: false, arrivals: { kenkyuto: tr[1], honbuto: tr[2] } });
-    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_honbuto', destination: '科技大', routeLabel: '直通', platformNumber: null,  weekdayOnly: true, weekendOnly: false, arrivals: { honbuto: tr[2] } });
+    schedules.push({ time: tr[0], direction: 'from_chitose',             destination: '科技大', routeLabel: '直通', platformNumber: '3番', weekdayOnly: true, weekendOnly: false, academicOnly: academicOnly, vacationOnly: vacationOnly, arrivals: { kenkyuto: tr[1], honbuto: tr[2] } });
+    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_honbuto', destination: '科技大', routeLabel: '直通', platformNumber: null,  weekdayOnly: true, weekendOnly: false, academicOnly: academicOnly, vacationOnly: vacationOnly, arrivals: { honbuto: tr[2] } });
   });
 }
 
 /**
  * 系統2 復路（科技大 → 直通 → 千歳駅）
  *
- * データソース: 時刻表データ_系統2.csv「系統2 to 千歳駅」
+ * データソース: 時刻表データ_系統2.csv「系統2 to 千歳駅」／美々空港線 時刻表 PDF
  * 全便平日のみ運行（土日祝の運行なし）
  * 直通のため南千歳駅は経由しない
+ *
+ * 授業期（9便）と学休期（4便）で時刻が全く異なる。
  */
 function buildRoute2Inbound(schedules) {
-  var trips = [
+  var academicTrips = [
     // [本部棟, 研究棟, 千歳]
     ['11:02', '11:05', '11:24'],
     ['12:27', '12:30', '12:49'],
@@ -351,9 +532,21 @@ function buildRoute2Inbound(schedules) {
     ['17:30', '17:33', '17:52'],
     ['18:27', '18:30', '18:49'],
   ];
+  var vacationTrips = [
+    // [本部棟, 研究棟, 千歳]
+    ['12:32', '12:35', '12:54'],
+    ['14:32', '14:35', '14:54'],
+    ['17:32', '17:35', '17:54'],
+    ['18:32', '18:35', '18:54'],
+  ];
+  pushRoute2Inbound(schedules, academicTrips, true,  false);
+  pushRoute2Inbound(schedules, vacationTrips, false, true);
+}
+
+function pushRoute2Inbound(schedules, trips, academicOnly, vacationOnly) {
   trips.forEach(function(tr) {
-    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '直通', platformNumber: null, weekdayOnly: true, weekendOnly: false, arrivals: { kenkyuto: tr[1], chitose: tr[2] } });
-    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '直通', platformNumber: null, weekdayOnly: true, weekendOnly: false, arrivals: { chitose: tr[2] } });
+    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '直通', platformNumber: null, weekdayOnly: true, weekendOnly: false, academicOnly: academicOnly, vacationOnly: vacationOnly, arrivals: { kenkyuto: tr[1], chitose: tr[2] } });
+    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '直通', platformNumber: null, weekdayOnly: true, weekendOnly: false, academicOnly: academicOnly, vacationOnly: vacationOnly, arrivals: { chitose: tr[2] } });
   });
 }
 
@@ -373,9 +566,9 @@ function buildRoute3Outbound(schedules) {
   ];
   trips.forEach(function(tr) {
     var wdOnly = tr[4] === 'D', weOnly = tr[4] === 'E';
-    schedules.push({ time: tr[0], direction: 'from_chitose',             destination: '科技大', routeLabel: '長都発', platformNumber: '5番', weekdayOnly: wdOnly, weekendOnly: weOnly, arrivals: { minamiChitose: tr[1], kenkyuto: tr[2], honbuto: tr[3] } });
-    schedules.push({ time: tr[1], direction: 'from_minami_chitose',      destination: '科技大', routeLabel: '長都発', platformNumber: null,  weekdayOnly: wdOnly, weekendOnly: weOnly, arrivals: { kenkyuto: tr[2], honbuto: tr[3] } });
-    schedules.push({ time: tr[2], direction: 'from_kenkyuto_to_honbuto', destination: '科技大', routeLabel: '長都発', platformNumber: null,  weekdayOnly: wdOnly, weekendOnly: weOnly, arrivals: { honbuto: tr[3] } });
+    schedules.push({ time: tr[0], direction: 'from_chitose',             destination: '科技大', routeLabel: '長都発', platformNumber: '5番', weekdayOnly: wdOnly, weekendOnly: weOnly, academicOnly: false, vacationOnly: false, arrivals: { minamiChitose: tr[1], kenkyuto: tr[2], honbuto: tr[3] } });
+    schedules.push({ time: tr[1], direction: 'from_minami_chitose',      destination: '科技大', routeLabel: '長都発', platformNumber: null,  weekdayOnly: wdOnly, weekendOnly: weOnly, academicOnly: false, vacationOnly: false, arrivals: { kenkyuto: tr[2], honbuto: tr[3] } });
+    schedules.push({ time: tr[2], direction: 'from_kenkyuto_to_honbuto', destination: '科技大', routeLabel: '長都発', platformNumber: null,  weekdayOnly: wdOnly, weekendOnly: weOnly, academicOnly: false, vacationOnly: false, arrivals: { honbuto: tr[3] } });
   });
 }
 
@@ -393,8 +586,8 @@ function buildRoute3Inbound(schedules) {
     ['22:02', '22:05', '22:17', '22:30'],
   ];
   trips.forEach(function(tr) {
-    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '長都行き', platformNumber: null, weekdayOnly: false, weekendOnly: false, arrivals: { kenkyuto: tr[1], minamiChitose: tr[2], chitose: tr[3] } });
-    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '長都行き', platformNumber: null, weekdayOnly: false, weekendOnly: false, arrivals: { minamiChitose: tr[2], chitose: tr[3] } });
+    schedules.push({ time: tr[0], direction: 'from_honbuto',             destination: '千歳駅', routeLabel: '長都行き', platformNumber: null, weekdayOnly: false, weekendOnly: false, academicOnly: false, vacationOnly: false, arrivals: { kenkyuto: tr[1], minamiChitose: tr[2], chitose: tr[3] } });
+    schedules.push({ time: tr[1], direction: 'from_kenkyuto_to_station', destination: '千歳駅', routeLabel: '長都行き', platformNumber: null, weekdayOnly: false, weekendOnly: false, academicOnly: false, vacationOnly: false, arrivals: { minamiChitose: tr[2], chitose: tr[3] } });
   });
 }
 

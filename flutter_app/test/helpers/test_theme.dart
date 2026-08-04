@@ -6,8 +6,12 @@ import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 /// テスト用共通テーマ
 ThemeData buildTestTheme() => AppTheme.dark();
 
-/// テスト用固定時刻 (2024-01-01 09:00)
-final kTestNow = DateTime(2024, 1, 1, 9, 0);
+/// テスト用固定時刻 (2024-06-17 月曜 09:00)
+///
+/// 平日・授業期・年末年始以外、という「特例なし」の日を選んでいる。
+/// 以前は 2024-01-01 だったが、年末年始（12/31〜1/3）が全便運休となったため
+/// 全便が絞り込みで消える日付になった（Issue #132）。
+final kTestNow = DateTime(2024, 6, 17, 9, 0);
 
 /// countdownProviderを固定時刻にオーバーライドするOverride
 Override countdownOverride({DateTime? now}) => countdownProvider.overrideWith(
