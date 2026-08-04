@@ -25,3 +25,8 @@ jobs:
       - name: Run unit & widget tests
         run: flutter test
         working-directory: flutter_app
+
+      # GAS 側の期別判定はアプリ側 SeasonType と同一でなければならない
+      # （v=1 と v=2 で結果が食い違うため）。片方だけ変更されるのを防ぐ。
+      - name: Check GAS season logic
+        run: node scripts/check_gas_season.js

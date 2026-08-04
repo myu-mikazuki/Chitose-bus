@@ -83,14 +83,31 @@ void main() {
       expect(() => source.fetchSchedule(), throwsException);
     });
 
-    test('sends GET to the correct endpoint URL', () async {
+    test('sends GET to the correct endpoint URL with schema version', () async {
       when(() => mockClient.get(any())).thenAnswer(
         (_) async => http.Response(jsonEncode(_validJson), 200),
       );
 
       await source.fetchSchedule();
 
-      verify(() => mockClient.get(Uri.parse(endpointUrl))).called(1);
+      verify(() => mockClient.get(Uri.parse('$endpointUrl?v=2'))).called(1);
+    });
+
+    test('既存のクエリパラメータを保持したまま v を付与する', () async {
+      final s = ScheduleRemoteSource(
+        endpointUrl: 'http://example.com/schedule?foo=bar',
+        client: mockClient,
+      );
+      when(() => mockClient.get(any())).thenAnswer(
+        (_) async => http.Response(jsonEncode(_validJson), 200),
+      );
+
+      await s.fetchSchedule();
+
+      final captured =
+          verify(() => mockClient.get(captureAny())).captured.single as Uri;
+      expect(captured.queryParameters['foo'], 'bar');
+      expect(captured.queryParameters['v'], '2');
     });
   });
 }

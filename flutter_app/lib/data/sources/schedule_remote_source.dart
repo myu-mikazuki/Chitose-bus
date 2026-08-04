@@ -6,11 +6,23 @@ class ScheduleRemoteSource {
   ScheduleRemoteSource({required this.endpointUrl, http.Client? client})
       : _client = client ?? http.Client();
 
+  /// リクエストする GAS のスキーマバージョン。
+  ///
+  /// v=2 は全便 + 期別フラグ（academicOnly / vacationOnly）を返す形式で、
+  /// 期別の絞り込みをアプリ側で行うために必要（期別セレクタで使う）。
+  /// GAS は未指定を v=1（サーバ側で期別を絞った旧形式）として扱うため、
+  /// このパラメータを付けないと期別セレクタが機能しなくなる。
+  static const int schemaVersion = 2;
+
   final String endpointUrl;
   final http.Client _client;
 
   Future<ScheduleResponseModel> fetchSchedule() async {
-    final uri = Uri.parse(endpointUrl);
+    final base = Uri.parse(endpointUrl);
+    final uri = base.replace(queryParameters: {
+      ...base.queryParameters,
+      'v': '$schemaVersion',
+    });
     final response = await _client.get(uri).timeout(const Duration(seconds: 30));
 
     if (response.statusCode != 200) {

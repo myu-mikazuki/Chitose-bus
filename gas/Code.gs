@@ -9,14 +9,23 @@
  * かつては CacheService に6時間キャッシュしていたが、コードを更新しても
  * 旧データが配信され続ける事故が起きたため廃止した（Issue #153）。
  *
- * 便ごとに以下のフラグを持ち、期別・運行日の絞り込みはアプリ側で行う。
- * サーバは常に全便を返すため、日付判定のズレでデータが欠落することはない。
+ * 便ごとに以下のフラグを持つ。
  *   weekdayOnly / weekendOnly … 平日のみ / 土日祝のみ
  *   academicOnly / vacationOnly … 授業期のみ / 学休期のみ（Issue #132）
  *
- * 学休期の対象期間（夏季: 8月第1月曜日〜9月第4週金曜日、冬季: 2月第1月曜日〜3/31、
- * お盆: 8/13〜8/16）と年末年始運休（12/31〜1/3）の判定はアプリ側 SeasonType /
- * ServiceCalendar が担当する。
+ * ---- スキーマバージョン（?v=）----
+ *
+ * GAS は Apps Script への手動デプロイ、アプリはストア審査を挟むリリースのため、
+ * 両者の反映タイミングは必ずずれる。さらに更新しないユーザーの旧バージョンは
+ * 永続的に残る。そこでリクエストの ?v= でレスポンス形式を出し分ける。
+ *
+ *   v=1（無指定を含む）… 期別フラグを知らない旧アプリ向け。
+ *                        サーバ側で当日の期別に絞り、期別フラグを取り除いて返す。
+ *                        運行日（平日/土日祝）の絞り込みは旧アプリでも行えるため残す。
+ *   v=2 ……………………… 全便 + 期別フラグ。アプリ側で絞り込む（期別セレクタ用）。
+ *
+ * これによりデプロイ順を気にせず GAS を更新できる。
+ * 新しい形式を足すときは v を増やし、既存の v の挙動は変えないこと。
  */
 
 // ---- 旧スクレイピング処理（コメントアウト） ----
@@ -174,12 +183,75 @@ function testPdfText() {
 function doGet(e) {
   try {
     var result = getHardcodedTimetable();
+    if (requestedSchemaVersion(e) < 2) {
+      result = toLegacyResponse(result);
+    }
     return buildResponse(JSON.stringify(result));
   } catch (err) {
     return ContentService
       .createTextOutput(JSON.stringify({ error: err.message || String(err) }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/** リクエストの ?v= を読む。未指定・不正値は 1（旧形式）として扱う。 */
+function requestedSchemaVersion(e) {
+  if (!e || !e.parameter || !e.parameter.v) return 1;
+  var v = parseInt(e.parameter.v, 10);
+  return isNaN(v) ? 1 : v;
+}
+
+/**
+ * v=1（期別を知らない旧アプリ）向けにレスポンスを変換する。
+ *
+ * 旧アプリは academicOnly / vacationOnly を無視するため、全便をそのまま返すと
+ * 授業期と学休期の便が混ざって表示される（学休期の千歳駅発が 14便 → 33便になる）。
+ * そのためサーバ側で当日の期別に絞り、期別フラグを取り除いて返す。
+ */
+function toLegacyResponse(result) {
+  var ymd = parseYmd(result.updatedAt);
+  var current = result.current;
+
+  // 年末年始は全便運休。旧アプリはこれを判定できないため空で返す
+  if (isSuspendedYmd(ymd)) {
+    return {
+      updatedAt: result.updatedAt,
+      current: {
+        validFrom: current.validFrom,
+        validTo: current.validTo,
+        schedules: []
+      },
+      upcoming: null
+    };
+  }
+
+  var season = seasonForYmd(ymd);
+  var schedules = current.schedules
+    .filter(function(en) {
+      if (season === 'vacation' && en.academicOnly) return false;
+      if (season === 'academic' && en.vacationOnly) return false;
+      return true;
+    })
+    .map(stripSeasonFlags);
+
+  return {
+    updatedAt: result.updatedAt,
+    current: {
+      validFrom: current.validFrom,
+      validTo: current.validTo,
+      schedules: schedules
+    },
+    upcoming: result.upcoming
+  };
+}
+
+function stripSeasonFlags(entry) {
+  var out = {};
+  for (var k in entry) {
+    if (k === 'academicOnly' || k === 'vacationOnly') continue;
+    out[k] = entry[k];
+  }
+  return out;
 }
 
 function buildResponse(jsonString) {
@@ -228,6 +300,64 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ error: err.message || String(err) }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// ---- 期別・特例日の判定（v=1 向けのサーバ側絞り込み用）----
+//
+// アプリ側 SeasonType.fromDate / ServiceCalendar.isSuspended と同一のロジック。
+// 片方だけ変更すると v=1 と v=2 で結果が食い違うため、必ず両方を揃えること。
+// 境界値は flutter_app/test/unit/domain/season_type_test.dart と
+// scripts/check_gas_season.js が担保している。
+//
+// 日付は JST の 'yyyy-MM-dd' 文字列から取り出し、比較は UTC で行う。
+// GAS のスクリプトタイムゾーンに依存させないため。
+
+/** 'yyyy-MM-dd' → { y, m, d }（m は 1 始まり） */
+function parseYmd(dateString) {
+  return {
+    y: parseInt(dateString.substring(0, 4), 10),
+    m: parseInt(dateString.substring(5, 7), 10),
+    d: parseInt(dateString.substring(8, 10), 10)
+  };
+}
+
+/**
+ * year年month月の第n【weekday】曜日を UTC ミリ秒で返す。
+ * weekday は Dart の DateTime.weekday に合わせて 1=月 … 7=日。
+ */
+function nthWeekdayUtc(year, month, weekday, n) {
+  var firstDow = new Date(Date.UTC(year, month - 1, 1)).getUTCDay(); // 0=日
+  var firstWeekday = firstDow === 0 ? 7 : firstDow;
+  var offset = (weekday - firstWeekday + 7) % 7;
+  return Date.UTC(year, month - 1, 1 + offset + (n - 1) * 7);
+}
+
+/**
+ * 期別を返す（'academic' | 'vacation'）。
+ * - 夏季: 8月第1月曜日 〜 9月第4金曜日
+ * - 冬季: 2月第1月曜日 〜 3月31日
+ * - お盆: 8/13 〜 8/16
+ */
+function seasonForYmd(ymd) {
+  var day = Date.UTC(ymd.y, ymd.m - 1, ymd.d);
+
+  // お盆（夏季学休期に内包されるが、PDF に明記されているため独立して判定する）
+  if (ymd.m === 8 && ymd.d >= 13 && ymd.d <= 16) return 'vacation';
+
+  var summerFrom = nthWeekdayUtc(ymd.y, 8, 1, 1); // 8月第1月曜日
+  var summerTo   = nthWeekdayUtc(ymd.y, 9, 5, 4); // 9月第4金曜日
+  if (day >= summerFrom && day <= summerTo) return 'vacation';
+
+  var winterFrom = nthWeekdayUtc(ymd.y, 2, 1, 1); // 2月第1月曜日
+  var winterTo   = Date.UTC(ymd.y, 2, 31);        // 3月31日
+  if (day >= winterFrom && day <= winterTo) return 'vacation';
+
+  return 'academic';
+}
+
+/** 年末年始（12/31 〜 1/3）は全便運休 */
+function isSuspendedYmd(ymd) {
+  return (ymd.m === 12 && ymd.d === 31) || (ymd.m === 1 && ymd.d <= 3);
 }
 
 // ---- ハードコード時刻表 ----
