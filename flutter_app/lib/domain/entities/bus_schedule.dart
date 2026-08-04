@@ -187,10 +187,17 @@ class ScheduleResponse {
   const ScheduleResponse({
     required this.updatedAt,
     required this.current,
+    this.dataVersion = '',
     this.upcoming,
   });
 
   final String updatedAt;
+
+  /// 時刻表データのバージョン（GAS の TIMETABLE_DATA_VERSION）。
+  /// GAS は手動デプロイのため、本番に反映済みのデータを識別できるようにする。
+  /// 旧バージョンの GAS は返さないため、その場合は空文字となる。
+  final String dataVersion;
+
   final BusTimetable current;
   final BusTimetable? upcoming;
 }

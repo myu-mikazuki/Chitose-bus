@@ -233,6 +233,21 @@ function doPost(e) {
 // ---- ハードコード時刻表 ----
 
 /**
+ * 時刻表データのバージョン。
+ *
+ * GAS は Apps Script への手動デプロイが必要で、リポジトリにマージしただけでは
+ * 本番に反映されない。デプロイ漏れを検知できるよう、レスポンスにこの値を含める。
+ *
+ * ★ 時刻表データ（便の追加・削除・時刻変更・フラグ変更）を変更したら必ず更新する。
+ *   形式: YYYY-MM-DD.N（N は同日内の連番）
+ *
+ * 履歴:
+ *   2026-08-04.1  学休期ダイヤを追加（Issue #132）
+ *   2025-04-01.1  ハードコード時刻表の初版
+ */
+var TIMETABLE_DATA_VERSION = '2026-08-04.1';
+
+/**
  * 全便（授業期・学休期の両方）を含む時刻表を返す。
  * 期別・運行日の絞り込みはアプリ側で行うため、ここでは日付による選別をしない。
  */
@@ -247,6 +262,7 @@ function getHardcodedTimetable() {
   buildRoute3Inbound(schedules);
   return {
     updatedAt: today,
+    dataVersion: TIMETABLE_DATA_VERSION,
     current: {
       validFrom: '2025-04-01',
       validTo: '2099-12-31',

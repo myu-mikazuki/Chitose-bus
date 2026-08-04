@@ -114,6 +114,23 @@ void main() {
       ],
     );
 
+    test('dataVersion が entity に引き継がれる', () {
+      final model = ScheduleResponseModel.fromJson(const {
+        'updatedAt': '2026-08-04',
+        'dataVersion': '2026-08-04.1',
+        'current': {'schedules': <Map<String, dynamic>>[]},
+      });
+      expect(model.toEntity().dataVersion, '2026-08-04.1');
+    });
+
+    test('dataVersion 未対応の GAS レスポンスは空文字になる', () {
+      final model = ScheduleResponseModel.fromJson(const {
+        'updatedAt': '2026-08-04',
+        'current': {'schedules': <Map<String, dynamic>>[]},
+      });
+      expect(model.toEntity().dataVersion, '');
+    });
+
     test('toEntity with upcoming=null', () {
       const model = ScheduleResponseModel(
         updatedAt: '2024-01-01',

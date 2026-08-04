@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
 import '../viewmodels/app_info_viewmodel.dart';
 import '../viewmodels/display_settings_viewmodel.dart';
+import '../viewmodels/schedule_viewmodel.dart';
 import 'contact_screen.dart';
 import 'notification_settings_screen.dart';
 
@@ -131,6 +132,26 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: ref.watch(packageInfoProvider).when(
                         data: (info) => Text(
                           '${info.version}+${info.buildNumber}',
+                          style: TextStyle(
+                              color: context.appColors.textDisabled),
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
+                ),
+                Divider(height: 1, color: context.appColors.border),
+                ListTile(
+                  leading: const Icon(Icons.table_chart_outlined,
+                      color: AppColors.primary),
+                  title: Text(
+                    '時刻表データ',
+                    style: TextStyle(color: context.appColors.textPrimary),
+                  ),
+                  trailing: ref.watch(scheduleViewModelProvider).when(
+                        data: (result) => Text(
+                          result.data.dataVersion.isEmpty
+                              ? '不明'
+                              : result.data.dataVersion,
                           style: TextStyle(
                               color: context.appColors.textDisabled),
                         ),

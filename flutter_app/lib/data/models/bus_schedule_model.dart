@@ -40,6 +40,7 @@ class BusTimetableModel with _$BusTimetableModel {
 class ScheduleResponseModel with _$ScheduleResponseModel {
   const factory ScheduleResponseModel({
     required String updatedAt,
+    @Default('') String dataVersion,
     required BusTimetableModel current,
     BusTimetableModel? upcoming,
   }) = _ScheduleResponseModel;
@@ -82,6 +83,7 @@ extension BusTimetableModelMapper on BusTimetableModel {
 extension ScheduleResponseModelMapper on ScheduleResponseModel {
   ScheduleResponse toEntity() => ScheduleResponse(
         updatedAt: updatedAt,
+        dataVersion: dataVersion,
         current: current.toEntity(),
         upcoming: upcoming?.toEntity(),
       );
