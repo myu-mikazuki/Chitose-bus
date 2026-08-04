@@ -245,6 +245,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      # リリースノート（doc/release-notes/<タグ>.md）を読むために checkout する
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: ios-ipa
@@ -260,11 +263,29 @@ jobs:
           name: android-aab
           path: artifacts/
 
+      # リリースノートはリリースブランチの作業で doc/release-notes/<タグ>.md に用意する。
+      # 無い場合もリリース自体は失敗させず、自動生成ノートのみで公開する。
+      - name: Resolve release notes
+        id: notes
+        run: |
+          NOTES="doc/release-notes/${{ github.ref_name }}.md"
+          if [ -f "$NOTES" ]; then
+            echo "リリースノートを使用します: $NOTES"
+            echo "path=$NOTES" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::$NOTES が見つからないため、自動生成ノートのみで公開します"
+            : > generated-only.md
+            echo "path=generated-only.md" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
+          # body_path の内容の後ろに、GitHub が生成する PR 一覧が追記される
+          body_path: ${{ steps.notes.outputs.path }}
+          generate_release_notes: true
           draft: false
           prerelease: false
           files: artifacts/*
