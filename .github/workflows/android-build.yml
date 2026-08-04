@@ -1,0 +1,51 @@
+name: Android Build
+
+# PR 時点で Android のビルドが壊れていないかを確認する。
+# release ビルドで検証するのは、R8 の縮小など release 固有の問題を拾うため
+# （v0.7.3 で「Android リリース版の起動直後クラッシュ」が発生した経緯がある）。
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'flutter_app/**'
+      - '.github/workflows/android-build.yml'
+  pull_request:
+    paths:
+      - 'flutter_app/**'
+      - '.github/workflows/android-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: flutter_app
+
+      - name: Generate code (build_runner)
+        run: dart run build_runner build --delete-conflicting-outputs
+        working-directory: flutter_app
+
+      # キーストアの secrets は使わない。android/app/build.gradle.kts は
+      # KEYSTORE_PATH が未設定のとき debug 署名にフォールバックするため、
+      # 署名情報なしでも release ビルドが通る。
+      # ここで作る APK は検証用で、配布には使わない（配布は release.yml）。
+      - name: Build APK (release, debug-signed)
+        run: flutter build apk --release
+        working-directory: flutter_app
+
+      - name: Build AAB (release, debug-signed)
+        run: flutter build appbundle --release
+        working-directory: flutter_app
