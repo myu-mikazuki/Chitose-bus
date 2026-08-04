@@ -38,12 +38,12 @@ void main() {
       const model = BusEntryModel(
         time: '12:45',
         direction: 'from_chitose',
-        destination: '千歳科技大',
+        destination: '科技大',
         arrivals: {'stop_a': '12:50'},
       );
       final entity = model.toEntity();
       expect(entity.time, '12:45');
-      expect(entity.destination, '千歳科技大');
+      expect(entity.destination, '科技大');
       expect(entity.arrivals, {'stop_a': '12:50'});
     });
 
@@ -91,7 +91,7 @@ void main() {
         validTo: '2024-03-31',
         pdfUrl: '',
         schedules: [
-          BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '千歳科技大'),
+          BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '科技大'),
           BusEntryModel(time: '10:00', direction: 'from_honbuto', destination: '本部棟'),
         ],
       );
@@ -110,7 +110,7 @@ void main() {
       validTo: '2024-03-31',
       pdfUrl: '',
       schedules: [
-        BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '千歳科技大'),
+        BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '科技大'),
       ],
     );
 

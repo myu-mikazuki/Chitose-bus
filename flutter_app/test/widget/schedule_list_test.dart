@@ -105,11 +105,11 @@ void main() {
           BusEntry(
               time: t1,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大'),
+              destination: '科技大'),
           BusEntry(
               time: t2,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大'),
+              destination: '科技大'),
         ],
       );
 
@@ -126,7 +126,7 @@ void main() {
         expect(find.text(t1), findsOneWidget);
         expect(find.text(t2), findsOneWidget);
       }
-      expect(find.text('千歳科技大'), findsNWidgets(2));
+      expect(find.text('科技大'), findsNWidgets(2));
     });
 
     testWidgets('isNext=trueのバス: 背景色がAppColors.secondary・「◀ NEXT」が表示される',
@@ -139,7 +139,7 @@ void main() {
           BusEntry(
               time: nextTime,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大'),
+              destination: '科技大'),
         ],
       );
 
@@ -167,7 +167,7 @@ void main() {
           BusEntry(
               time: pastTime,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大'),
+              destination: '科技大'),
         ],
       );
 
@@ -193,11 +193,11 @@ void main() {
           BusEntry(
               time: t1,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大'),
+              destination: '科技大'),
           BusEntry(
               time: t2,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大'),
+              destination: '科技大'),
         ],
       );
 
@@ -226,7 +226,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
             arrivals: {'kenkyuto': arrivalTime},
           ),
         ],
@@ -258,7 +258,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
             arrivals: {'kenkyuto': arrivalTime},
           ),
         ],
@@ -290,7 +290,7 @@ void main() {
             BusEntry(
                 time: busTime,
                 direction: BusDirection.fromChitose,
-                destination: '千歳科技大'),
+                destination: '科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
@@ -311,7 +311,7 @@ void main() {
             BusEntry(
                 time: busTime,
                 direction: BusDirection.fromChitose,
-                destination: '千歳科技大'),
+                destination: '科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
@@ -333,7 +333,7 @@ void main() {
             BusEntry(
                 time: pastTime,
                 direction: BusDirection.fromChitose,
-                destination: '千歳科技大'),
+                destination: '科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
@@ -351,7 +351,7 @@ void main() {
         final bus = BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大');
+            destination: '科技大');
         final key = NotificationSettingsNotifier.busKey(bus);
         final timetable = BusTimetable(
           validFrom: '2024-01-01',
@@ -377,7 +377,7 @@ void main() {
             BusEntry(
                 time: busTime,
                 direction: BusDirection.fromChitose,
-                destination: '千歳科技大'),
+                destination: '科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
@@ -395,7 +395,7 @@ void main() {
         final bus = BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大');
+            destination: '科技大');
         final timetable = BusTimetable(
           validFrom: '2024-01-01',
           validTo: '2024-12-31',
@@ -441,7 +441,7 @@ void main() {
             BusEntry(
                 time: busTime,
                 direction: BusDirection.fromChitose,
-                destination: '千歳科技大'),
+                destination: '科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
@@ -465,7 +465,7 @@ void main() {
             BusEntry(
                 time: busTime,
                 direction: BusDirection.fromChitose,
-                destination: '千歳科技大'),
+                destination: '科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
@@ -487,7 +487,7 @@ void main() {
           BusEntry(
             time: busTime,
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
           ),
         ],
       );
@@ -512,7 +512,7 @@ void main() {
             BusEntry(
               time: _futureDeparture,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
               arrivals: const {'honbuto': '08:59'},
             ),
           ],
@@ -532,7 +532,7 @@ void main() {
             BusEntry(
               time: _futureDeparture,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
               arrivals: const {'honbuto': '09:00'},
             ),
           ],
@@ -552,7 +552,7 @@ void main() {
             BusEntry(
               time: _futureDeparture,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
               arrivals: const {'honbuto': '16:45'},
             ),
           ],
@@ -595,7 +595,7 @@ void main() {
             BusEntry(
               time: _futureDeparture,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
           ],
         );
@@ -616,7 +616,7 @@ void main() {
             BusEntry(
               time: _futureDeparture,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
               arrivals: const {'honbuto': '10:00'},
             ),
           ],
@@ -642,7 +642,7 @@ void main() {
             BusEntry(
               time: _futureDeparture,
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
               arrivals: const {'honbuto': '10:00'},
             ),
           ],
@@ -667,19 +667,19 @@ void main() {
           BusEntry(
             time: '09:00',
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
             weekdayOnly: true,
           ),
           BusEntry(
             time: '10:00',
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
             weekendOnly: true,
           ),
           BusEntry(
             time: '11:00',
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
           ),
         ],
       );
@@ -735,7 +735,7 @@ void main() {
             BusEntry(
               time: '00:01',
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
           ],
         );
@@ -760,7 +760,7 @@ void main() {
             BusEntry(
                 time: busTime,
                 direction: BusDirection.fromChitose,
-                destination: '千歳科技大'),
+                destination: '科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(

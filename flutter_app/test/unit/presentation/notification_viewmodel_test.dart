@@ -78,10 +78,10 @@ BusTimetable futureTimetable(BusDirection direction) {
     validFrom: '2026-01-01',
     validTo: '2026-12-31',
     schedules: [
-      BusEntry(time: fmt(future1), direction: direction, destination: '千歳科技大'),
-      BusEntry(time: fmt(future2), direction: direction, destination: '千歳科技大'),
-      BusEntry(time: fmt(future3), direction: direction, destination: '千歳科技大'),
-      BusEntry(time: fmt(future4), direction: direction, destination: '千歳科技大'),
+      BusEntry(time: fmt(future1), direction: direction, destination: '科技大'),
+      BusEntry(time: fmt(future2), direction: direction, destination: '科技大'),
+      BusEntry(time: fmt(future3), direction: direction, destination: '科技大'),
+      BusEntry(time: fmt(future4), direction: direction, destination: '科技大'),
     ],
   );
 }
@@ -97,8 +97,8 @@ BusTimetable pastTimetable(BusDirection direction) {
     validFrom: '2026-01-01',
     validTo: '2026-12-31',
     schedules: [
-      BusEntry(time: fmt(past1), direction: direction, destination: '千歳科技大'),
-      BusEntry(time: fmt(past2), direction: direction, destination: '千歳科技大'),
+      BusEntry(time: fmt(past1), direction: direction, destination: '科技大'),
+      BusEntry(time: fmt(past2), direction: direction, destination: '科技大'),
     ],
   );
 }
@@ -171,7 +171,7 @@ BusTimetable mixedDirectionTimetable() {
       BusEntry(
           time: fmt(future1),
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大'),
+          destination: '科技大'),
       BusEntry(
           time: fmt(future2),
           direction: BusDirection.fromHonbuto,

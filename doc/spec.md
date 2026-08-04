@@ -1,6 +1,6 @@
 # chitose_bus 仕様書
 
-千歳科学技術大学（CIST）のシャトルバス時刻表を表示するFlutterアプリ。
+千歳の大学へのバス（千歳市路線バス 美々空港線）の時刻表を表示するFlutterアプリ。
 
 ---
 
@@ -8,7 +8,7 @@
 
 | 項目 | 内容 |
 |------|------|
-| アプリ名 | CIST シャトルバス |
+| アプリ名 | Kagi-Bus |
 | バージョン | 0.1.0+2 |
 | ターゲットプラットフォーム | iOS（主）、Android（主）、Web（副） |
 
@@ -79,7 +79,7 @@ GAS は Apps Script への手動デプロイ、アプリはストア審査を挟
       {
         "time": "08:10",
         "direction": "from_chitose",
-        "destination": "千歳科学技術大学",
+        "destination": "科技大",
         "arrivals": { "kenkyuto": "08:35", "honbuto": "08:40" }
       }
     ]
@@ -92,8 +92,8 @@ GAS は Apps Script への手動デプロイ、アプリはストア審査を挟
 
 | 値 | 意味 |
 |----|------|
-| `from_chitose` | 千歳駅 → 千歳科技大 |
-| `from_minami_chitose` | 南千歳駅 → 千歳科技大 |
+| `from_chitose` | 千歳駅 → 科技大 |
+| `from_minami_chitose` | 南千歳駅 → 科技大 |
 | `from_kenkyuto_to_honbuto` | 研究棟 → 本部棟 |
 | `from_kenkyuto_to_station` | 研究棟 → 千歳駅 |
 | `from_honbuto` | 本部棟 → 千歳駅 |
@@ -181,7 +181,7 @@ AppBar のアクション：
 
 #### `SeasonType`（期別 / Issue #132）
 
-公立千歳科学技術大学の学休期間中、美々空港線は「学休期ダイヤ」で運行する。
+大学の学休期間中、美々空港線は「学休期ダイヤ」で運行する。
 
 | 期間 | 対象 |
 |------|------|

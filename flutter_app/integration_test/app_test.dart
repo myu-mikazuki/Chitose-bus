@@ -20,23 +20,23 @@ final _mockResponse = ScheduleResponse(
       BusEntry(
         time: '09:00',
         direction: BusDirection.fromChitose,
-        destination: '千歳科技大',
+        destination: '科技大',
         arrivals: {'kenkyuto': '09:20', 'honbuto': '09:25'},
       ),
       BusEntry(
         time: '23:59',
         direction: BusDirection.fromChitose,
-        destination: '千歳科技大',
+        destination: '科技大',
       ),
       BusEntry(
         time: '09:30',
         direction: BusDirection.fromMinamiChitose,
-        destination: '千歳科技大',
+        destination: '科技大',
       ),
       BusEntry(
         time: '23:59',
         direction: BusDirection.fromMinamiChitose,
-        destination: '千歳科技大',
+        destination: '科技大',
       ),
       BusEntry(
         time: '10:00',
@@ -77,7 +77,7 @@ final _mockResponse = ScheduleResponse(
       BusEntry(
         time: '09:00',
         direction: BusDirection.fromChitose,
-        destination: '千歳科技大',
+        destination: '科技大',
       ),
     ],
   ),
@@ -132,8 +132,8 @@ void main() {
     await tester.tap(find.text('千歳駅'));
     await tester.pumpAndSettle();
 
-    // 千歳科技大の行き先が表示されること
-    expect(find.text('千歳科技大'), findsWidgets);
+    // 科技大の行き先が表示されること
+    expect(find.text('科技大'), findsWidgets);
     // NEXT BUS セクションラベルが表示されること
     expect(find.text('NEXT BUS'), findsOneWidget);
   });

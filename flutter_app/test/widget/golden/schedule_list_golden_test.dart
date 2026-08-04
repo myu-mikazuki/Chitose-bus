@@ -17,12 +17,12 @@ final _timetableForNextHighlight = BusTimetable(
     BusEntry(
       time: '00:01',
       direction: BusDirection.fromChitose,
-      destination: '千歳科技大',
+      destination: '科技大',
     ),
     BusEntry(
       time: '23:59',
       direction: BusDirection.fromChitose,
-      destination: '千歳科技大',
+      destination: '科技大',
     ),
   ],
 );
@@ -35,17 +35,17 @@ final _timetableAllPast = BusTimetable(
     BusEntry(
       time: '00:01',
       direction: BusDirection.fromChitose,
-      destination: '千歳科技大',
+      destination: '科技大',
     ),
     BusEntry(
       time: '00:02',
       direction: BusDirection.fromChitose,
-      destination: '千歳科技大',
+      destination: '科技大',
     ),
     BusEntry(
       time: '00:03',
       direction: BusDirection.fromChitose,
-      destination: '千歳科技大',
+      destination: '科技大',
     ),
   ],
 );

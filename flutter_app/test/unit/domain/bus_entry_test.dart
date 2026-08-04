@@ -11,7 +11,7 @@ void main() {
         const entry = BusEntry(
           time: '09:30',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
         );
         final result = entry.toDateTimeToday(now: fixedNow);
 
@@ -28,7 +28,7 @@ void main() {
         const entry = BusEntry(
           time: '09:30',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
           weekdayOnly: true,
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isTrue);
@@ -39,7 +39,7 @@ void main() {
         const entry = BusEntry(
           time: '09:30',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
           weekendOnly: true,
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isFalse);
@@ -50,7 +50,7 @@ void main() {
         const entry = BusEntry(
           time: '09:30',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isTrue);
         expect(entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isTrue);
@@ -62,7 +62,7 @@ void main() {
         const entry = BusEntry(
           time: '09:30',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
           weekdayOnly: true,
         );
         final saturday = DateTime(2024, 6, 15); // 土曜日
@@ -75,7 +75,7 @@ void main() {
         const entry = BusEntry(
           time: '09:30',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
           weekendOnly: true,
         );
         final sunday = DateTime(2024, 6, 16); // 日曜日
@@ -90,7 +90,7 @@ void main() {
         const entry = BusEntry(
           time: '13:00',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
         );
         // fixedNow = 12:00, entry = 13:00 → +60 minutes
         expect(entry.minutesFromNow(now: fixedNow), equals(60));
@@ -100,7 +100,7 @@ void main() {
         const entry = BusEntry(
           time: '11:00',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
         );
         // fixedNow = 12:00, entry = 11:00 → -60 minutes
         expect(entry.minutesFromNow(now: fixedNow), equals(-60));
@@ -110,7 +110,7 @@ void main() {
         const entry = BusEntry(
           time: '12:00',
           direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          destination: '科技大',
         );
         // fixedNow = 12:00:00, entry = 12:00 → 0 seconds diff → 0 minutes
         expect(entry.minutesFromNow(now: fixedNow), equals(0));

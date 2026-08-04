@@ -15,12 +15,12 @@ void main() {
             BusEntry(
               time: '11:00', // past (before fixedNow 12:00)
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
             BusEntry(
               time: '13:00', // future (after fixedNow 12:00)
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
           ],
         );
@@ -38,7 +38,7 @@ void main() {
             BusEntry(
               time: '11:00',
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
           ],
         );
@@ -60,7 +60,7 @@ void main() {
             BusEntry(
               time: '13:00',
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
           ],
         );
@@ -148,7 +148,7 @@ void main() {
             BusEntry(
               time: '09:30',
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
             BusEntry(
               time: '10:00',
@@ -158,7 +158,7 @@ void main() {
             BusEntry(
               time: '11:00',
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
           ],
         );
@@ -176,7 +176,7 @@ void main() {
             BusEntry(
               time: '09:30',
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
             ),
           ],
         );
@@ -205,13 +205,13 @@ void main() {
             BusEntry(
               time: '09:00',
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
               weekdayOnly: true,
             ),
             BusEntry(
               time: '10:00',
               direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              destination: '科技大',
               weekendOnly: true,
             ),
           ],
@@ -232,19 +232,19 @@ void main() {
           BusEntry(
             time: '10:00',
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
             weekendOnly: true,
           ),
           BusEntry(
             time: '09:00',
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
             weekdayOnly: true,
           ),
           BusEntry(
             time: '11:00',
             direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            destination: '科技大',
           ),
           BusEntry(
             time: '08:00',

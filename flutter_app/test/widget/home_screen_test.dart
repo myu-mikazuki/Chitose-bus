@@ -391,13 +391,13 @@ void main() {
                 BusEntry(
                   time: '09:00',
                   direction: BusDirection.fromChitose,
-                  destination: '千歳科技大',
+                  destination: '科技大',
                   weekdayOnly: true,
                 ),
                 BusEntry(
                   time: '10:00',
                   direction: BusDirection.fromChitose,
-                  destination: '千歳科技大',
+                  destination: '科技大',
                   weekendOnly: true,
                 ),
               ],

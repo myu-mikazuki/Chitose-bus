@@ -16,7 +16,7 @@ final _timetableWithNextBus = BusTimetable(
     BusEntry(
       time: '23:59',
       direction: BusDirection.fromChitose,
-      destination: '千歳科技大',
+      destination: '科技大',
       arrivals: {'kenkyuto': '00:10', 'honbuto': '00:15'},
     ),
   ],
