@@ -120,6 +120,27 @@ check('v=1 年末年始は空', v1NewYear.current.schedules.length, 0);
 check('v=2 年末年始も全便返す（アプリ側で判定）',
   doGetJson(2, '2027-01-01').current.schedules.length > 0, true);
 
+console.log('南千歳駅を経由しない便（Issue #159）');
+
+// 復路の毎日運行便は南千歳駅を通過する。PDF「＜復路＞【空17・空18】」より。
+const allSchedules = doGetJson(2, '2026-06-17').current.schedules;
+function minamiChitoseOf(time) {
+  const e = allSchedules.find(
+    (x) => x.time === time && x.direction === 'from_honbuto'
+  );
+  return e ? 'minamiChitose' in e.arrivals : 'ERROR: 便が見つからない';
+}
+[['17:52'], ['19:02'], ['20:32'], ['22:02']].forEach(([t]) =>
+  check(`${t} 本部棟発は南千歳を経由しない`, minamiChitoseOf(t), false)
+);
+// 経由する便は維持されていること
+[['11:36', '11:51'], ['16:47', '17:02'], ['19:42', '19:57']].forEach(([t, m]) => {
+  const e = allSchedules.find(
+    (x) => x.time === t && x.direction === 'from_honbuto'
+  );
+  check(`${t} 本部棟発は南千歳 ${m} を経由する`, e && e.arrivals.minamiChitose, m);
+});
+
 console.log('');
 if (failures > 0) {
   console.log(`❌ ${failures} 件失敗`);
