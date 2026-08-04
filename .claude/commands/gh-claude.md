@@ -55,6 +55,55 @@ gh-claude repo view
 gh-claude api repos/<owner>/<repo>         # Raw API access
 ```
 
+## 重要: 必ず `--json` を付ける
+
+このリポジトリでは、`--json` を付けない `view` / `edit` 系が **Projects (classic) の廃止に伴う GraphQL エラーで失敗する**。
+
+```
+GraphQL: Projects (classic) is being deprecated in favor of the new Projects
+experience... (repository.issue.projectCards)
+```
+
+`gh` が既定で `projectCards` を要求するために起きる。`--json` で必要なフィールドだけを
+指定すればこのクエリは発行されず、正常に動く。
+
+```bash
+# NG（エラーになる）
+gh-claude issue view 132
+gh-claude pr view 161
+
+# OK（必要なフィールドを明示する）
+gh-claude issue view 132 --json number,title,body,state,labels
+gh-claude pr view 161 --json number,state,body,mergeable,baseRefName,headRefName
+```
+
+### 書き込み系は REST API に逃がす
+
+`--json` が使えない書き込み系（`pr edit` など）は同じエラーで落ちる。厄介なのは
+**エラーを出しつつ変更が適用されない**点で、成功したように見えることがある。
+
+```bash
+# NG（エラーで本文が更新されない）
+gh-claude pr edit 161 --body "..."
+
+# OK（REST API を直接叩く）
+gh-claude api -X PATCH repos/<owner>/<repo>/pulls/161 -F body=@body.md
+gh-claude api -X PATCH repos/<owner>/<repo>/issues/132 -F body=@body.md
+```
+
+`--body` に長文を渡すときは、シェルのエスケープ事故を避けるためファイル経由（`-F body=@file`）にする。
+
+### 書き込み後は必ず確認する
+
+上記の理由から、`create` / `edit` / `comment` の後は `--json` で読み直して反映を確認すること。
+
+```bash
+gh-claude pr view 161 --json body --jq '.body' | head -5
+```
+
+なお `pr create` / `issue create` / `issue comment` / `issue close` は
+このエラーを踏まない（実績あり）。
+
 ## Instructions
 
 1. Determine exactly what GitHub operation the user wants.
