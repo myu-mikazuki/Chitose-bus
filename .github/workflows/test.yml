@@ -1,6 +1,22 @@
 name: Flutter Tests
 
-on: [push, pull_request]
+# push を main / develop（とタグ）に絞っている。
+# ブランチを絞らないと、PR ブランチへの push で push と pull_request の
+# 両方が発火し、同じコミットに対してテストが二重に走るため。
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+  pull_request:
+
+# 同じ PR に連続で push した場合、古い実行を打ち切る。
+# main / develop への push は各コミットの結果を残したいので打ち切らない。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:

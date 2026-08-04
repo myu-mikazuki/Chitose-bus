@@ -1,14 +1,22 @@
 name: iOS Build
 
+# PR と統合ブランチへの push で iOS ビルドを検証する。
+#
+# 以前は feature/** など作業ブランチへの push でも起動していたが、
+#   - 作業中の WIP コミットごとに macOS ランナーを 30 分近く消費していた
+#     （macOS は Linux の 10 倍課金）
+#   - pull_request を足すと同一リポジトリの PR で push と二重に走る
+#   - fork からの PR は push では検証できない
+# ため、pull_request 起点に切り替えた。
 on:
   push:
     branches:
       - main
       - develop
-      - 'feature/**'
-      - 'fix/**'
-      - 'hotfix/**'
-      - 'release/**'
+    paths:
+      - 'flutter_app/**'
+      - '.github/workflows/ios-build.yml'
+  pull_request:
     paths:
       - 'flutter_app/**'
       - '.github/workflows/ios-build.yml'
@@ -43,6 +51,12 @@ on:
         required: false
         type: string
         default: ''
+
+# 同じ PR に連続で push した場合、古い実行を打ち切る。
+# main / develop への push は各コミットの結果を残したいので打ち切らない。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
