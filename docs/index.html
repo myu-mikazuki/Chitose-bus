@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kagi-Bus — 千歳科技大 シャトルバス時刻表</title>
+<meta name="description" content="公立千歳科学技術大学のシャトルバス時刻表アプリ。次のバスまでのカウントダウン、出発前の通知、学休期ダイヤの自動切り替えに対応。iOS / Android で無料。">
+<meta property="og:title" content="Kagi-Bus — 千歳科技大 シャトルバス時刻表">
+<meta property="og:description" content="次のバスまであと何分か、ひと目でわかる。iOS / Android で無料。">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --brand: #FE9616;
+    --brand-dark: #E07F05;
+    --bg: #ffffff;
+    --surface: #fff9f2;
+    --border: #f0e2d2;
+    --text: #2b2b2b;
+    --text-sub: #6b6b6b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212;
+      --surface: #1e1a16;
+      --border: #33291d;
+      --text: #ececec;
+      --text-sub: #a5a5a5;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans',
+                 'Noto Sans JP', sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  a { color: var(--brand-dark); }
+  @media (prefers-color-scheme: dark) { a { color: var(--brand); } }
+
+  /* ---- hero ---- */
+  header {
+    background: linear-gradient(160deg, var(--brand) 0%, #FDA02E 100%);
+    color: #fff;
+    padding: 56px 0 48px;
+    text-align: center;
+  }
+  header .logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px; height: 76px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.18);
+    font-size: 38px;
+    margin-bottom: 18px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 2.1em;
+    letter-spacing: .04em;
+  }
+  header p.tagline {
+    margin: 10px 0 0;
+    font-size: 1.05em;
+    opacity: .95;
+  }
+  header p.sub {
+    margin: 4px 0 0;
+    font-size: .9em;
+    opacity: .85;
+  }
+
+  /* ---- store buttons ---- */
+  .stores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 28px;
+  }
+  .store-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    color: #2b2b2b;
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: .98em;
+    box-shadow: 0 2px 10px rgba(0,0,0,.14);
+  }
+  .store-btn:hover { background: #fdf6ee; }
+  .store-btn .ico { font-size: 1.2em; line-height: 1; }
+
+  /* ---- sections ---- */
+  main { padding: 48px 0 8px; }
+  section { margin-bottom: 48px; }
+  h2 {
+    font-size: 1.25em;
+    color: var(--brand-dark);
+    border-bottom: 2px solid var(--brand);
+    padding-bottom: 8px;
+    margin: 0 0 20px;
+  }
+  @media (prefers-color-scheme: dark) { h2 { color: var(--brand); } }
+
+  .features { display: grid; gap: 14px; padding: 0; margin: 0; list-style: none; }
+  @media (min-width: 620px) { .features { grid-template-columns: 1fr 1fr; } }
+  .features li {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .features strong { display: block; margin-bottom: 2px; }
+  .features span { color: var(--text-sub); font-size: .92em; }
+
+  .links { list-style: none; padding: 0; margin: 0; }
+  .links li {
+    border-bottom: 1px solid var(--border);
+  }
+  .links li:last-child { border-bottom: none; }
+  .links a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 4px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .links a:hover { color: var(--brand-dark); }
+  @media (prefers-color-scheme: dark) { .links a:hover { color: var(--brand); } }
+  .links .ico { font-size: 1.15em; width: 1.4em; text-align: center; }
+  .links .desc { color: var(--text-sub); font-size: .88em; margin-left: auto; }
+  @media (max-width: 520px) { .links .desc { display: none; } }
+
+  .note {
+    background: var(--surface);
+    border-left: 3px solid var(--brand);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    color: var(--text-sub);
+    font-size: .92em;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 24px;
+    padding: 28px 0 40px;
+    text-align: center;
+    color: var(--text-sub);
+    font-size: .86em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="logo" aria-hidden="true">🚌</div>
+    <h1>Kagi-Bus</h1>
+    <p class="tagline">次のバスまであと何分か、ひと目でわかる。</p>
+    <p class="sub">公立千歳科学技術大学 シャトルバス時刻表アプリ</p>
+
+    <div class="stores">
+      <a class="store-btn" href="https://apps.apple.com/jp/app/kagi-bus/id6761445725">
+        <span class="ico" aria-hidden="true">🍎</span>App Store
+      </a>
+      <a class="store-btn" href="https://play.google.com/store/apps/details?id=com.myu_mikazuki.kagibus">
+        <span class="ico" aria-hidden="true">▶</span>Google Play
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <h2>できること</h2>
+    <ul class="features">
+      <li>
+        <strong>次のバスをカウントダウン</strong>
+        <span>発車まであと何分かを大きく表示。5分を切ると赤くなります。</span>
+      </li>
+      <li>
+        <strong>4方面に対応</strong>
+        <span>千歳駅・南千歳・研究棟・本部棟。よく使う方面はお気に入りに登録できます。</span>
+      </li>
+      <li>
+        <strong>出発前に通知</strong>
+        <span>5 / 10 / 15 / 30 分前から選べます。便ごとの個別設定も可能です。</span>
+      </li>
+      <li>
+        <strong>学休期ダイヤに自動対応</strong>
+        <span>夏季・冬季の学休期やお盆は、減便されたダイヤへ自動で切り替わります。</span>
+      </li>
+      <li>
+        <strong>他の曜日のダイヤも確認</strong>
+        <span>平日 / 土日祝、授業期 / 学休期を切り替えて予定を立てられます。</span>
+      </li>
+      <li>
+        <strong>圏外でも見られる</strong>
+        <span>取得済みの時刻表を端末に保存。電波が届かない場所でも表示できます。</span>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>リンク</h2>
+    <ul class="links">
+      <li>
+        <a href="https://github.com/myu-mikazuki/Chitose-bus">
+          <span class="ico" aria-hidden="true">📦</span>
+          <span>GitHub リポジトリ</span>
+          <span class="desc">ソースコード・不具合報告</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://apps.apple.com/jp/app/kagi-bus/id6761445725">
+          <span class="ico" aria-hidden="true">🍎</span>
+          <span>App Store</span>
+          <span class="desc">iPhone 向け</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://play.google.com/store/apps/details?id=com.myu_mikazuki.kagibus">
+          <span class="ico" aria-hidden="true">▶</span>
+          <span>Google Play</span>
+          <span class="desc">Android 向け</span>
+        </a>
+      </li>
+      <li>
+        <a href="privacy_policy.html">
+          <span class="ico" aria-hidden="true">🔒</span>
+          <span>プライバシーポリシー</span>
+          <span class="desc">収集する情報について</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>時刻表について</h2>
+    <p class="note">
+      表示している時刻表は千歳市が公開する美々空港線の情報をもとにしています。
+      ダイヤ改正などにより実際の運行と異なる場合があるため、
+      最終的なご確認は各バス事業者または大学の案内をご利用ください。
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Kagi-Bus は学生有志による非公式アプリです。<br>
+    公立千歳科学技術大学および各バス事業者とは関係ありません。</p>
+    <p><a href="https://github.com/myu-mikazuki/Chitose-bus">github.com/myu-mikazuki/Chitose-bus</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
