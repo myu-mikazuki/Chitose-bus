@@ -63,6 +63,25 @@
 4. **ウェブアプリとしてデプロイ**（アクセス: 全員）
 5. デプロイ後に発行されるエンドポイント URL を控える
 
+#### 更新時の再デプロイ
+
+> [!IMPORTANT]
+> `gas/Code.gs` は **CI のデプロイ対象外**です。PR をマージしても本番には反映されません。時刻表データやロジックを変更したら、必ず以下の手順で手動デプロイしてください。
+
+1. Apps Script エディタを開き、`gas/Code.gs` の内容を貼り付けて保存
+2. 「デプロイ」→「**デプロイを管理**」→ 既存デプロイの鉛筆アイコン
+3. バージョンを「**新バージョン**」にして「デプロイ」
+
+手順 2 で「新しいデプロイ」を作成しないでください。エンドポイント URL が変わり、配布済みのアプリが旧 URL を参照し続けます。
+
+反映されたかどうかはエンドポイントを直接叩いて確認します。
+
+```bash
+curl -sL "<GAS_ENDPOINT_URL>" | head -c 200
+```
+
+`doGet` はキャッシュを持たないため、再デプロイすれば次のリクエストから新しい応答になります。
+
 #### GitHub Variables の設定
 
 iOS ビルド時に `--dart-define` でエンドポイント URL を渡すため、リポジトリの Variables に登録します。
@@ -164,6 +183,7 @@ GitHub Actions の **iOS Build** ワークフロー（`workflow_dispatch`）か�
 
 | バージョン | 内容 |
 |-----------|------|
+| [v1.2.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.2.0) | 美々空港線の学休期ダイヤに対応、時刻表の有効期間表示を削除、GAS のスクリプトキャッシュを廃止 |
 | [v1.1.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.1.0) | 当日以外の時刻表を表示できる機能を追加、直17系統の運行日誤りを修正 |
 | [v1.0.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.0.0) | 正式リリース、AdMob 広告のテスト/本番切り替え対応 |
 | [v0.8.3](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v0.8.3) | iOS ビルドの CocoaPods/SPM 混在エラーを修正 |

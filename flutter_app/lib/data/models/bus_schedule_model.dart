@@ -15,6 +15,8 @@ class BusEntryModel with _$BusEntryModel {
     String? platformNumber,
     @Default(false) bool weekdayOnly,
     @Default(false) bool weekendOnly,
+    @Default(false) bool academicOnly,
+    @Default(false) bool vacationOnly,
   }) = _BusEntryModel;
 
   factory BusEntryModel.fromJson(Map<String, dynamic> json) =>
@@ -63,6 +65,8 @@ extension BusEntryModelMapper on BusEntryModel {
         platformNumber: platformNumber,
         weekdayOnly: weekdayOnly,
         weekendOnly: weekendOnly,
+        academicOnly: academicOnly,
+        vacationOnly: vacationOnly,
       );
 }
 

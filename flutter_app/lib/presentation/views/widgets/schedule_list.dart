@@ -14,6 +14,7 @@ class ScheduleList extends ConsumerStatefulWidget {
     required this.timetable,
     required this.direction,
     this.dayType,
+    this.season,
   });
 
   final BusTimetable timetable;
@@ -23,6 +24,10 @@ class ScheduleList extends ConsumerStatefulWidget {
   /// このとき現在時刻に依存する表示（NEXT ハイライト・過去便のグレーアウト・
   /// 通知ベル・NEXT への自動スクロール）は行わない。
   final DayType? dayType;
+
+  /// 当日以外モードで表示する期別（授業期 / 学休期）。
+  /// null の場合は当日の期別を用いる。[dayType] が null のときは参照されない。
+  final SeasonType? season;
 
   @override
   ConsumerState<ScheduleList> createState() => _ScheduleListState();
@@ -66,17 +71,23 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
     final dayType = widget.dayType;
     final buses = dayType == null
-        ? widget.timetable.todayBuses(widget.direction)
-        : widget.timetable.busesFor(widget.direction, dayType);
+        ? widget.timetable.todayBuses(widget.direction, now: now)
+        : widget.timetable.busesFor(
+            widget.direction,
+            dayType,
+            widget.season ?? SeasonType.fromDate(now),
+          );
     // 当日以外の表示では NEXT の概念がないため null とする
     final nextBus = dayType == null
         ? widget.timetable.nextBus(widget.direction, now: now)
         : null;
 
     if (buses.isEmpty) {
+      final isSuspended =
+          dayType == null && ServiceCalendar.isSuspended(now);
       return Center(
         child: Text(
-          '時刻表データなし',
+          isSuspended ? '年末年始のため全便運休です' : '時刻表データなし',
           style: TextStyle(color: context.appColors.textTertiary),
         ),
       );
