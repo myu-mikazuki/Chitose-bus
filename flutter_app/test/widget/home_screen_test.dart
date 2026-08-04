@@ -312,6 +312,23 @@ void main() {
       );
     });
 
+    testWidgets('フッタは更新日のみ表示し、有効期間は表示しない', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            scheduleViewModelProvider
+                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+            countdownOverride(),
+          ],
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('更新: 2024-01-01'), findsOneWidget);
+      expect(find.textContaining('有効期間'), findsNothing);
+    });
+
     group('当日以外のダイヤ表示', () {
       testWidgets('表示モード切替アイコンが表示される', (tester) async {
         await tester.pumpWidget(

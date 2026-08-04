@@ -638,7 +638,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Text(
-            '更新: ${widget.updatedAt}  有効期間: ${widget.timetable.validFrom} 〜 ${widget.timetable.validTo}',
+            '更新: ${widget.updatedAt}',
             style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
           ),
         ),
@@ -736,7 +736,7 @@ class _DirectionTab extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Text(
-            '更新: $updatedAt  有効期間: ${timetable.validFrom} 〜 ${timetable.validTo}',
+            '更新: $updatedAt',
             style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
           ),
         ),
