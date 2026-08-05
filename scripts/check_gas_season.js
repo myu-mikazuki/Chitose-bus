@@ -189,6 +189,46 @@ const v1Weekday = doGetJson(1, '2026-08-05');
 check('平日は weekdayOnly を保持',
   v1Weekday.current.schedules.some((e) => e.weekdayOnly), true);
 
+console.log('祝日 × スキーマバージョン（v1.2.0 のすり抜け防止）');
+
+// v1.2.0 は v=2 を送るが DayType.fromDate が土日しか見ない。
+// そのアプリの絞り込みを再現し、祝日でも正しい便数になることを確認する。
+function asV120(json, today) {
+  // v1.2.0 相当: 曜日は土日のみ判定（祝日を知らない）、期別は判定できる
+  const d = new Date(`${today}T00:00:00Z`);
+  const isWeekend = d.getUTCDay() === 0 || d.getUTCDay() === 6;
+  const season = seasonForYmd(parseYmd(today));
+  return json.current.schedules.filter(
+    (e) =>
+      e.direction === 'from_chitose' &&
+      !(isWeekend && e.weekdayOnly) &&
+      !(!isWeekend && e.weekendOnly) &&
+      !(season === 'vacation' && e.academicOnly) &&
+      !(season === 'academic' && e.vacationOnly)
+  );
+}
+
+const holidayExpected = ['07:20', '08:18', '09:10', '11:29', '13:20'];
+
+const v2Holiday = doGetJson(2, '2026-08-11');
+check('v=2 で v1.2.0 が 8/11 に表示するのは5便',
+  asV120(v2Holiday, '2026-08-11').map((e) => e.time).sort(), holidayExpected);
+check('v=2 で v1.2.0 に直通便が出ない',
+  asV120(v2Holiday, '2026-08-11').filter((e) => e.routeLabel === '直通').length, 0);
+
+// v=3 は全便を返し、アプリ側（祝日判定あり）が絞る
+const v3Holiday = doGetJson(3, '2026-08-11');
+check('v=3 は祝日でも全便を返す',
+  v3Holiday.current.schedules.length > v2Holiday.current.schedules.length, true);
+check('v=3 は運行日フラグを保持',
+  v3Holiday.current.schedules.some((e) => e.weekdayOnly), true);
+
+// 平日は v=2 も v=3 も全便のまま（当日以外のダイヤ表示のため）
+const v2Weekday = doGetJson(2, '2026-08-05');
+const v3Weekday = doGetJson(3, '2026-08-05');
+check('平日は v=2 と v=3 が同一',
+  v2Weekday.current.schedules.length, v3Weekday.current.schedules.length);
+
 console.log('');
 if (failures > 0) {
   console.log(`❌ ${failures} 件失敗`);

@@ -19,13 +19,18 @@
  * 両者の反映タイミングは必ずずれる。さらに更新しないユーザーの旧バージョンは
  * 永続的に残る。そこでリクエストの ?v= でレスポンス形式を出し分ける。
  *
- *   v=1（無指定を含む）… 期別フラグを知らない旧アプリ向け。
- *                        サーバ側で当日の期別に絞り、期別フラグを取り除いて返す。
- *                        運行日（平日/土日祝）の絞り込みは旧アプリでも行えるため残す。
- *   v=2 ……………………… 全便 + 期別フラグ。アプリ側で絞り込む（期別セレクタ用）。
+ *   v=1（無指定を含む）… 期別も祝日も知らない旧アプリ向け。
+ *                        サーバ側で当日の期別・運行日に絞り、期別フラグを取り除く。
+ *   v=2 ……………………… 期別は分かるが祝日を知らないアプリ向け（v1.2.0）。
+ *                        全便 + 期別フラグを返すが、祝日の日だけ運行日で絞る。
+ *   v=3 ……………………… 期別・祝日ともに判定できるアプリ向け。全便 + 期別フラグ。
  *
  * これによりデプロイ順を気にせず GAS を更新できる。
- * 新しい形式を足すときは v を増やし、既存の v の挙動は変えないこと。
+ *
+ * ★ v はレスポンスの「形式」ではなく、アプリが持つ判定ロジックの世代を表す。
+ *   祝日判定（#158）のようにアプリ側の規則を後から足すと、既存の v はその規則を
+ *   持たないため、サーバ側で吸収したうえで v を増やす必要がある。
+ *   新しい v を足すときは、既存の v の挙動を変えないこと。
  */
 
 // ---- 旧スクレイピング処理（コメントアウト） ----
@@ -182,9 +187,12 @@ function testPdfText() {
 
 function doGet(e) {
   try {
+    var v = requestedSchemaVersion(e);
     var result = getHardcodedTimetable();
-    if (requestedSchemaVersion(e) < 2) {
+    if (v < 2) {
       result = toLegacyResponse(result);
+    } else if (v < 3) {
+      result = toV2Response(result);
     }
     return buildResponse(JSON.stringify(result));
   } catch (err) {
@@ -253,6 +261,43 @@ function toLegacyResponse(result) {
       validFrom: current.validFrom,
       validTo: current.validTo,
       schedules: schedules
+    },
+    upcoming: result.upcoming
+  };
+}
+
+/**
+ * v=2（期別は分かるが祝日を知らないアプリ）向けにレスポンスを変換する。
+ *
+ * v=2 を送るのは v1.2.0 以降だが、祝日判定（Issue #158）は v1.2.0 より後に
+ * 入ったため、v1.2.0 の DayType.fromDate は土日しか見ない。全便をそのまま返すと
+ * 平日に当たる祝日で平日ダイヤが表示される（8/11 の千歳駅発が 5便 → 14便）。
+ *
+ * ?v= はレスポンスの「形式」を表すもので、クライアントが持つ判定ロジックの
+ * 世代ではない。祝日のようにアプリ側の規則を後から足した場合、既存の v は
+ * その規則を持たないため、サーバ側で吸収する必要がある。
+ *
+ * 祝日の日だけ運行日で絞ってフラグを落とす。期別フラグは残すので、
+ * 学休期の絞り込みは従来どおりアプリ側で動く。
+ * 平日・土日は変換せず、そのまま全便を返す（当日以外のダイヤ表示のため）。
+ */
+function toV2Response(result) {
+  var ymd = parseYmd(result.updatedAt);
+  var dow = new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.d)).getUTCDay();
+  var dayType = dayTypeForYmd(ymd);
+  if (!(dayType === 'weekendHoliday' && dow !== 0 && dow !== 6)) {
+    return result;
+  }
+
+  var current = result.current;
+  return {
+    updatedAt: result.updatedAt,
+    current: {
+      validFrom: current.validFrom,
+      validTo: current.validTo,
+      schedules: current.schedules
+        .filter(function(en) { return !en.weekdayOnly; })
+        .map(stripDayFlags)
     },
     upcoming: result.upcoming
   };
