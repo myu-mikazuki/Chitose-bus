@@ -2,9 +2,11 @@
 /**
  * gas/Code.gs の期別判定とスキーマバージョン出し分けを検証する。
  *
- * GAS 側の seasonForYmd / isSuspendedYmd はアプリ側の SeasonType.fromDate /
- * ServiceCalendar.isSuspended と同一でなければならない（v=1 と v=2 で結果が
- * 食い違うため）。境界値はアプリ側の season_type_test.dart と揃えてある。
+ * GAS 側の seasonForYmd / isSuspendedYmd / dayTypeForYmd はアプリ側の
+ * SeasonType.fromDate / ServiceCalendar.isSuspended / DayType.fromDate と
+ * 同一でなければならない（v=1 と v=2 で結果が食い違うため）。
+ * 境界値はアプリ側の season_type_test.dart / japanese_holiday_test.dart と
+ * 揃えてある。
  *
  * 使い方: node scripts/check_gas_season.js
  */
@@ -146,6 +148,92 @@ function minamiChitoseOf(time) {
 // 15:24 は期別で分岐しない（両期とも南千歳を経由する）
 check('15:24 は期別に分かれていない',
   allSchedules.filter((e) => e.time === '15:24' && e.direction === 'from_honbuto').length, 1);
+
+console.log('祝日判定（Issue #158）');
+
+// 祝日は土日祝ダイヤ。ただし PDF が「平日ダイヤ」と明記する5日は平日扱い。
+const holidayCases = [
+  ['2026-08-11', '山の日', 'weekendHoliday'],
+  ['2026-01-01', '元日', 'weekendHoliday'],
+  ['2026-02-11', '建国記念の日', 'weekendHoliday'],
+  ['2026-05-04', 'みどりの日', 'weekendHoliday'],
+  ['2026-09-21', '敬老の日', 'weekendHoliday'],
+  ['2026-09-22', '国民の休日', 'weekendHoliday'],
+  ['2026-09-23', '秋分の日', 'weekendHoliday'],
+  ['2026-03-20', '春分の日', 'weekendHoliday'],
+];
+holidayCases.forEach(([d, name, dt]) => {
+  const ymd = parseYmd(d);
+  check(`${d} は ${name}`, holidayNameOf(ymd.y, ymd.m, ymd.d), name);
+  check(`${d} は ${dt}`, dayTypeForYmd(ymd), dt);
+});
+
+// 「祝日だが平日ダイヤ」の5日
+[['2026-04-29', '昭和の日'], ['2026-11-03', '文化の日'], ['2026-11-23', '勤労感謝の日']]
+  .forEach(([d, name]) => {
+    const ymd = parseYmd(d);
+    check(`${d}(${name}) は祝日だが平日ダイヤ`, dayTypeForYmd(ymd), 'weekday');
+  });
+
+// 平日・土日
+check('2026-08-05 (水) は平日', dayTypeForYmd(parseYmd('2026-08-05')), 'weekday');
+check('2026-08-08 (土) は土日祝', dayTypeForYmd(parseYmd('2026-08-08')), 'weekendHoliday');
+
+// v=1 の応答: 8/11 は土日祝ダイヤに絞られ、運行日フラグが落ちていること
+const v1Holiday = doGetJson(1, '2026-08-11');
+check('8/11 の千歳駅発は5便',
+  times(v1Holiday.current.schedules, 'from_chitose'),
+  ['07:20', '08:18', '09:10', '11:29', '13:20']);
+check('8/11 に直通便は無い',
+  v1Holiday.current.schedules.filter(
+    (e) => e.direction === 'from_chitose' && e.routeLabel === '直通').length, 0);
+check('8/11 は運行日フラグが落ちている',
+  v1Holiday.current.schedules.every((e) => !e.weekdayOnly && !e.weekendOnly), true);
+
+// 平日は従来どおりフラグを保持する（余計な変更をしていないこと）
+const v1Weekday = doGetJson(1, '2026-08-05');
+check('平日は weekdayOnly を保持',
+  v1Weekday.current.schedules.some((e) => e.weekdayOnly), true);
+
+console.log('祝日 × スキーマバージョン（v1.2.0 のすり抜け防止）');
+
+// v1.2.0 は v=2 を送るが DayType.fromDate が土日しか見ない。
+// そのアプリの絞り込みを再現し、祝日でも正しい便数になることを確認する。
+function asV120(json, today) {
+  // v1.2.0 相当: 曜日は土日のみ判定（祝日を知らない）、期別は判定できる
+  const d = new Date(`${today}T00:00:00Z`);
+  const isWeekend = d.getUTCDay() === 0 || d.getUTCDay() === 6;
+  const season = seasonForYmd(parseYmd(today));
+  return json.current.schedules.filter(
+    (e) =>
+      e.direction === 'from_chitose' &&
+      !(isWeekend && e.weekdayOnly) &&
+      !(!isWeekend && e.weekendOnly) &&
+      !(season === 'vacation' && e.academicOnly) &&
+      !(season === 'academic' && e.vacationOnly)
+  );
+}
+
+const holidayExpected = ['07:20', '08:18', '09:10', '11:29', '13:20'];
+
+const v2Holiday = doGetJson(2, '2026-08-11');
+check('v=2 で v1.2.0 が 8/11 に表示するのは5便',
+  asV120(v2Holiday, '2026-08-11').map((e) => e.time).sort(), holidayExpected);
+check('v=2 で v1.2.0 に直通便が出ない',
+  asV120(v2Holiday, '2026-08-11').filter((e) => e.routeLabel === '直通').length, 0);
+
+// v=3 は全便を返し、アプリ側（祝日判定あり）が絞る
+const v3Holiday = doGetJson(3, '2026-08-11');
+check('v=3 は祝日でも全便を返す',
+  v3Holiday.current.schedules.length > v2Holiday.current.schedules.length, true);
+check('v=3 は運行日フラグを保持',
+  v3Holiday.current.schedules.some((e) => e.weekdayOnly), true);
+
+// 平日は v=2 も v=3 も全便のまま（当日以外のダイヤ表示のため）
+const v2Weekday = doGetJson(2, '2026-08-05');
+const v3Weekday = doGetJson(3, '2026-08-05');
+check('平日は v=2 と v=3 が同一',
+  v2Weekday.current.schedules.length, v3Weekday.current.schedules.length);
 
 console.log('');
 if (failures > 0) {

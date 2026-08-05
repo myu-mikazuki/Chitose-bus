@@ -90,7 +90,7 @@ void main() {
 
       await source.fetchSchedule();
 
-      verify(() => mockClient.get(Uri.parse('$endpointUrl?v=2'))).called(1);
+      verify(() => mockClient.get(Uri.parse('$endpointUrl?v=3'))).called(1);
     });
 
     test('既存のクエリパラメータを保持したまま v を付与する', () async {
@@ -107,7 +107,7 @@ void main() {
       final captured =
           verify(() => mockClient.get(captureAny())).captured.single as Uri;
       expect(captured.queryParameters['foo'], 'bar');
-      expect(captured.queryParameters['v'], '2');
+      expect(captured.queryParameters['v'], '3');
     });
   });
 }
