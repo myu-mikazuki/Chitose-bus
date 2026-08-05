@@ -120,26 +120,32 @@ check('v=1 年末年始は空', v1NewYear.current.schedules.length, 0);
 check('v=2 年末年始も全便返す（アプリ側で判定）',
   doGetJson(2, '2027-01-01').current.schedules.length > 0, true);
 
-console.log('南千歳駅を経由しない便（Issue #159）');
+console.log('復路の南千歳着（大学配付物「学休期ダイヤ（修正版）」より）');
 
-// 復路の毎日運行便は南千歳駅を通過する。PDF「＜復路＞【空17・空18】」より。
+// 復路は全便が南千歳駅を経由する。市の PDF は該当セルが黒塗りに見えるが
+// 通過を意味しない（Issue #159 の差し戻し）。大学版を正とする。
 const allSchedules = doGetJson(2, '2026-06-17').current.schedules;
 function minamiChitoseOf(time) {
   const e = allSchedules.find(
     (x) => x.time === time && x.direction === 'from_honbuto'
   );
-  return e ? 'minamiChitose' in e.arrivals : 'ERROR: 便が見つからない';
+  return e ? e.arrivals.minamiChitose : 'ERROR: 便が見つからない';
 }
-[['17:52'], ['19:02'], ['20:32'], ['22:02']].forEach(([t]) =>
-  check(`${t} 本部棟発は南千歳を経由しない`, minamiChitoseOf(t), false)
+// 02 科技大 ▶ 空港経由 ▶ 千歳駅行き の全10便
+[
+  ['11:36', '11:51'], ['12:42', '12:57'], ['13:35', '13:50'], ['14:32', '14:47'],
+  ['15:24', '15:39'], ['16:47', '17:02'], ['17:52', '18:07'], ['19:02', '19:17'],
+  ['19:42', '19:57'], ['21:22', '21:37'],
+].forEach(([t, m]) => check(`${t} 本部棟発 → 南千歳 ${m}`, minamiChitoseOf(t), m));
+
+// 03 科技大 ▶ 空港・千歳駅経由 ▶ 長都駅行き
+[['20:32', '20:47'], ['22:02', '22:17']].forEach(([t, m]) =>
+  check(`${t} 本部棟発（長都行き）→ 南千歳 ${m}`, minamiChitoseOf(t), m)
 );
-// 経由する便は維持されていること
-[['11:36', '11:51'], ['16:47', '17:02'], ['19:42', '19:57']].forEach(([t, m]) => {
-  const e = allSchedules.find(
-    (x) => x.time === t && x.direction === 'from_honbuto'
-  );
-  check(`${t} 本部棟発は南千歳 ${m} を経由する`, e && e.arrivals.minamiChitose, m);
-});
+
+// 15:24 は期別で分岐しない（両期とも南千歳を経由する）
+check('15:24 は期別に分かれていない',
+  allSchedules.filter((e) => e.time === '15:24' && e.direction === 'from_honbuto').length, 1);
 
 console.log('');
 if (failures > 0) {
