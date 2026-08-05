@@ -239,6 +239,38 @@ jobs:
           path: kagi_bus-${{ github.ref_name }}-android.aab
           if-no-files-found: error
 
+      # Google Play へのアップロード（Issue #165）
+      #
+      # track: internal に上げるだけで、製品版への昇格は Play Console から手動で行う。
+      # 誤って本番公開されるのを防ぐため。運用が安定してから track を上げるか検討する。
+      #
+      # secrets は if: で直接参照できないため、出力に落としてから判定する。
+      # 未設定の環境ではスキップし、リリースビルド自体は通るようにしている
+      # （fork や、サービスアカウントを用意していない状態でも壊れないため）。
+      - name: Check Play credentials
+        id: play
+        env:
+          SA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$SA" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::PLAY_SERVICE_ACCOUNT_JSON が未設定のため Google Play へのアップロードをスキップします"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload to Google Play (internal)
+        if: steps.play.outputs.ready == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.myu_mikazuki.kagibus
+          releaseFiles: kagi_bus-${{ github.ref_name }}-android.aab
+          track: internal
+          status: completed
+          # distribution/whatsnew/whatsnew-<言語> がストアの「新機能」になる
+          whatsNewDirectory: distribution/whatsnew
+
   release:
     needs: [build-ios, build-android]
     runs-on: ubuntu-latest
