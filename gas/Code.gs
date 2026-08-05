@@ -207,6 +207,10 @@ function requestedSchemaVersion(e) {
  * 旧アプリは academicOnly / vacationOnly を無視するため、全便をそのまま返すと
  * 授業期と学休期の便が混ざって表示される（学休期の千歳駅発が 14便 → 33便になる）。
  * そのためサーバ側で当日の期別に絞り、期別フラグを取り除いて返す。
+ *
+ * 祝日も同様にサーバ側で処理する（Issue #158）。旧アプリの DayType.fromDate は
+ * 土日しか見ないため、祝日には土日祝ダイヤの便だけを返したうえで
+ * weekdayOnly / weekendOnly を落とし、アプリ側の曜日判定を通り抜けさせる。
  */
 function toLegacyResponse(result) {
   var ymd = parseYmd(result.updatedAt);
@@ -226,13 +230,22 @@ function toLegacyResponse(result) {
   }
 
   var season = seasonForYmd(ymd);
+  var dayType = dayTypeForYmd(ymd);
+  // 平日に当たる祝日のみ、アプリ側の曜日判定と食い違う。
+  // このときだけ運行日フラグを落として絞り込み済みの結果を渡す。
+  var dow = new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.d)).getUTCDay();
+  var isHolidayOnWeekday = dayType === 'weekendHoliday' && dow !== 0 && dow !== 6;
+
   var schedules = current.schedules
     .filter(function(en) {
       if (season === 'vacation' && en.academicOnly) return false;
       if (season === 'academic' && en.vacationOnly) return false;
+      if (dayType === 'weekendHoliday' && en.weekdayOnly) return false;
+      if (dayType === 'weekday' && en.weekendOnly) return false;
       return true;
     })
-    .map(stripSeasonFlags);
+    .map(stripSeasonFlags)
+    .map(isHolidayOnWeekday ? stripDayFlags : identity);
 
   return {
     updatedAt: result.updatedAt,
@@ -252,6 +265,28 @@ function stripSeasonFlags(entry) {
     out[k] = entry[k];
   }
   return out;
+}
+
+/**
+ * 運行日フラグを落とす（平日に当たる祝日でのみ使う）。
+ *
+ * 旧アプリは祝日を平日として扱うため、weekendOnly が付いた便を捨ててしまう。
+ * サーバ側で絞り込み済みの結果を「毎日運行」として渡すことで、
+ * アプリ側の曜日判定に関係なく正しい便が表示される。
+ */
+function stripDayFlags(entry) {
+  var out = {};
+  for (var k in entry) {
+    if (k === 'weekdayOnly' || k === 'weekendOnly') continue;
+    out[k] = entry[k];
+  }
+  out.weekdayOnly = false;
+  out.weekendOnly = false;
+  return out;
+}
+
+function identity(x) {
+  return x;
 }
 
 function buildResponse(jsonString) {
@@ -358,6 +393,111 @@ function seasonForYmd(ymd) {
 /** 年末年始（12/31 〜 1/3）は全便運休 */
 function isSuspendedYmd(ymd) {
   return (ymd.m === 12 && ymd.d === 31) || (ymd.m === 1 && ymd.d <= 3);
+}
+
+/**
+ * 「祝日だが平日ダイヤで運行する」日（時刻表 PDF 注記より）
+ *
+ * > 以下の日付は、祝日ですが、平日ダイヤでの運行となりますので、ご留意ください。
+ * > 【対象日】 4/29・7/20・10/12・11/3・11/23
+ *
+ * これらは祝日でも weekday として扱う。7/20（海の日）と 10/12（スポーツの日）は
+ * ハッピーマンデーで日付が動くが、PDF が固定日で列挙しているためそれに従う。
+ */
+function isWeekdayScheduleHoliday(ymd) {
+  var md = ymd.m * 100 + ymd.d;
+  return md === 429 || md === 720 || md === 1012 || md === 1103 || md === 1123;
+}
+
+/**
+ * 日本の祝日か（振替休日・国民の休日を含む）。
+ *
+ * 外部 API に依存すると GAS の実行時間とクォータを消費し、障害時に
+ * 時刻表全体が返せなくなるため、計算で求める。
+ * 春分・秋分は天文学的な近似式を使う（2150年まで有効）。
+ */
+function isJapaneseHoliday(ymd) {
+  return holidayNameOf(ymd.y, ymd.m, ymd.d) !== null;
+}
+
+/** 祝日名を返す（祝日でなければ null）。テストで判定根拠を確認できるようにしている。 */
+function holidayNameOf(y, m, d) {
+  var name = fixedOrHappyMondayHoliday(y, m, d);
+  if (name) return name;
+
+  // 振替休日: 直前の日曜が祝日で、そこから連続して祝日が続く場合
+  // （例: 日曜が祝日 → 月曜が振替休日）
+  var dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  if (dow !== 0) {
+    var prev = new Date(Date.UTC(y, m - 1, d));
+    while (true) {
+      prev.setUTCDate(prev.getUTCDate() - 1);
+      var pm = prev.getUTCMonth() + 1, pd = prev.getUTCDate();
+      if (!fixedOrHappyMondayHoliday(prev.getUTCFullYear(), pm, pd)) break;
+      if (prev.getUTCDay() === 0) return '振替休日';
+    }
+  }
+
+  // 国民の休日: 前日と翌日がともに祝日で、自身は祝日でない平日
+  // （例: 9/21 敬老の日・9/23 秋分の日 に挟まれた 9/22）
+  if (dow !== 0 && dow !== 6) {
+    var before = new Date(Date.UTC(y, m - 1, d - 1));
+    var after = new Date(Date.UTC(y, m - 1, d + 1));
+    if (fixedOrHappyMondayHoliday(before.getUTCFullYear(), before.getUTCMonth() + 1, before.getUTCDate()) &&
+        fixedOrHappyMondayHoliday(after.getUTCFullYear(), after.getUTCMonth() + 1, after.getUTCDate())) {
+      return '国民の休日';
+    }
+  }
+
+  return null;
+}
+
+/** 固定日・ハッピーマンデー・春分秋分の祝日（振替休日と国民の休日は含まない） */
+function fixedOrHappyMondayHoliday(y, m, d) {
+  var dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=日 1=月
+  var nth = Math.floor((d - 1) / 7) + 1;                 // 第n週
+
+  if (m === 1 && d === 1) return '元日';
+  if (m === 1 && dow === 1 && nth === 2) return '成人の日';
+  if (m === 2 && d === 11) return '建国記念の日';
+  if (m === 2 && d === 23) return '天皇誕生日';
+  if (m === 3 && d === vernalEquinoxDay(y)) return '春分の日';
+  if (m === 4 && d === 29) return '昭和の日';
+  if (m === 5 && d === 3) return '憲法記念日';
+  if (m === 5 && d === 4) return 'みどりの日';
+  if (m === 5 && d === 5) return 'こどもの日';
+  if (m === 7 && dow === 1 && nth === 3) return '海の日';
+  if (m === 8 && d === 11) return '山の日';
+  if (m === 9 && dow === 1 && nth === 3) return '敬老の日';
+  if (m === 9 && d === autumnalEquinoxDay(y)) return '秋分の日';
+  if (m === 10 && dow === 1 && nth === 2) return 'スポーツの日';
+  if (m === 11 && d === 3) return '文化の日';
+  if (m === 11 && d === 23) return '勤労感謝の日';
+  return null;
+}
+
+/** 春分の日（1900〜2150年で有効な近似式） */
+function vernalEquinoxDay(y) {
+  return Math.floor(20.8431 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+}
+
+/** 秋分の日（1900〜2150年で有効な近似式） */
+function autumnalEquinoxDay(y) {
+  return Math.floor(23.2488 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+}
+
+/**
+ * その日の運行日区分を返す（'weekday' | 'weekendHoliday'）。
+ *
+ * 土日、および祝日は土日祝ダイヤ。ただし PDF が「平日ダイヤで運行」と明記する
+ * 5日（4/29・7/20・10/12・11/3・11/23）は祝日でも平日ダイヤ。
+ */
+function dayTypeForYmd(ymd) {
+  var dow = new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.d)).getUTCDay();
+  if (dow === 0 || dow === 6) return 'weekendHoliday';
+  if (isWeekdayScheduleHoliday(ymd)) return 'weekday';
+  if (isJapaneseHoliday(ymd)) return 'weekendHoliday';
+  return 'weekday';
 }
 
 // ---- ハードコード時刻表 ----
