@@ -9,8 +9,11 @@
 | 項目 | 内容 |
 |------|------|
 | アプリ名 | Kagi-Bus |
-| バージョン | 0.1.0+2 |
+| バージョン | `flutter_app/pubspec.yaml` を参照（ここには書かない） |
 | ターゲットプラットフォーム | iOS（主）、Android（主）、Web（副） |
+
+> バージョンをこの表に書くと更新漏れで嘘になる（実際 `0.1.0+2` のまま放置されていた）。
+> 唯一の情報源は `pubspec.yaml`。リリース履歴は [`README.md`](../README.md) を参照。
 
 ---
 
@@ -72,33 +75,64 @@ GAS は Apps Script への手動デプロイ、アプリはストア審査を挟
   `SeasonType.fromDate` / `ServiceCalendar.isSuspended` / `DayType.fromDate` と
   **同一でなければならない**。`scripts/check_gas_season.js` が境界値と
   バージョンごとの出し分けを検証し、CI で実行される
-- **処理内容**:
-  1. `https://www.chitose.ac.jp/info/access` のHTMLをスクレイピング
-  2. ファイル名に `%E6%99%82%E5%88%BB%E8%A1%A8`（「時刻表」）を含むPDFを抽出
-  3. Google Drive APIでPDF→Google Doc変換し、テキストを取得（変換後のDocは即削除）
-  4. テキストをパースして時刻・方面・到着時刻を構造化
-  5. CacheService に6時間キャッシュして返却
+- **処理内容**: 時刻表は `gas/Code.gs` にハードコードされており、`doGet` は
+  **外部 I/O なし**で応答を組み立てる。キャッシュも持たない
 
-- **レスポンス形式**:
+この設計には理由がある。
+
+- **外部 I/O が無い** … 応答が速く、大学サイトや Drive の障害に引きずられない
+- **キャッシュが無い** … 再デプロイすれば即座に反映される。かつて `CacheService` に
+  6時間キャッシュしていたが、コードを更新しても旧データが配信され続ける事故が
+  起きたため廃止した（#153）
+
+時刻表データは千歳市および大学が公開する美々空港線の時刻表をもとに**手動で更新**する。
+かつては大学サイトから PDF を自動取得・解析していたが現在は使っておらず、
+該当コードは `gas/Code.gs` にブロックコメントとして残置されている。
+
+> 自動取得の再開は #146（増便情報の取得）で検討中。ただし時刻表本体の
+> 自動反映は誤りが本番に直行するため、PR を作成して人がレビューする方式を想定している。
+
+- **レスポンス形式**（`?v=3` の例）:
 ```json
 {
-  "updatedAt": "2025-03-08",
+  "updatedAt": "2026-08-08",
   "current": {
-    "validFrom": "2025-03-01",
-    "validTo": "2025-03-31",
-    "pdfUrl": "https://www.chitose.ac.jp/uploads/files/...",
+    "validFrom": "2025-04-01",
+    "validTo": "2099-12-31",
     "schedules": [
       {
-        "time": "08:10",
+        "time": "07:20",
         "direction": "from_chitose",
         "destination": "科技大",
-        "arrivals": { "kenkyuto": "08:35", "honbuto": "08:40" }
+        "routeLabel": "空港経由",
+        "platformNumber": "5番",
+        "weekdayOnly": false,
+        "weekendOnly": false,
+        "academicOnly": false,
+        "vacationOnly": false,
+        "arrivals": {
+          "minamiChitose": "07:31",
+          "kenkyuto": "07:44",
+          "honbuto": "07:45"
+        }
       }
     ]
   },
-  "upcoming": { ... }  // 翌週以降のダイヤが公開済みの場合のみ
+  "upcoming": null
 }
 ```
+
+| フィールド | 内容 |
+|-----------|------|
+| `updatedAt` | 応答を生成した日付（JST）。期別・運行日の判定にも使う |
+| `validFrom` / `validTo` | 時刻表の有効期間。現在は `2025-04-01` 〜 `2099-12-31` 固定 |
+| `routeLabel` | `空港経由` / `直通` / `長都発` / `長都行き`。アプリでタグ表示する |
+| `platformNumber` | 千歳駅ののりば（`5番` / `3番`）。乗車地が千歳駅のときのみ表示 |
+| `arrivals` | 経由地の到着時刻。キーは `chitose` / `minamiChitose` / `kenkyuto` / `honbuto` |
+| `upcoming` | 翌週以降のダイヤ。現在は常に `null` |
+
+`pdfUrl` は返していない（スクレイピング廃止に伴い廃止）。アプリ側の
+`BusTimetable.pdfUrl` は空文字のままで、時刻表原文ボタンは表示されない。
 
 - **方面 `direction` の値**:
 
@@ -110,7 +144,13 @@ GAS は Apps Script への手動デプロイ、アプリはストア審査を挟
 | `from_kenkyuto_to_station` | 研究棟 → 千歳駅 |
 | `from_honbuto` | 本部棟 → 千歳駅 |
 
-- **有効期間の取得**: PDFファイル名の `_MMDD-MMDD.pdf` パターンから年内日付として解釈
+- **お問い合わせの受信（`doPost`）**: お問い合わせ画面から送信された内容を
+  スプレッドシートに追記し、メールで通知する。宛先などはスクリプトプロパティ
+  （`BUG_REPORT_SHEET_ID` / `BUG_REPORT_NOTIFY_EMAIL` / `BUG_REPORT_FROM_EMAIL`）で設定し、
+  未設定の項目は黙ってスキップする。**現在この経路に認証は無い**
+
+- **デプロイ**: `gas/Code.gs` は CI のデプロイ対象外。マージしても本番には反映されない。
+  手順は [`README.md`](../README.md#更新時の再デプロイ) を参照
 
 ---
 
@@ -130,7 +170,8 @@ GAS は Apps Script への手動デプロイ、アプリはストア審査を挟
 | 本部棟 | `from_honbuto` の次バス・本日の時刻表 |
 
 AppBar のアクション：
-- **時刻表原文ボタン**（`open_in_browser`）: `pdfUrl` が存在する場合のみ表示。ブラウザでPDFを開く
+- **時刻表原文ボタン**（`open_in_browser`）: `pdfUrl` が存在する場合のみ表示。ブラウザでPDFを開く。
+  **現在 GAS は `pdfUrl` を返さないため表示されない**（スクレイピング廃止に伴う。実装は残置）
 - **来週のダイヤボタン**（`calendar_month`）: `upcoming` が存在する場合のみ表示。モーダルボトムシートで全方面の来週ダイヤを表示
 - **通知設定ボタン**（`notifications_outlined`）: 通知設定画面へ遷移
 - **更新ボタン**（`refresh`）: スケジュールを手動再取得
@@ -140,8 +181,14 @@ AppBar のアクション：
 
 - 出発通知の ON/OFF スイッチ（ON 時に iOS パーミッションダイアログを表示）
 - 通知タイミング選択: 5 / 10 / 15 / 30 分前
-- 通知する路線選択: 5方面から1つ選択
-- 設定は `SharedPreferences` に永続化（キー: `notif_enabled`, `notif_minutes_before`, `notif_direction`）
+- 設定は `SharedPreferences` に永続化
+  （キー: `notif_enabled`, `notif_minutes_before`, `notif_scheduled_bus_keys`）
+
+通知する便は**時刻表の各行のベルアイコン**で個別に選ぶ。選択した便は
+`scheduledBusKeys` に保持される。
+
+> かつては「通知する路線を5方面から1つ選ぶ」方式だったが、便ごとの個別選択に
+> 置き換わっている。路線選択 UI は削除済み。
 
 ---
 
@@ -183,13 +230,20 @@ AppBar のアクション：
 いずれも未指定（false）なら両方で運行する。`BusEntry.runsOn(DayType, SeasonType)`
 が両軸を AND で評価する。
 
-#### `DayType`（運行日）
+#### `DayType`（運行日 / Issue #158）
 
-土日は `weekendHoliday`、それ以外は `weekday`。
+土日と祝日は `weekendHoliday`、それ以外は `weekday`。
 
-> **未対応**: 祝日判定は未実装のため、平日に当たる祝日は `weekday` として扱われる。
-> なお 4/29・7/20・10/12・11/3・11/23 は「祝日だが平日ダイヤ」と時刻表に明記
-> されているため、これらの日は結果的に正しく動作する。
+祝日は `JapaneseHoliday`（`bus_schedule.dart`）が**計算で判定**する。外部 API に
+依存すると通信失敗時に時刻表全体が返せなくなるため、固定日・ハッピーマンデー・
+春分秋分の近似式・振替休日・国民の休日をコードで求めている（2150年まで有効）。
+
+ただし時刻表に「**祝日だが平日ダイヤで運行**」と明記された次の5日は `weekday` として扱う。
+
+> 【対象日】 4/29・7/20・10/12・11/3・11/23
+
+7/20（海の日）と 10/12（スポーツの日）はハッピーマンデーで日付が動くが、
+時刻表が固定日で列挙しているためそれに従っている。
 
 #### `SeasonType`（期別 / Issue #132）
 
@@ -234,7 +288,8 @@ AppBar のアクション：
 
 `flutter_local_notifications` を使用。
 
-- **スケジュール登録**: スケジュールデータ取得後、設定された方面の次の3便分をスケジュール登録
+- **スケジュール登録**: 時刻表の取得後、`scheduledBusKeys` に入っている便のうち
+  当日これから発車するものを登録する（ベルアイコンで選んだ便のみ）
 - **通知チャンネル** (Android): `bus_departure` /「バス出発通知」
 - **通知内容**: タイトル「バスが出発します」、本文「N分後に〇〇行きバスが出発します」
 - **タイムゾーン**: `Asia/Tokyo` 固定
