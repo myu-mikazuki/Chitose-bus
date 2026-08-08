@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-08-05
+最終更新: 2026-08-06
 
 ---
 
@@ -10,12 +10,16 @@
 
 | 順 | Issue | 内容 | 状態 |
 |----|-------|------|------|
-| 1 | [#158](https://github.com/myu-mikazuki/Chitose-bus/issues/158) | 祝日ダイヤの判定 | PR #173 |
-| 2 | [#165](https://github.com/myu-mikazuki/Chitose-bus/issues/165) | Google Play へのアップロードを自動化 | 次 |
-| 3 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
-| 4 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 5 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
-| 6 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| — | [#158](https://github.com/myu-mikazuki/Chitose-bus/issues/158) | 祝日ダイヤの判定 | ✅ 完了・デプロイ済み |
+| — | [#165](https://github.com/myu-mikazuki/Chitose-bus/issues/165) | Google Play へのアップロードを自動化 | ✅ 完了（次回リリースで初回検証） |
+| 1 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
+| 2 | [#177](https://github.com/myu-mikazuki/Chitose-bus/issues/177) | 任意のバス停の追加・編集 | |
+| 3 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
+| 4 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
+| 5 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+
+#146 と #177 はどちらもスキーマ変更（`?v=` を上げる）を伴う可能性がある。
+先に着手した方の設計に合わせる形になるため、順序を入れ替える場合は影響を確認する。
 
 ### 後回しにしたもの
 
@@ -44,8 +48,9 @@
 
 | Issue | 内容 |
 |-------|------|
-| #159 | 南千歳駅を経由しない4便から南千歳着を削除 |
+| #158 | 祝日ダイヤの判定（`v=2` でもサーバ側で絞り、リリース済みアプリにも反映） |
 | #156 | GAS プロジェクトのアカウント移行 |
+| #159 | 南千歳着の削除 → **誤りだったため PR #176 で差し戻し済み** |
 
 ---
 
