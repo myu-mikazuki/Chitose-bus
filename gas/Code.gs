@@ -24,8 +24,13 @@
  *   v=2 ……………………… 期別は分かるが祝日を知らないアプリ向け（v1.2.0）。
  *                        全便 + 期別フラグを返すが、祝日の日だけ運行日で絞る。
  *   v=3 ……………………… 期別・祝日ともに判定できるアプリ向け。全便 + 期別フラグ。
+ *   v=4 ……………………… 任意の停留所を扱えるアプリ向け（#177）。応答の構造が変わり、
+ *                        1便を1件として停留所と時刻の並びを返す。?stops= で絞れる。
  *
  * これによりデプロイ順を気にせず GAS を更新できる。
+ *
+ * ★ ?stops= は単なる絞り込みで、形式の分岐には使わない。「stops があれば新形式」に
+ *   すると、アプリが stops を送らなかったとき（選択が空・不具合）に旧形式が返って壊れる。
  *
  * ★ v はレスポンスの「形式」ではなく、アプリが持つ判定ロジックの世代を表す。
  *   祝日判定（#158）のようにアプリ側の規則を後から足すと、既存の v はその規則を
@@ -188,6 +193,13 @@ function testPdfText() {
 function doGet(e) {
   try {
     var v = requestedSchemaVersion(e);
+
+    // v>=4 は停留所を選べる新形式。旧バージョンとは応答の構造が違うので
+    // 先に分岐する（?stops= の有無では分岐しない — 下の buildStopsResponse 参照）
+    if (v >= 4) {
+      return buildResponse(JSON.stringify(buildStopsResponse(requestedStops(e))));
+    }
+
     var result = getHardcodedTimetable();
     if (v < 2) {
       result = toLegacyResponse(result);
@@ -207,6 +219,29 @@ function requestedSchemaVersion(e) {
   if (!e || !e.parameter || !e.parameter.v) return 1;
   var v = parseInt(e.parameter.v, 10);
   return isNaN(v) ? 1 : v;
+}
+
+/**
+ * リクエストの ?stops= を読む。カンマ区切りの停留所 ID。
+ *
+ * 未指定なら null を返し、呼び出し側は全停留所を返す。
+ * 知らない ID は黙って捨てる。アプリが新しい停留所を知らないまま古い選択を
+ * 送ってくる場合があり、エラーにすると時刻表が全く出せなくなるため。
+ */
+function requestedStops(e) {
+  if (!e || !e.parameter || !e.parameter.stops) return null;
+  var raw = String(e.parameter.stops).split(',');
+  var known = {};
+  STOPS.forEach(function(s) { known[s.id] = true; });
+
+  var wanted = {};
+  var count = 0;
+  raw.forEach(function(id) {
+    id = id.trim();
+    if (id && known[id] && !wanted[id]) { wanted[id] = true; count++; }
+  });
+  // 全部が未知だった場合も全停留所として扱う（空の時刻表を返さない）
+  return count === 0 ? null : wanted;
 }
 
 /**
@@ -821,6 +856,68 @@ function getHardcodedTimetable() {
       validFrom: '2025-04-01',
       validTo: '2099-12-31',
       schedules: toLegacySchedules()
+    },
+    upcoming: null
+  };
+}
+
+/**
+ * v>=4 の応答を組み立てる。
+ *
+ * 旧形式は1便を乗車地ごとに展開するため、停留所 n 個で n(n-1)/2 組の到着時刻を
+ * 持つことになり、全30停留所では約1MB に膨れる。そこで新形式では
+ * **1便を1件**とし、停留所と時刻の並びをそのまま渡す（O(n)、全停留所で約60KB）。
+ * どの停留所から乗るかはアプリが配列を切って決める。
+ *
+ * wanted が null なら全停留所。指定があってもその便が通らない停留所は出さない。
+ *
+ * stopMaster は wanted に関係なく**常に全停留所**を返す。設定画面の選択肢が
+ * ここから来るため、絞ると選べる停留所が増えなくなる。
+ */
+function buildStopsResponse(wanted) {
+  var today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+  var trips = [];
+
+  ROUTES.forEach(function(route) {
+    route.trips.forEach(function(tr) {
+      var flag = tr[0], season = tr[1], times = tr[2];
+
+      var stops = [];
+      route.stops.forEach(function(id, i) {
+        if (wanted && !wanted[id]) return;
+        var stop = { id: id, time: times[i] };
+        var platform = route.platform && route.platform[id];
+        if (platform) stop.platform = platform;
+        stops.push(stop);
+      });
+      // 選んだ停留所を1つも通らない便は返さない
+      if (stops.length === 0) return;
+
+      trips.push({
+        destination: route.destination,
+        routeLabel: route.routeLabel,
+        weekdayOnly: flag === 'D',
+        weekendOnly: flag === 'E',
+        academicOnly: season === 'A',
+        vacationOnly: season === 'V',
+        stops: stops
+      });
+    });
+  });
+
+  return {
+    updatedAt: today,
+    stopMaster: STOPS.map(function(s) {
+      var out = { id: s.id, label: s.label };
+      // 乗車できない停留所（ラピダス前）は選択肢から外すための印。
+      // stopMaster から省くことはできない — ラベルの供給元がここしかないため
+      if (s.boardable === false) out.boardable = false;
+      return out;
+    }),
+    current: {
+      validFrom: '2025-04-01',
+      validTo: '2099-12-31',
+      trips: trips
     },
     upcoming: null
   };

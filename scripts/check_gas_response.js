@@ -42,13 +42,27 @@ const DATES = [
   ['2026-01-02', '年末年始・全便運休'],
 ];
 
-// v=1 は「?v= 無し」と同じ経路。v=4 以降は #177 で追加する新形式なのでここでは見ない
+// v=1 は「?v= 無し」と同じ経路
 const VERSIONS = [1, 2, 3];
 
-function respond(version, date) {
+/**
+ * v=4（停留所を選べる新形式）は日付で内容が変わらない（絞り込みをアプリに任せ、
+ * updatedAt しか日付に依存しない）ので、1日付だけを見る。
+ * 代わりに ?stops= の指定パターンを網羅する。
+ */
+const V4_CASES = [
+  ['all', null, '全停留所（stops 無し）'],
+  ['default', 'chitose,minamiChitose,kenkyuto,honbuto', 'アプリの初期状態と同じ4停留所'],
+  ['single', 'morimoto', '1停留所だけ'],
+  ['unknown', 'chitose,does-not-exist', '知らない ID が混ざる'],
+];
+const V4_DATE = '2026-06-17';
+
+function respond(version, date, stops) {
   TODAY.value = date;
-  const e = { parameter: { v: String(version) } };
-  return doGet(e).getContent();
+  const param = { v: String(version) };
+  if (stops) param.stops = stops;
+  return doGet({ parameter: param }).getContent();
 }
 
 function fixturePath(version, date) {
@@ -73,6 +87,16 @@ function checkRouteData() {
   for (const s of STOPS) {
     if (ids.has(s.id)) { console.log(`  FAIL 停留所 ID の重複: ${s.id}`); failures++; }
     ids.add(s.id);
+    if ('boardable' in s && s.boardable !== false) {
+      // true は既定なので書かない。書いてあるのは false だけのはず
+      console.log(`  FAIL ${s.id}: boardable は false のときだけ書く（実際: ${s.boardable}）`);
+      failures++;
+    }
+    // 乗車できない停留所が旧形式の乗車地に混ざると、旧アプリが選べない停留所を出す
+    if (s.boardable === false && LEGACY_STOPS.indexOf(s.id) >= 0) {
+      console.log(`  FAIL ${s.id}: 乗車不可なのに LEGACY_STOPS に含まれている`);
+      failures++;
+    }
   }
 
   const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
@@ -114,49 +138,65 @@ console.log('便テーブルの整合性');
 checkRouteData();
 console.log('\n応答のスナップショット');
 
-for (const version of VERSIONS) {
-  for (const [date, label] of DATES) {
-    const actual = respond(version, date);
-    const file = fixturePath(version, date);
+/** 便の配列を取り出す。旧形式は current.schedules、v>=4 は current.trips */
+function entriesOf(res) {
+  return res.current.schedules || res.current.trips || [];
+}
 
-    if (update) {
-      // 読みやすさのため整形して保存する（比較は再整形した文字列同士で行う）
-      fs.writeFileSync(file, JSON.stringify(JSON.parse(actual), null, 1) + '\n');
-      console.log(`  saved v=${version} ${date} (${label})`);
-      continue;
-    }
+function compareOrSave(file, actual, name) {
+  if (update) {
+    // 読みやすさのため整形して保存する（比較は再整形した文字列同士で行う）
+    fs.writeFileSync(file, JSON.stringify(JSON.parse(actual), null, 1) + '\n');
+    console.log(`  saved ${name}`);
+    return;
+  }
 
-    if (!fs.existsSync(file)) {
-      console.log(`  FAIL v=${version} ${date} — スナップショットが無い: ${path.relative(process.cwd(), file)}`);
-      failures++;
-      continue;
-    }
+  if (!fs.existsSync(file)) {
+    console.log(`  FAIL ${name} — スナップショットが無い: ${path.relative(process.cwd(), file)}`);
+    failures++;
+    return;
+  }
 
-    checked++;
-    const expected = fs.readFileSync(file, 'utf8');
-    const normalized = JSON.stringify(JSON.parse(actual), null, 1) + '\n';
-    if (normalized === expected) {
-      console.log(`  ok   v=${version} ${date} (${label})`);
-    } else {
-      failures++;
-      const a = JSON.parse(actual);
-      const b = JSON.parse(expected);
-      const an = a.current.schedules.length;
-      const bn = b.current.schedules.length;
-      console.log(`  FAIL v=${version} ${date} (${label}) — 便数 期待=${bn} 実際=${an}`);
-      // 最初の差分だけ出す。全部出すと読めない
-      const max = Math.max(an, bn);
-      for (let i = 0; i < max; i++) {
-        const x = JSON.stringify(a.current.schedules[i]);
-        const y = JSON.stringify(b.current.schedules[i]);
-        if (x !== y) {
-          console.log(`         [${i}] 期待: ${y}`);
-          console.log(`         [${i}] 実際: ${x}`);
-          break;
-        }
-      }
+  checked++;
+  const expected = fs.readFileSync(file, 'utf8');
+  const normalized = JSON.stringify(JSON.parse(actual), null, 1) + '\n';
+  if (normalized === expected) {
+    console.log(`  ok   ${name}`);
+    return;
+  }
+
+  failures++;
+  const a = entriesOf(JSON.parse(actual));
+  const b = entriesOf(JSON.parse(expected));
+  console.log(`  FAIL ${name} — 便数 期待=${b.length} 実際=${a.length}`);
+  // 最初の差分だけ出す。全部出すと読めない
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = JSON.stringify(a[i]);
+    const y = JSON.stringify(b[i]);
+    if (x !== y) {
+      console.log(`         [${i}] 期待: ${y}`);
+      console.log(`         [${i}] 実際: ${x}`);
+      break;
     }
   }
+}
+
+for (const version of VERSIONS) {
+  for (const [date, label] of DATES) {
+    compareOrSave(
+      fixturePath(version, date),
+      respond(version, date),
+      `v=${version} ${date} (${label})`
+    );
+  }
+}
+
+for (const [name, stops, label] of V4_CASES) {
+  compareOrSave(
+    path.join(FIXTURE_DIR, `doget-v4-${name}.json`),
+    respond(4, V4_DATE, stops),
+    `v=4 ${name} (${label})`
+  );
 }
 
 if (update) {
