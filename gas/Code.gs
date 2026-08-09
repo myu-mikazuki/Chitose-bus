@@ -548,14 +548,13 @@ function dayTypeForYmd(ymd) {
 // ---- ハードコード時刻表 ----
 
 /**
- * 全便（授業期・学休期の両方）を含む時刻表を返す。
- * 期別・運行日の絞り込みはアプリ側で行うため、ここでは日付による選別をしない。
- */
-/**
  * 停留所の一覧（路線上のおおよその並び順）。
  *
- * 名称は大学配付物「美々空港線」に準拠する。千歳市の PDF は空17・空18 の
- * 表が画像で読み取れず、誤読の原因になったため一次情報にしない（Issue #159）。
+ * 名称は大学配付物「美々空港線」に準拠する。
+ *
+ * 千歳市の PDF を一次情報にしないこと。空17・空18 の表が画像で、
+ * pdftotext で読めず目視に頼ることになる。実際に #159 で誤読した
+ * （詳細は系統1復路のコメント）。
  */
 var STOPS = [
   { id: 'osatsu', label: '長都駅東口' },
@@ -597,10 +596,23 @@ var STOPS = [
  * stops は「その便が通る停留所」の並びで、times は同じ並びの時刻。
  * 運行日: B=毎日 / D=平日のみ / E=土日祝のみ
  * 期別:   ''=授業期・学休期共通 / A=授業期のみ / V=学休期のみ
+ *
+ * direction は旧形式へ展開する際の乗車地の選び方を決める（LEGACY_BOARDING）。
+ * destination は表示用の文字列なので、分岐の条件には使わないこと。
+ *
+ * データは大学配付物 PDF（授業期・学休期修正版）から機械抽出し、
+ * 抽出前の4停留所分と突き合わせて全60便の一致を確認している（#177）。
  */
 var ROUTES = [
-  // 系統1 往路（千歳駅5番乗り場 → 空港経由 → 科技大）
+  /*
+   * 系統1 往路（千歳駅5番乗り場 → 空港経由 → 科技大）
+   *
+   * 授業期・学休期で時刻・運行日ともに同一のため、期別フラグは立てない。
+   * 両 PDF の共通停留所91時刻が一致することを確認済み（#177）。
+   * （学休期は 13:20 便が平日／土日祝の2行に分かれるが、合わせて毎日運行で等価）
+   */
   {
+    direction: 'outbound',
     routeLabel: '空港経由', destination: '科技大',
     platform: { chitose: '5番' },
     stops: ['chitose', 'morimoto', 'koizumi', 'shiyakusho', 'asahicho4', 'asahicho7', 'minamiChitose', 'airCargo', 'domestic28', 'domestic1', 'international85', 'kenkyuto', 'honbuto', 'rapidus'],
@@ -614,8 +626,22 @@ var ROUTES = [
       ['B', '', ['13:20', '13:23', '13:24', '13:25', '13:26', '13:27', '13:31', '13:32', '13:33', '13:34', '13:37', '13:44', '13:45', '13:48']],
     ],
   },
-  // 系統1 復路（科技大 → 空港経由 → 千歳駅）
+  /*
+   * 系統1 復路（科技大 → 空港経由 → 千歳駅）
+   *
+   * 全10便が南千歳駅を経由する。大学配付物「美々空港線 学休期ダイヤ（修正版）」
+   * 02 科技大 ▶ 空港経由 ▶ 千歳駅行き で確認済み。
+   *
+   * 【消さないこと】千歳市の PDF はこの南千歳駅のセルが黒塗りに見えるが、
+   * これは「通過」を意味しない。実際に通過と誤読して該当の到着時刻を削除し、
+   * 本番に出してしまった（#159／PR #176 で差し戻し済み）。
+   * 大学版では 11:51 / 12:57 / 13:50 / 14:47 / 15:39 / 17:02 / 18:07 / 19:17 /
+   * 19:57 / 21:37 と切れ目なく並んでおり、こちらを正とする。
+   *
+   * 期別フラグは立てない。両 PDF の共通停留所140時刻が一致することを確認済み（#177）。
+   */
   {
+    direction: 'inbound',
     routeLabel: '空港経由', destination: '千歳駅',
     stops: ['rapidus', 'honbuto', 'kenkyuto', 'domestic28', 'domestic1', 'international85', 'airCargo', 'minamiChitose', 'asahicho7', 'asahicho4', 'shiyakusho', 'koizumi', 'morimoto', 'chitose'],
     trips: [
@@ -631,8 +657,15 @@ var ROUTES = [
       ['D', '', ['21:20', '21:22', '21:25', '21:32', '21:33', '21:34', '21:36', '21:37', '21:40', '21:41', '21:42', '21:43', '21:44', '21:48']],
     ],
   },
-  // 系統2 往路（千歳駅3番乗り場 → 直通 → 科技大）授業期
+  /*
+   * 系統2 往路（千歳駅3番乗り場 → 直通 → 科技大）授業期
+   *
+   * 全便が平日のみ運行（土日祝の運行なし）。
+   * 授業期（19便）と学休期（6便）で時刻が全く異なるため、別の便として登録し
+   * academicOnly / vacationOnly で出し分ける。
+   */
   {
+    direction: 'outbound',
     routeLabel: '直通', destination: '科技大',
     platform: { chitose: '3番' },
     stops: ['chitose', 'morimoto', 'koizumi', 'shiyakusho', 'asahicho4', 'asahicho7', 'arcadia', 'kenkyuto', 'honbuto', 'rapidus'],
@@ -658,8 +691,14 @@ var ROUTES = [
       ['D', 'A', ['17:51', '17:54', '17:55', '17:56', '17:57', '17:58', '18:02', '18:09', '18:12', '18:15']],
     ],
   },
-  // 系統2 往路（千歳駅3番乗り場 → 直通 → 科技大）学休期
+  /*
+   * 系統2 往路（千歳駅3番乗り場 → 直通 → 科技大）学休期
+   *
+   * 学休期 PDF は「※『ラピダス前』のダイヤは省略しています」と明記しており、
+   * 往路のラピダス前の時刻が載っていない。推測で補わず、持たせていない。
+   */
   {
+    direction: 'outbound',
     routeLabel: '直通', destination: '科技大',
     platform: { chitose: '3番' },
     stops: ['chitose', 'morimoto', 'koizumi', 'shiyakusho', 'asahicho4', 'asahicho7', 'arcadia', 'kenkyuto', 'honbuto'],
@@ -672,8 +711,13 @@ var ROUTES = [
       ['D', 'V', ['18:00', '18:03', '18:04', '18:05', '18:06', '18:07', '18:11', '18:18', '18:21']],
     ],
   },
-  // 系統2 復路（科技大 → 直通 → 千歳駅）授業期
+  /*
+   * 系統2 復路（科技大 → 直通 → 千歳駅）授業期
+   *
+   * 全便が平日のみ運行。直通のため南千歳駅は経由しない。
+   */
   {
+    direction: 'inbound',
     routeLabel: '直通', destination: '千歳駅',
     stops: ['rapidus', 'honbuto', 'kenkyuto', 'arcadia', 'asahicho7', 'asahicho4', 'shiyakusho', 'koizumi', 'morimoto', 'chitose'],
     trips: [
@@ -688,8 +732,11 @@ var ROUTES = [
       ['D', 'A', ['18:25', '18:27', '18:30', '18:37', '18:41', '18:42', '18:43', '18:44', '18:45', '18:49']],
     ],
   },
-  // 系統2 復路（科技大 → 直通 → 千歳駅）学休期
+  /*
+   * 系統2 復路（科技大 → 直通 → 千歳駅）学休期
+   */
   {
+    direction: 'inbound',
     routeLabel: '直通', destination: '千歳駅',
     stops: ['rapidus', 'honbuto', 'kenkyuto', 'arcadia', 'asahicho7', 'asahicho4', 'shiyakusho', 'koizumi', 'morimoto', 'chitose'],
     trips: [
@@ -699,8 +746,18 @@ var ROUTES = [
       ['D', 'V', ['18:30', '18:32', '18:35', '18:42', '18:46', '18:47', '18:48', '18:49', '18:50', '18:54']],
     ],
   },
-  // 系統3 往路（長都駅東口 → 千歳駅5番 → 空港経由 → 科技大）
+  /*
+   * 系統3 往路（長都駅東口 → 千歳駅5番 → 空港経由 → 科技大）
+   *
+   * バスは長都駅東口発だが、旧形式では千歳駅前（5番）を乗車起点として扱う。
+   * platform を千歳駅に付けているのはそのため。
+   *
+   * 期別フラグは立てない。両 PDF の共通停留所45時刻が一致することを確認済み（#177）。
+   * 学休期 PDF は途中の停留所を15個しか載せていないが、両端と途中の時刻が
+   * 完全に一致するため表記の省略であり、経路の違いではない。
+   */
   {
+    direction: 'outbound',
     routeLabel: '長都発', destination: '科技大',
     platform: { chitose: '5番' },
     stops: ['osatsu', 'arcs', 'isamai7', 'isamaiPark', 'isamaiJhs', 'isamai2', 'alice', 'hokuyoHs', 'hokuyo3', 'hokko6', 'fuji4', 'shinano4', 'yao', 'hoyukai', 'hokuei2', 'aeon', 'chitose', 'morimoto', 'koizumi', 'shiyakusho', 'asahicho4', 'asahicho7', 'minamiChitose', 'airCargo', 'domestic28', 'domestic1', 'international85', 'kenkyuto', 'honbuto', 'rapidus'],
@@ -710,8 +767,18 @@ var ROUTES = [
       ['D', '', ['14:10', '14:11', '14:12', '14:12', '14:13', '14:14', '14:15', '14:16', '14:16', '14:17', '14:18', '14:19', '14:20', '14:21', '14:22', '14:23', '14:29', '14:32', '14:33', '14:34', '14:35', '14:36', '14:40', '14:41', '14:42', '14:43', '14:46', '14:53', '14:54', '15:02']],
     ],
   },
-  // 系統3 復路（科技大 → 空港・千歳駅経由 → 長都駅東口）
+  /*
+   * 系統3 復路（科技大 → 空港・千歳駅経由 → 長都駅東口）
+   *
+   * バスは千歳駅前（4番）通過後に長都駅東口まで続行するが、
+   * destination は旧形式の応答を保つため '千歳駅' のままにしてある。
+   * 分岐には direction を使うこと（destination は表示用）。
+   *
+   * フラグ行なし → 全便が平日・土日祝ともに運行。
+   * 期別フラグは立てない。両 PDF の共通停留所26時刻が一致することを確認済み（#177）。
+   */
   {
+    direction: 'inbound',
     routeLabel: '長都行き', destination: '千歳駅',
     stops: ['rapidus', 'honbuto', 'kenkyuto', 'domestic28', 'domestic1', 'international85', 'airCargo', 'minamiChitose', 'asahicho7', 'asahicho4', 'shiyakusho', 'koizumi', 'morimoto', 'chitose', 'aeon', 'hokuei2', 'hoyukai', 'yao', 'shinano4', 'fuji4', 'hokko6', 'hokuyo3', 'hokuyoHs', 'alice', 'isamai2', 'isamaiJhs', 'isamaiPark', 'isamai7', 'arcs', 'osatsu'],
     trips: [
@@ -727,14 +794,17 @@ var ROUTES = [
  * 停留所を増やしても旧アプリの応答を変えてはいけないため、ここは**明示的に列挙する**。
  * 「後に別の停留所がある停留所すべて」のような規則にすると、復路の南千歳が
  * 乗車地として増えてしまい、現行の応答と食い違う。
+ *
+ * キーは ROUTES の direction（outbound / inbound）。表示用の destination を
+ * キーにすると、行き先の表記を足したときに解決できず doGet ごと落ちる。
  */
 var LEGACY_BOARDING = {
-  '科技大': [
+  outbound: [
     ['chitose', 'from_chitose'],
     ['minamiChitose', 'from_minami_chitose'],
     ['kenkyuto', 'from_kenkyuto_to_honbuto'],
   ],
-  '千歳駅': [
+  inbound: [
     ['honbuto', 'from_honbuto'],
     ['kenkyuto', 'from_kenkyuto_to_station'],
   ],
@@ -766,7 +836,10 @@ function getHardcodedTimetable() {
 function toLegacySchedules() {
   var out = [];
   ROUTES.forEach(function(route) {
-    var boarding = LEGACY_BOARDING[route.destination];
+    var boarding = LEGACY_BOARDING[route.direction];
+    if (!boarding) {
+      throw new Error('LEGACY_BOARDING に無い direction: ' + route.direction);
+    }
     route.trips.forEach(function(tr) {
       var flag = tr[0], season = tr[1], times = tr[2];
       var at = {};

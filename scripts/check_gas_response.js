@@ -80,6 +80,10 @@ function checkRouteData() {
   let times = 0;
 
   for (const route of ROUTES) {
+    if (!LEGACY_BOARDING[route.direction]) {
+      console.log(`  FAIL ${route.routeLabel}: LEGACY_BOARDING に無い direction: ${route.direction}`);
+      failures++;
+    }
     for (const id of route.stops) {
       if (!ids.has(id)) { console.log(`  FAIL STOPS に無い停留所: ${id}`); failures++; }
     }
@@ -102,7 +106,8 @@ function checkRouteData() {
       }
     }
   }
-  console.log(`  ok   便テーブル ${ROUTES.length}系統 / ${trips}便 / ${times}時刻 / 停留所 ${STOPS.length}`);
+  // ROUTES は「系統」ではなく往復・期別に分けた表なので、系統数とは一致しない
+  console.log(`  ok   便テーブル ${ROUTES.length}表 / ${trips}便 / ${times}時刻 / 停留所 ${STOPS.length}`);
 }
 
 console.log('便テーブルの整合性');

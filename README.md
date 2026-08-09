@@ -102,6 +102,26 @@ curl -sL "<GAS_ENDPOINT_URL>" | head -c 200
 
 `doGet` はキャッシュを持たないため、再デプロイすれば次のリクエストから新しい応答になります。
 
+#### 時刻表データを変更したとき
+
+`gas/Code.gs` の `ROUTES` を変更すると、応答のスナップショット検査が落ちます。
+
+```bash
+node scripts/check_gas_response.js
+```
+
+これは**意図した変更かどうかを人に確認させるための仕組み**です。旧アプリは
+ストア更新をしない限り永久に残るため、応答が変わればリリース済みの全バージョンに
+影響します。落ちたら差分を読み、意図どおりであることを確かめてから更新してください。
+
+```bash
+node scripts/check_gas_response.js --update
+git diff scripts/fixtures/   # 変わった便が意図どおりか必ず目視する
+```
+
+> [!WARNING]
+> CI を通すためだけに `--update` を実行しないでください。検査の意味が失われます。
+
 #### GitHub Variables の設定
 
 iOS ビルド時に `--dart-define` でエンドポイント URL を渡すため、リポジトリの Variables に登録します。
