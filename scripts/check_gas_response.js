@@ -61,6 +61,54 @@ if (update && !fs.existsSync(FIXTURE_DIR)) fs.mkdirSync(FIXTURE_DIR, { recursive
 let failures = 0;
 let checked = 0;
 
+/**
+ * 便テーブルの整合性を見る。
+ *
+ * 旧形式のスナップショットは4停留所しか通らないため、残り26停留所は
+ * ここで守るしかない。時刻が停留所順に並んでいなければセルの割り付けが
+ * ずれている（PDF から起こしたときの典型的な事故）。
+ */
+function checkRouteData() {
+  const ids = new Set();
+  for (const s of STOPS) {
+    if (ids.has(s.id)) { console.log(`  FAIL 停留所 ID の重複: ${s.id}`); failures++; }
+    ids.add(s.id);
+  }
+
+  const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+  let trips = 0;
+  let times = 0;
+
+  for (const route of ROUTES) {
+    for (const id of route.stops) {
+      if (!ids.has(id)) { console.log(`  FAIL STOPS に無い停留所: ${id}`); failures++; }
+    }
+    for (const [, , ts] of route.trips) {
+      trips++;
+      if (ts.length !== route.stops.length) {
+        console.log(`  FAIL ${route.routeLabel}: 時刻の数(${ts.length})が停留所数(${route.stops.length})と違う`);
+        failures++;
+        continue;
+      }
+      for (let i = 0; i < ts.length; i++) {
+        times++;
+        if (!/^\d{2}:\d{2}$/.test(ts[i])) {
+          console.log(`  FAIL ${route.routeLabel} ${ts[0]}: 時刻の形式が不正 ${ts[i]}`);
+          failures++;
+        } else if (i > 0 && toMin(ts[i]) < toMin(ts[i - 1])) {
+          console.log(`  FAIL ${route.routeLabel} ${ts[0]}: ${route.stops[i]} の時刻 ${ts[i]} が前の停留所より前`);
+          failures++;
+        }
+      }
+    }
+  }
+  console.log(`  ok   便テーブル ${ROUTES.length}系統 / ${trips}便 / ${times}時刻 / 停留所 ${STOPS.length}`);
+}
+
+console.log('便テーブルの整合性');
+checkRouteData();
+console.log('\n応答のスナップショット');
+
 for (const version of VERSIONS) {
   for (const [date, label] of DATES) {
     const actual = respond(version, date);
