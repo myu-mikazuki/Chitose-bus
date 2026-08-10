@@ -285,6 +285,41 @@ function checkV4Invariants() {
     strip(respond(4, '2026-08-11', null)),
     strip(respond(4, V4_DATE, null))
   );
+
+  // terminus は「一般に降りられる最後の停留所」（#177）。
+  // 便が通る停留所のひとつであること、乗車不可の停留所（ラピダス前）を
+  // 終点にしないことを固定する。boardable: false が将来増えたときに
+  // terminusOf の想定が崩れていないかを見てくれる
+  const bad = [];
+  ROUTES.forEach(function (route) {
+    const t = terminusOf(route.stops);
+    const where = `${route.routeLabel} / ${route.destination}`;
+    if (route.stops.indexOf(t) < 0) {
+      bad.push(`${where}: terminus=${t} が便の停留所に無い`);
+    }
+    if (!isBoardableStop(t)) {
+      bad.push(`${where}: terminus=${t} は乗車不可の停留所`);
+    }
+  });
+  checked++;
+  if (bad.length === 0) {
+    console.log('  ok   v=4 terminus は便が通る乗車可能な停留所');
+  } else {
+    failures++;
+    console.log('  FAIL v=4 terminus が不正');
+    bad.forEach((m) => console.log(`         ${m}`));
+  }
+
+  // terminus は絞り込みの前に決まる。選んだ停留所で変わってはいけない
+  const terminiOf = (stops) => {
+    const o = JSON.parse(respond(4, V4_DATE, stops));
+    return [...new Set(o.current.trips.map((t) => t.terminus))].sort().join(',');
+  };
+  same(
+    'v=4 terminus は ?stops= で変わらない（イオンを足しても同じ）',
+    terminiOf('chitose,minamiChitose,kenkyuto,honbuto'),
+    terminiOf('chitose,minamiChitose,kenkyuto,honbuto,aeon')
+  );
 }
 
 checkV4Invariants();

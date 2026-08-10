@@ -875,20 +875,6 @@ function getHardcodedTimetable() {
 }
 
 /**
- * v>=4 の応答を組み立てる。
- *
- * 旧形式は1便を乗車地ごとに展開するため、停留所 n 個で n(n-1)/2 組の到着時刻を
- * 持つことになり、全31停留所では約1MB に膨れる。そこで新形式では
- * **1便を1件**とし、停留所と時刻の並びをそのまま渡す。O(n) になり、実測で
- * 全停留所 約35KB / デフォルトの4停留所 約17KB（旧形式の同条件は約31KB）。
- * どの停留所から乗るかはアプリが配列を切って決める。
- *
- * wanted が null なら全停留所。指定があってもその便が通らない停留所は出さない。
- *
- * stopMaster は wanted に関係なく**常に全停留所**を返す。設定画面の選択肢が
- * ここから来るため、絞ると選べる停留所が増えなくなる。
- */
-/**
  * 便の終点。**一般に降りられる最後の停留所**の ID を返す。
  *
  * 並びの末尾そのものではない。系統1・2・3 の往路はラピダス前で終わるが、
@@ -906,14 +892,32 @@ function terminusOf(stopIds) {
   return stopIds[stopIds.length - 1];
 }
 
+/** id → boardable。初回に1度だけ組む（STOPS の定義順に依存しないよう遅延で） */
+var _boardableById = null;
+
 function isBoardableStop(id) {
-  for (var i = 0; i < STOPS.length; i++) {
-    if (STOPS[i].id === id) return STOPS[i].boardable !== false;
+  if (_boardableById === null) {
+    _boardableById = {};
+    STOPS.forEach(function(s) { _boardableById[s.id] = s.boardable !== false; });
   }
   // STOPS に無い ID は ROUTES 側の書き間違い。ここでは判断しない
-  return true;
+  return _boardableById[id] !== false;
 }
 
+/**
+ * v>=4 の応答を組み立てる。
+ *
+ * 旧形式は1便を乗車地ごとに展開するため、停留所 n 個で n(n-1)/2 組の到着時刻を
+ * 持つことになり、全31停留所では約1MB に膨れる。そこで新形式では
+ * **1便を1件**とし、停留所と時刻の並びをそのまま渡す。O(n) になり、実測で
+ * 全停留所 約35KB / デフォルトの4停留所 約17KB（旧形式の同条件は約31KB）。
+ * どの停留所から乗るかはアプリが配列を切って決める。
+ *
+ * wanted が null なら全停留所。指定があってもその便が通らない停留所は出さない。
+ *
+ * stopMaster は wanted に関係なく**常に全停留所**を返す。設定画面の選択肢が
+ * ここから来るため、絞ると選べる停留所が増えなくなる。
+ */
 function buildStopsResponse(wanted) {
   var today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
   var trips = [];
