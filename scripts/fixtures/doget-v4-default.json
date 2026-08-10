@@ -67,7 +67,8 @@
   },
   {
    "id": "chitose",
-   "label": "千歳駅前"
+   "label": "千歳駅前",
+   "shortLabel": "千歳駅"
   },
   {
    "id": "morimoto",
@@ -95,7 +96,8 @@
   },
   {
    "id": "minamiChitose",
-   "label": "南千歳駅"
+   "label": "南千歳駅",
+   "shortLabel": "南千歳"
   },
   {
    "id": "airCargo",
@@ -115,11 +117,13 @@
   },
   {
    "id": "kenkyuto",
-   "label": "科技大研究棟"
+   "label": "科技大研究棟",
+   "shortLabel": "研究棟"
   },
   {
    "id": "honbuto",
-   "label": "科技大本部棟"
+   "label": "科技大本部棟",
+   "shortLabel": "本部棟"
   },
   {
    "id": "rapidus",
