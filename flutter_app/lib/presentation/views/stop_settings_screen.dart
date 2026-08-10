@@ -86,7 +86,14 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
           ),
         ),
       ),
-      body: _master.isEmpty ? const _MasterUnavailable() : _buildBody(context),
+      // 選択が読めるまで操作させない。空の状態で追加を押すと、
+      // あとから解決した選択を上書きしてしまう
+      body: _ids == null
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary))
+          : _master.isEmpty
+              ? const _MasterUnavailable()
+              : _buildBody(context),
     );
   }
 
