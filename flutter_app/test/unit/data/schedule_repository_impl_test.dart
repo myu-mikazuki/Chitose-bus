@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:kagi_bus/data/repositories/stop_selection_repository.dart';
 import 'package:kagi_bus/domain/entities/stop_selection.dart';
 
@@ -163,6 +164,46 @@ void main() {
         'stop_selection_ids': ['chitose', 'morimoto'],
       });
 
+      expect(await repository.getCached(), isNull);
+    });
+  });
+
+  group('#177 以前のキャッシュへのフォールバック（移行用）', () {
+    final legacy = ScheduleResponse(
+      updatedAt: '2026-08-01',
+      current: BusTimetable(
+        validFrom: '',
+        validTo: '',
+        schedules: [
+          BusEntry(
+            time: '07:20',
+            direction: BusDirection.fromChitose,
+            destination: '科技大',
+            arrivals: const {'honbuto': '07:45'},
+          ),
+        ],
+      ),
+    );
+
+    test('新形式のキャッシュが無ければ旧キャッシュを返す', () async {
+      // 更新直後にオフラインでも時刻表を出せるようにする
+      fakeLocalSource.legacy = legacy;
+
+      final result = await repository.getCached();
+      expect(result, isNotNull);
+      expect(result!.updatedAt, '2026-08-01');
+      expect(result.current.schedules.single.time, '07:20');
+    });
+
+    test('新形式のキャッシュがあればそちらを優先する', () async {
+      fakeLocalSource.preload(_responseModel);
+      fakeLocalSource.legacy = legacy;
+
+      final result = await repository.getCached();
+      expect(result!.updatedAt, _responseModel.updatedAt);
+    });
+
+    test('どちらも無ければ null', () async {
       expect(await repository.getCached(), isNull);
     });
   });

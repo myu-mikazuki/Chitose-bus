@@ -114,6 +114,90 @@ void main() {
     });
   });
 
+  group('#177 以前のキャッシュを読む（移行用）', () {
+    // v=3 時代の形式。current.schedules に乗車地ごとの便が並ぶ
+    const legacyJson = '''
+{"updatedAt":"2026-08-01",
+ "current":{"validFrom":"2025-04-01","validTo":"2099-12-31","pdfUrl":"",
+   "schedules":[
+     {"time":"07:20","direction":"from_chitose","destination":"科技大",
+      "routeLabel":"空港経由","platformNumber":"5番",
+      "weekdayOnly":false,"weekendOnly":false,
+      "academicOnly":false,"vacationOnly":false,
+      "arrivals":{"minamiChitose":"07:31","kenkyuto":"07:44","honbuto":"07:45"}},
+     {"time":"11:36","direction":"from_honbuto","destination":"千歳駅",
+      "routeLabel":"空港経由","platformNumber":null,
+      "weekdayOnly":true,"weekendOnly":false,
+      "academicOnly":false,"vacationOnly":false,
+      "arrivals":{"kenkyuto":"11:39","chitose":"12:02"}}]},
+ "upcoming":null}
+''';
+
+    Future<void> putLegacyCache() async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('schedule_cache_json', legacyJson);
+      // 旧バージョンは停留所の選択を記録していない
+    }
+
+    test('何も無ければ null', () async {
+      expect(await source.loadLegacy(), isNull);
+    });
+
+    test('旧形式のキャッシュを読める（更新直後にオフラインでも時刻表を出す）', () async {
+      await putLegacyCache();
+
+      final loaded = await source.loadLegacy();
+      expect(loaded, isNotNull);
+      expect(loaded!.updatedAt, '2026-08-01');
+      expect(loaded.current.schedules.length, 2);
+    });
+
+    test('便の中身が引き継がれる', () async {
+      await putLegacyCache();
+
+      final e = (await source.loadLegacy())!.current.schedules.first;
+      expect(e.time, '07:20');
+      expect(e.destination, '科技大');
+      expect(e.routeLabel, '空港経由');
+      expect(e.platformNumber, '5番');
+      expect(e.arrivals, {
+        'minamiChitose': '07:31',
+        'kenkyuto': '07:44',
+        'honbuto': '07:45',
+      });
+    });
+
+    test('運行日フラグが引き継がれる', () async {
+      await putLegacyCache();
+
+      final entries = (await source.loadLegacy())!.current.schedules;
+      expect(entries[0].weekdayOnly, isFalse);
+      expect(entries[1].weekdayOnly, isTrue);
+    });
+
+    test('新形式で保存済みなら旧経路は使わない', () async {
+      // 一度でも取得に成功していれば移行は済んでいる
+      await source.save(_responseModel, _defaultStops);
+
+      expect(await source.loadLegacy(), isNull);
+    });
+
+    test('壊れた JSON なら null', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('schedule_cache_json', 'not valid json {{{');
+
+      expect(await source.loadLegacy(), isNull);
+    });
+
+    test('新形式の JSON を旧経路で読もうとしても null', () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('schedule_cache_json',
+          '{"updatedAt":"2026-08-10","current":{"trips":[]}}');
+
+      expect(await source.loadLegacy(), isNull);
+    });
+  });
+
   group('ScheduleLocalSource.loadCachedAt', () {
     test('returns null when nothing has been saved', () async {
       expect(await source.loadCachedAt(), isNull);

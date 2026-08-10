@@ -1,5 +1,6 @@
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
 import 'package:kagi_bus/data/sources/schedule_local_source.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:kagi_bus/domain/entities/stop_selection.dart';
 
 class FakeScheduleLocalSource implements ScheduleLocalSource {
@@ -25,6 +26,13 @@ class FakeScheduleLocalSource implements ScheduleLocalSource {
     storedStops = stopsKey;
     saveCallCount++;
   }
+
+  /// 移行用の旧キャッシュ。テストで明示的に置いたときだけ返す
+  ScheduleResponse? legacy;
+
+  @override
+  Future<ScheduleResponse?> loadLegacy() async =>
+      storedStops == null ? legacy : null;
 
   @override
   Future<DateTime?> loadCachedAt() async =>

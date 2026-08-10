@@ -31,6 +31,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<ScheduleResponse?> getCached() async {
     final selection = await stopSelectionRepository.load();
     final cached = await localSource.load(selection.query);
-    return cached?.toEntity();
+    if (cached != null) return cached.toEntity();
+
+    // #177 以前のキャッシュがあれば読む（移行用・1〜2リリース後に削除）
+    return localSource.loadLegacy();
   }
 }
