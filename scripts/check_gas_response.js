@@ -96,6 +96,27 @@ function checkRouteData() {
       console.log(`  FAIL ${s.id}: 乗車不可なのに LEGACY_STOPS に含まれている`);
       failures++;
     }
+    // 正式名と同じ shortLabel は書かない（アプリは shortLabel ?? label で解決する）
+    if (s.shortLabel === s.label) {
+      console.log(`  FAIL ${s.id}: shortLabel が label と同じ。同じなら書かない`);
+      failures++;
+    }
+  }
+
+  // shortLabel はタブなど幅の狭い場所で使う短縮名。#177 以降、タブの文字列は
+  // GAS が唯一の供給元になり、アプリ側には比較対象が無い。増やすと利用者の
+  // 表示が黙って変わるので、集合を固定する。
+  //
+  // 増やしたくなったら「その略称の出典は何か」を先に確かめること。
+  // 出典の無い略称を発明すると、利用者が実際のバス停の表記と対応付けられなくなる。
+  const SHORT_LABEL_STOPS = ['chitose', 'minamiChitose', 'kenkyuto', 'honbuto'];
+  const actualShort = STOPS.filter((s) => s.shortLabel).map((s) => s.id).sort();
+  const expectedShort = [...SHORT_LABEL_STOPS].sort();
+  if (actualShort.join('|') !== expectedShort.join('|')) {
+    console.log(`  FAIL shortLabel を持つ停留所の集合が変わっている`);
+    console.log(`         これまで: ${expectedShort.join(' / ')}`);
+    console.log(`         現在    : ${actualShort.join(' / ') || '(なし)'}`);
+    failures++;
   }
 
   const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
