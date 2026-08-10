@@ -94,7 +94,7 @@ void main() {
     BusEntry entry({bool academicOnly = false, bool vacationOnly = false}) =>
         BusEntry(
           time: '09:00',
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '科技大',
           academicOnly: academicOnly,
           vacationOnly: vacationOnly,
@@ -121,7 +121,7 @@ void main() {
     test('運行日フラグと期別フラグは AND で効く', () {
       const e = BusEntry(
         time: '09:00',
-        direction: BusDirection.fromChitose,
+        boardingStopId: 'chitose',
         destination: '科技大',
         weekdayOnly: true,
         vacationOnly: true,
@@ -151,7 +151,7 @@ void main() {
       schedules: const [
         BusEntry(
           time: '07:14',
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '科技大',
           routeLabel: '直通',
           weekdayOnly: true,
@@ -159,7 +159,7 @@ void main() {
         ),
         BusEntry(
           time: '08:10',
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '科技大',
           routeLabel: '直通',
           weekdayOnly: true,
@@ -167,7 +167,7 @@ void main() {
         ),
         BusEntry(
           time: '07:20',
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '科技大',
           routeLabel: '空港経由',
         ),
@@ -176,7 +176,7 @@ void main() {
 
     test('授業期の平日: 授業期便と共通便のみ', () {
       final result = timetable.busesFor(
-        BusDirection.fromChitose,
+        'chitose',
         DayType.weekday,
         SeasonType.academic,
       );
@@ -185,7 +185,7 @@ void main() {
 
     test('学休期の平日: 学休期便と共通便のみ', () {
       final result = timetable.busesFor(
-        BusDirection.fromChitose,
+        'chitose',
         DayType.weekday,
         SeasonType.vacation,
       );
@@ -194,7 +194,7 @@ void main() {
 
     test('学休期の土日祝: 直通便（平日限定）は消える', () {
       final result = timetable.busesFor(
-        BusDirection.fromChitose,
+        'chitose',
         DayType.weekendHoliday,
         SeasonType.vacation,
       );
@@ -203,7 +203,7 @@ void main() {
 
     test('todayBuses: 年末年始は空リスト', () {
       final result = timetable.todayBuses(
-        BusDirection.fromChitose,
+        'chitose',
         now: DateTime(2026, 1, 1, 6, 0),
       );
       expect(result, isEmpty);
@@ -211,7 +211,7 @@ void main() {
 
     test('todayBuses: 学休期の平日は学休期ダイヤになる', () {
       final result = timetable.todayBuses(
-        BusDirection.fromChitose,
+        'chitose',
         now: DateTime(2026, 8, 3, 6, 0),
       );
       expect(result.map((e) => e.time), ['07:20', '08:10']);
@@ -219,7 +219,7 @@ void main() {
 
     test('nextBus: 学休期は授業期限定便を返さない', () {
       final next = timetable.nextBus(
-        BusDirection.fromChitose,
+        'chitose',
         now: DateTime(2026, 8, 3, 7, 0),
       );
       expect(next?.time, '07:20');

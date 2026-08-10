@@ -12,13 +12,18 @@ class ScheduleList extends ConsumerStatefulWidget {
   const ScheduleList({
     super.key,
     required this.timetable,
-    required this.direction,
+    required this.stopId,
+    this.destination,
     this.dayType,
     this.season,
   });
 
   final BusTimetable timetable;
-  final BusDirection direction;
+  /// 乗車地
+  final String stopId;
+
+  /// 行き先（科技大 / 千歳駅）。指定しなければ絞らない
+  final String? destination;
 
   /// 非 null の場合、当日ではなく指定ダイヤ種別（平日 / 土日祝）の全便を表示する。
   /// このとき現在時刻に依存する表示（NEXT ハイライト・過去便のグレーアウト・
@@ -44,7 +49,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
   void initState() {
     super.initState();
     // スクロールは初期表示時のみ実行（didUpdateWidgetは対象外）。
-    // - direction は各タブで固定のため変化しない
+    // - stopId / destination は各タブで固定のため変化しない
     // - timetable 更新時の再スクロールは要件外（ユーザー操作の上書きを避けるため）
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 非有界コンテキスト（KenkyutoTab・来週ダイヤ等）はスクロールしない。
@@ -71,15 +76,16 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
     final dayType = widget.dayType;
     final buses = dayType == null
-        ? widget.timetable.todayBuses(widget.direction, now: now)
+        ? widget.timetable.todayBuses(widget.stopId, destination: widget.destination, now: now)
         : widget.timetable.busesFor(
-            widget.direction,
+            widget.stopId,
             dayType,
             widget.season ?? SeasonType.fromDate(now),
+            destination: widget.destination,
           );
     // 当日以外の表示では NEXT の概念がないため null とする
     final nextBus = dayType == null
-        ? widget.timetable.nextBus(widget.direction, now: now)
+        ? widget.timetable.nextBus(widget.stopId, destination: widget.destination, now: now)
         : null;
 
     if (buses.isEmpty) {
@@ -173,26 +179,6 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
     'chitose': '千歳駅',
   };
 
-  List<String> _getArrivalOrder(BusEntry entry) {
-    final isRoute2 = entry.routeLabel == '直通';
-    switch (entry.direction) {
-      case BusDirection.fromChitose:
-        return isRoute2
-            ? ['kenkyuto', 'honbuto']
-            : ['minamiChitose', 'kenkyuto', 'honbuto'];
-      case BusDirection.fromMinamiChitose:
-        return ['kenkyuto', 'honbuto'];
-      case BusDirection.fromKenkyutoToHonbuto:
-        return ['honbuto'];
-      case BusDirection.fromKenkyutoToStation:
-        return isRoute2 ? ['chitose'] : ['minamiChitose', 'chitose'];
-      case BusDirection.fromHonbuto:
-        return isRoute2
-            ? ['kenkyuto', 'chitose']
-            : ['kenkyuto', 'minamiChitose', 'chitose'];
-    }
-  }
-
   List<Widget> _buildLectureTagWidgets() {
     final showTags =
         ref.watch(displaySettingsProvider).valueOrNull?.showLectureTags ?? true;
@@ -260,7 +246,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
 
   List<Widget> _buildArrivalRows() {
     final colors = context.appColors;
-    final order = _getArrivalOrder(widget.bus);
+    final order = widget.bus.arrivals.keys.toList();
     return order
         .where((key) => widget.bus.arrivals.containsKey(key))
         .map((key) => Padding(

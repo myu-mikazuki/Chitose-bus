@@ -1,11 +1,3 @@
-enum BusDirection {
-  fromChitose,
-  fromMinamiChitose,
-  fromKenkyutoToHonbuto,
-  fromKenkyutoToStation,
-  fromHonbuto,
-}
-
 /// ダイヤ種別（平日 / 土日祝日）
 enum DayType {
   weekday,
@@ -165,10 +157,14 @@ abstract final class ServiceCalendar {
       (date.month == DateTime.january && date.day <= 3);
 }
 
+/// ある停留所から乗る場合の1便。
+///
+/// 便そのものではなく「どこから乗るか」を決めたあとの見え方を表す。
+/// 同じ便でも乗車地が違えば別の BusEntry になる（時刻も到着地も変わる）。
 class BusEntry {
   const BusEntry({
     required this.time,
-    required this.direction,
+    required this.boardingStopId,
     required this.destination,
     this.arrivals = const {},
     this.routeLabel,
@@ -179,8 +175,8 @@ class BusEntry {
     this.vacationOnly = false,
   });
 
-  final String time; // "HH:MM"
-  final BusDirection direction;
+  final String time; // "HH:MM" 乗車地を出る時刻
+  final String boardingStopId;
   final String destination;
   final Map<String, String> arrivals;
   final String? routeLabel;
@@ -193,6 +189,28 @@ class BusEntry {
 
   /// 学休期のみ運行（授業期は運休）
   final bool vacationOnly;
+
+  /// 通知の識別に使うキー。**形式を変えないこと。**
+  ///
+  /// SharedPreferences に保存され、OS に予約した通知の ID の元にもなる。
+  /// 変えると既存の予約が引き当てられなくなり、キャンセルできない通知が残る。
+  ///
+  /// #177 以前は `BusDirection` の名前を使っていたため、その5通りは同じ文字列に
+  /// なるようにしてある。新しい停留所は該当が無いので `<乗車地>_<行き先>` を使う。
+  ///
+  /// TODO(#187): 任意の停留所に対応したら形式を統一し、保存済みキーを移行する。
+  String get notificationKey {
+    final legacy = switch ((boardingStopId, destination)) {
+      // 旧 BusDirection の enum 名（.name）。JSON の文字列ではない
+      ('chitose', '科技大') => 'fromChitose',
+      ('minamiChitose', '科技大') => 'fromMinamiChitose',
+      ('kenkyuto', '科技大') => 'fromKenkyutoToHonbuto',
+      ('kenkyuto', '千歳駅') => 'fromKenkyutoToStation',
+      ('honbuto', '千歳駅') => 'fromHonbuto',
+      _ => null,
+    };
+    return '${legacy ?? '${boardingStopId}_$destination'}_$time';
+  }
 
   bool runsOn(DayType dayType, SeasonType season) {
     if (dayType == DayType.weekendHoliday && weekdayOnly) return false;
@@ -238,11 +256,12 @@ class BusTimetable {
   final List<BusEntry> schedules;
   final String pdfUrl;
 
-  BusEntry? nextBus(BusDirection direction, {DateTime? now}) {
+  BusEntry? nextBus(String stopId, {String? destination, DateTime? now}) {
     final current = now ?? DateTime.now();
     final candidates = schedules
         .where((e) =>
-            e.direction == direction &&
+            e.boardingStopId == stopId &&
+            (destination == null || e.destination == destination) &&
             e.isRunningToday(current) &&
             e.toDateTimeToday(now: current).isAfter(current))
         .toList()
@@ -250,23 +269,33 @@ class BusTimetable {
     return candidates.firstOrNull;
   }
 
-  List<BusEntry> todayBuses(BusDirection direction, {DateTime? now}) {
+  List<BusEntry> todayBuses(String stopId,
+      {String? destination, DateTime? now}) {
     final current = now ?? DateTime.now();
     if (ServiceCalendar.isSuspended(current)) return const [];
     return busesFor(
-      direction,
+      stopId,
       DayType.fromDate(current),
       SeasonType.fromDate(current),
+      destination: destination,
     );
   }
 
+  /// [stopId] から乗る便。
+  ///
+  /// [destination] を指定すると行き先で絞る。途中の停留所は上下両方向のバスが
+  /// 通るため、画面に出すときは指定しないと逆方向の便が混ざる。
   List<BusEntry> busesFor(
-    BusDirection direction,
+    String stopId,
     DayType dayType,
-    SeasonType season,
-  ) {
+    SeasonType season, {
+    String? destination,
+  }) {
     final filtered = schedules
-        .where((e) => e.direction == direction && e.runsOn(dayType, season))
+        .where((e) =>
+            e.boardingStopId == stopId &&
+            (destination == null || e.destination == destination) &&
+            e.runsOn(dayType, season))
         .toList();
     filtered.sort((a, b) => a.time.compareTo(b.time));
     return filtered;
@@ -280,11 +309,20 @@ class BusStop {
   const BusStop({
     required this.id,
     required this.label,
+    this.shortLabel,
     this.boardable = true,
   });
 
   final String id;
+
+  /// 正式名（バス停の表記）
   final String label;
+
+  /// タブなど幅の狭い場所で使う短縮名。正式名と同じなら GAS は返さない
+  final String? shortLabel;
+
+  /// 表示に使う名前
+  String get displayLabel => shortLabel ?? label;
 
   /// 乗車地として選べるか。
   /// ラピダス前は工場敷地内で一般利用できないため false。

@@ -106,7 +106,7 @@ void main() {
       schedules: const [
         BusEntry(
           time: '08:10',
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '科技大',
           routeLabel: '直通',
           weekdayOnly: true,
@@ -114,14 +114,14 @@ void main() {
         ),
         BusEntry(
           time: '08:18',
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '科技大',
           routeLabel: '空港経由',
           weekendOnly: true,
         ),
         BusEntry(
           time: '07:20',
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '科技大',
           routeLabel: '空港経由',
         ),
@@ -130,7 +130,7 @@ void main() {
 
     test('8/11（山の日・学休期）は直通便が出ない', () {
       final buses = timetable.todayBuses(
-        BusDirection.fromChitose,
+        'chitose',
         now: DateTime(2026, 8, 11, 5, 0),
       );
       expect(buses.map((e) => e.time), ['07:20', '08:18']);
@@ -139,7 +139,7 @@ void main() {
 
     test('8/12（平日・学休期）は直通便が出る', () {
       final buses = timetable.todayBuses(
-        BusDirection.fromChitose,
+        'chitose',
         now: DateTime(2026, 8, 12, 5, 0),
       );
       expect(buses.map((e) => e.time), ['07:20', '08:10']);

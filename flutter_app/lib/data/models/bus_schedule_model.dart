@@ -43,6 +43,9 @@ class StopModel with _$StopModel {
     required String id,
     required String label,
 
+    /// タブなど幅の狭い場所で使う短縮名。正式名と同じなら GAS は返さない
+    String? shortLabel,
+
     /// 乗車地として選べるか。GAS は false のときだけ返す
     @Default(true) bool boardable,
   }) = _StopModel;
@@ -77,66 +80,34 @@ class ScheduleResponseModel with _$ScheduleResponseModel {
       _$ScheduleResponseModelFromJson(json);
 }
 
-// ---- 旧形式（BusDirection ごとの1件）への展開 ----
+// ---- 乗車地ごとの BusEntry への展開 ----
 //
-// GAS の応答は1便を1件だが、アプリの画面はまだ「乗車地ごとの1件」を前提に
-// できている。表示を変えずにデータ層だけ差し替えるため、ここで展開して
-// 従来と同じ BusEntry の並びを作る。
+// GAS の応答は1便を1件だが、画面は「この停留所から乗るとどうなるか」を出すため、
+// 便が通る停留所それぞれについて BusEntry を作る。
 //
-// **この展開は乗車地選択の UI を入れる際に削除する。** 画面が停留所の並びを
-// 直接扱えるようになれば、BusDirection ごと不要になる。
-
-/// 旧形式で乗車地として出す停留所と、対応する BusDirection。
-/// GAS 側の LEGACY_BOARDING と同じ内容（片方だけ変えると表示が食い違う）。
-///
-/// GAS 側は ROUTES の direction をキーにしているが、v=4 の応答は direction を
-/// 持たないため、ここでは destination で引くしかない。表示用の文字列に依存する
-/// 弱い作りなので、解決できなければ**黙って捨てずに落とす**（下記参照）。
-/// scripts/check_gas_response.js が GAS 側の destination の集合を検査している。
-const _legacyBoarding = <String, List<(String, BusDirection)>>{
-  '科技大': [
-    ('chitose', BusDirection.fromChitose),
-    ('minamiChitose', BusDirection.fromMinamiChitose),
-    ('kenkyuto', BusDirection.fromKenkyutoToHonbuto),
-  ],
-  '千歳駅': [
-    ('honbuto', BusDirection.fromHonbuto),
-    ('kenkyuto', BusDirection.fromKenkyutoToStation),
-  ],
-};
-
-/// 旧形式が扱える4停留所。arrivals はこれだけに絞る
-const _legacyStops = {'chitose', 'minamiChitose', 'kenkyuto', 'honbuto'};
+// 展開の大きさは選んだ停留所の数で決まる（既定の4停留所なら1便あたり3件）。
+// GAS が選択で絞ってくれるので、ここが膨らむことはない。
 
 extension TripModelMapper on TripModel {
-  /// 乗車地ごとの BusEntry に展開する（通らない乗車地は作らない）
+  /// 便が通る各停留所について、そこから乗る場合の BusEntry を作る。
+  /// 後に停留所が無い（＝終点）ものは乗車地にならないので作らない。
   List<BusEntry> toEntries() {
-    final boarding = _legacyBoarding[destination];
-    // 空を返すと、その系統の便がエラーも出さず全部消えて「バスがありません」に
-    // なる。時刻表アプリでは黙って消えるのが一番まずいので、見えるように落とす。
-    if (boarding == null) {
-      throw FormatException('未知の行き先です: $destination');
-    }
-
     final out = <BusEntry>[];
-    for (final (stopId, direction) in boarding) {
-      final index = stops.indexWhere((s) => s.id == stopId);
-      if (index < 0) continue;
-
-      // 乗車地より後にある停留所のうち、旧形式が扱える4つだけを到着として持つ
+    for (var i = 0; i < stops.length; i++) {
       final arrivals = <String, String>{};
-      for (final s in stops.skip(index + 1)) {
-        if (_legacyStops.contains(s.id)) arrivals[s.id] = s.time;
+      // 通過順のまま入れる。表示順はこの順序に従う
+      for (final s in stops.skip(i + 1)) {
+        arrivals[s.id] = s.time;
       }
       if (arrivals.isEmpty) continue;
 
       out.add(BusEntry(
-        time: stops[index].time,
-        direction: direction,
+        time: stops[i].time,
+        boardingStopId: stops[i].id,
         destination: destination,
         arrivals: arrivals,
         routeLabel: routeLabel,
-        platformNumber: stops[index].platform,
+        platformNumber: stops[i].platform,
         weekdayOnly: weekdayOnly,
         weekendOnly: weekendOnly,
         academicOnly: academicOnly,
@@ -148,8 +119,12 @@ extension TripModelMapper on TripModel {
 }
 
 extension StopModelMapper on StopModel {
-  BusStop toEntity() =>
-      BusStop(id: id, label: label, boardable: boardable);
+  BusStop toEntity() => BusStop(
+        id: id,
+        label: label,
+        shortLabel: shortLabel,
+        boardable: boardable,
+      );
 }
 
 extension BusTimetableModelMapper on BusTimetableModel {

@@ -49,43 +49,47 @@ List<BusEntry> entriesOf(List<TripModel> trips) => BusTimetableModel(
     ).toEntity().schedules;
 
 void main() {
-  group('TripModel → BusEntry の展開（v=3 時代と同じ形にする）', () {
-    test('往路は 千歳駅 / 南千歳 / 研究棟 の3件に展開される', () {
+  group('TripModel → BusEntry の展開', () {
+    test('終点を除く全ての停留所が乗車地になる', () {
+      // 終点は後に停留所が無いので乗車地にならない
       final entries = entriesOf([_outbound]);
-      expect(entries.map((e) => e.direction), [
-        BusDirection.fromChitose,
-        BusDirection.fromMinamiChitose,
-        BusDirection.fromKenkyutoToHonbuto,
+      expect(entries.map((e) => e.boardingStopId), [
+        'chitose',
+        'morimoto',
+        'minamiChitose',
+        'kenkyuto',
       ]);
-      expect(entries.map((e) => e.time), ['07:20', '07:31', '07:44']);
+      expect(entries.map((e) => e.time), ['07:20', '07:23', '07:31', '07:44']);
     });
 
-    test('復路は 本部棟 / 研究棟 の2件のみ（南千歳・千歳は乗車地にしない）', () {
+    test('復路も同じく終点以外が乗車地になる', () {
       final entries = entriesOf([_inbound]);
-      expect(entries.map((e) => e.direction), [
-        BusDirection.fromHonbuto,
-        BusDirection.fromKenkyutoToStation,
+      expect(entries.map((e) => e.boardingStopId), [
+        'honbuto',
+        'kenkyuto',
+        'minamiChitose',
       ]);
-      expect(entries.map((e) => e.time), ['11:36', '11:39']);
+      expect(entries.map((e) => e.time), ['11:36', '11:39', '11:51']);
     });
 
-    test('arrivals は乗車地より後の4停留所だけを通過順に持つ', () {
+    test('arrivals は乗車地より後の停留所を通過順に持つ', () {
       final entries = entriesOf([_outbound]);
       expect(entries[0].arrivals, {
+        'morimoto': '07:23',
         'minamiChitose': '07:31',
         'kenkyuto': '07:44',
         'honbuto': '07:45',
       });
-      expect(entries[1].arrivals, {'kenkyuto': '07:44', 'honbuto': '07:45'});
-      expect(entries[2].arrivals, {'honbuto': '07:45'});
+      expect(entries.last.arrivals, {'honbuto': '07:45'});
     });
 
-    test('4停留所以外（もりもと本店前）は arrivals に混ざらない', () {
-      // pr-c では表示を変えない。途中停留所を出すのは UI 対応の後
+    test('途中の停留所も乗車地・到着地として扱える', () {
+      // #177 の目的。もりもと本店前から乗る便が引ける
       final entries = entriesOf([_outbound]);
-      for (final e in entries) {
-        expect(e.arrivals.containsKey('morimoto'), isFalse);
-      }
+      final fromMorimoto =
+          entries.firstWhere((e) => e.boardingStopId == 'morimoto');
+      expect(fromMorimoto.time, '07:23');
+      expect(fromMorimoto.arrivals.keys, ['minamiChitose', 'kenkyuto', 'honbuto']);
     });
 
     test('復路の arrivals も通過順（研究棟 → 南千歳 → 千歳駅）', () {
@@ -95,11 +99,17 @@ void main() {
       expect(entries[1].arrivals.keys.toList(), ['minamiChitose', 'chitose']);
     });
 
+    test('のりばは乗車地のものだけが付く', () {
+      final entries = entriesOf([_outbound]);
+      expect(entries.first.platformNumber, '5番');
+      expect(entries[1].platformNumber, isNull);
+    });
+
     test('通らない停留所は arrivals に現れない（直通は南千歳を経由しない）', () {
       final entries = entriesOf([_direct]);
-      expect(entries.map((e) => e.direction), [
-        BusDirection.fromChitose,
-        BusDirection.fromKenkyutoToHonbuto,
+      expect(entries.map((e) => e.boardingStopId), [
+        'chitose',
+        'kenkyuto',
       ]);
       expect(entries[0].arrivals, {'kenkyuto': '07:32', 'honbuto': '07:35'});
     });
@@ -129,22 +139,8 @@ void main() {
       }
     });
 
-    test('知らない行き先は黙って捨てず例外にする', () {
-      // 空を返すとその系統の便がエラーも出さず全部消え、「バスがありません」に
-      // なってしまう。GAS 側の destination を増やしたら気付けるようにする
-      expect(
-        () => entriesOf([
-          const TripModel(
-            destination: '長都駅',
-            stops: [StopTimeModel(id: 'chitose', time: '21:00')],
-          ),
-        ]),
-        throwsA(isA<FormatException>()),
-      );
-    });
-
-    test('乗車地を1つも含まない便は展開されない', () {
-      // 利用者が4停留所以外だけを選ぶと起きる。pr-c では選択を変えないので通常は無い
+    test('停留所が1つだけの便は展開されない', () {
+      // 選んだ停留所を1つしか通らない便。乗っても降りる先が無い
       final entries = entriesOf([
         const TripModel(
           destination: '科技大',
@@ -217,7 +213,7 @@ void main() {
       expect(model.current.trips.single.stops.first.platform, '5番');
 
       final entries = model.toEntity().current.schedules;
-      expect(entries.single.direction, BusDirection.fromChitose);
+      expect(entries.single.boardingStopId, 'chitose');
       expect(entries.single.arrivals, {'honbuto': '07:45'});
     });
   });

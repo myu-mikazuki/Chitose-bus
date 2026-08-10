@@ -78,12 +78,13 @@ class ScheduleLocalSource {
 
   BusEntry _legacyEntry(Map<String, dynamic> json) => BusEntry(
         time: json['time'] as String,
-        direction: switch (json['direction'] as String?) {
-          'from_minami_chitose' => BusDirection.fromMinamiChitose,
-          'from_kenkyuto_to_honbuto' => BusDirection.fromKenkyutoToHonbuto,
-          'from_kenkyuto_to_station' => BusDirection.fromKenkyutoToStation,
-          'from_honbuto' => BusDirection.fromHonbuto,
-          _ => BusDirection.fromChitose,
+        // 旧形式の direction は「乗車地 × 行き先」の組。乗車地だけを取り出す
+        boardingStopId: switch (json['direction'] as String?) {
+          'from_minami_chitose' => 'minamiChitose',
+          'from_kenkyuto_to_honbuto' => 'kenkyuto',
+          'from_kenkyuto_to_station' => 'kenkyuto',
+          'from_honbuto' => 'honbuto',
+          _ => 'chitose',
         },
         destination: json['destination'] as String? ?? '',
         arrivals: (json['arrivals'] as Map<String, dynamic>? ?? {})

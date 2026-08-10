@@ -14,18 +14,18 @@ void main() {
           schedules: [
             BusEntry(
               time: '11:00', // past (before fixedNow 12:00)
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
             ),
             BusEntry(
               time: '13:00', // future (after fixedNow 12:00)
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
             ),
           ],
         );
 
-        final result = timetable.nextBus(BusDirection.fromChitose, now: fixedNow);
+        final result = timetable.nextBus('chitose', now: fixedNow);
         expect(result, isNotNull);
         expect(result!.time, '13:00');
       });
@@ -37,13 +37,13 @@ void main() {
           schedules: [
             BusEntry(
               time: '11:00',
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
             ),
           ],
         );
 
-        final result = timetable.nextBus(BusDirection.fromChitose, now: fixedNow);
+        final result = timetable.nextBus('chitose', now: fixedNow);
         expect(result, isNull);
       });
 
@@ -54,18 +54,18 @@ void main() {
           schedules: [
             BusEntry(
               time: '13:00',
-              direction: BusDirection.fromMinamiChitose,
+              boardingStopId: 'minamiChitose',
               destination: '南千歳',
             ),
             BusEntry(
               time: '13:00',
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
             ),
           ],
         );
 
-        final result = timetable.nextBus(BusDirection.fromHonbuto, now: fixedNow);
+        final result = timetable.nextBus('honbuto', now: fixedNow);
         expect(result, isNull);
       });
 
@@ -76,7 +76,7 @@ void main() {
           schedules: [],
         );
 
-        final result = timetable.nextBus(BusDirection.fromChitose, now: fixedNow);
+        final result = timetable.nextBus('chitose', now: fixedNow);
         expect(result, isNull);
       });
 
@@ -89,23 +89,23 @@ void main() {
           schedules: [
             BusEntry(
               time: '15:00',
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '科技大',
             ),
             BusEntry(
               time: '13:00',
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '科技大',
             ),
             BusEntry(
               time: '14:00',
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '科技大',
             ),
           ],
         );
 
-        final result = timetable.nextBus(BusDirection.fromChitose, now: fixedNow);
+        final result = timetable.nextBus('chitose', now: fixedNow);
         expect(result, isNotNull);
         expect(result!.time, '13:00');
       });
@@ -120,20 +120,20 @@ void main() {
           schedules: [
             BusEntry(
               time: '10:54',
-              direction: BusDirection.fromKenkyutoToHonbuto,
+              boardingStopId: 'kenkyuto',
               destination: '科技大',
               routeLabel: '空港経由',
             ),
             BusEntry(
               time: '10:22',
-              direction: BusDirection.fromKenkyutoToHonbuto,
+              boardingStopId: 'kenkyuto',
               destination: '科技大',
               routeLabel: '直通',
             ),
           ],
         );
 
-        final result = timetable.nextBus(BusDirection.fromKenkyutoToHonbuto, now: now);
+        final result = timetable.nextBus('kenkyuto', now: now);
         expect(result, isNotNull);
         expect(result!.time, '10:22');
       });
@@ -147,25 +147,25 @@ void main() {
           schedules: [
             BusEntry(
               time: '09:30',
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
             ),
             BusEntry(
               time: '10:00',
-              direction: BusDirection.fromMinamiChitose,
+              boardingStopId: 'minamiChitose',
               destination: '南千歳',
             ),
             BusEntry(
               time: '11:00',
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
             ),
           ],
         );
 
-        final result = timetable.todayBuses(BusDirection.fromChitose);
+        final result = timetable.todayBuses('chitose');
         expect(result.length, 2);
-        expect(result.every((e) => e.direction == BusDirection.fromChitose), isTrue);
+        expect(result.every((e) => e.boardingStopId == 'chitose'), isTrue);
       });
 
       test('returns empty list when no buses match direction', () {
@@ -175,13 +175,13 @@ void main() {
           schedules: [
             BusEntry(
               time: '09:30',
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
             ),
           ],
         );
 
-        final result = timetable.todayBuses(BusDirection.fromHonbuto);
+        final result = timetable.todayBuses('honbuto');
         expect(result, isEmpty);
       });
 
@@ -192,7 +192,7 @@ void main() {
           schedules: [],
         );
 
-        final result = timetable.todayBuses(BusDirection.fromChitose);
+        final result = timetable.todayBuses('chitose');
         expect(result, isEmpty);
       });
 
@@ -204,21 +204,21 @@ void main() {
           schedules: [
             BusEntry(
               time: '09:00',
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
               weekdayOnly: true,
             ),
             BusEntry(
               time: '10:00',
-              direction: BusDirection.fromChitose,
-              destination: '千歳科技大',
+              boardingStopId: 'chitose',
+              destination: '科技大',
               weekendOnly: true,
             ),
           ],
         );
 
         final result =
-            timetable.todayBuses(BusDirection.fromChitose, now: saturday);
+            timetable.todayBuses('chitose', now: saturday);
         expect(result.length, 1);
         expect(result.first.time, '10:00');
       });
@@ -231,24 +231,24 @@ void main() {
         schedules: [
           BusEntry(
             time: '10:00',
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
             weekendOnly: true,
           ),
           BusEntry(
             time: '09:00',
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
             weekdayOnly: true,
           ),
           BusEntry(
             time: '11:00',
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
           ),
           BusEntry(
             time: '08:00',
-            direction: BusDirection.fromMinamiChitose,
+            boardingStopId: 'minamiChitose',
             destination: '南千歳',
           ),
         ],
@@ -256,21 +256,21 @@ void main() {
 
       test('平日ダイヤ: weekendOnly の便を除外し時刻順に返す', () {
         final result =
-            timetable.busesFor(BusDirection.fromChitose, DayType.weekday, SeasonType.academic);
+            timetable.busesFor('chitose', DayType.weekday, SeasonType.academic);
         expect(result.map((e) => e.time), ['09:00', '11:00']);
       });
 
       test('土日祝ダイヤ: weekdayOnly の便を除外し時刻順に返す', () {
         final result = timetable.busesFor(
-            BusDirection.fromChitose, DayType.weekendHoliday, SeasonType.academic);
+            'chitose', DayType.weekendHoliday, SeasonType.academic);
         expect(result.map((e) => e.time), ['10:00', '11:00']);
       });
 
       test('指定方向の便のみ返す', () {
         final result = timetable.busesFor(
-            BusDirection.fromMinamiChitose, DayType.weekday, SeasonType.academic);
+            'minamiChitose', DayType.weekday, SeasonType.academic);
         expect(result.length, 1);
-        expect(result.first.direction, BusDirection.fromMinamiChitose);
+        expect(result.first.boardingStopId, 'minamiChitose');
       });
     });
   });

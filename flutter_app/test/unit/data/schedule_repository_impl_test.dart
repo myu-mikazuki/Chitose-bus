@@ -177,7 +177,7 @@ void main() {
         schedules: [
           BusEntry(
             time: '07:20',
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '科技大',
             arrivals: const {'honbuto': '07:45'},
           ),
@@ -208,58 +208,23 @@ void main() {
     });
   });
 
-  group('解釈できない応答の扱い', () {
-    // GAS が想定外の destination を返したときの経路。
-    // check_gas_response.js が本来ここを止めるが、止められなかった場合の備え
-    const poisoned = ScheduleResponseModel(
-      updatedAt: '2026-08-10',
-      current: BusTimetableModel(
-        trips: [
-          TripModel(
-            destination: '長都駅',
-            stops: [StopTimeModel(id: 'chitose', time: '21:00')],
-          ),
-        ],
-      ),
-    );
-
-    test('取得経路は例外を投げる（黙って消さない）', () async {
-      when(() => mockRemoteSource.fetchSchedule(any()))
-          .thenAnswer((_) async => poisoned);
-
-      expect(() => repository.fetchSchedule(), throwsA(isA<FormatException>()));
-    });
-
-    test('解釈できない応答はキャッシュに保存しない', () async {
-      // 先に保存すると、以降のキャッシュ読み出しが毎回失敗するようになる
-      when(() => mockRemoteSource.fetchSchedule(any()))
-          .thenAnswer((_) async => poisoned);
-
-      await expectLater(repository.fetchSchedule(), throwsA(isA<Exception>()));
-      expect(fakeLocalSource.stored, isNull);
-      expect(fakeLocalSource.saveCallCount, 0);
-    });
-
-    test('解釈できないキャッシュは投げずに null を返す', () async {
-      // getCached は復帰手段なので投げてはいけない（投げると画面が固まる）
-      fakeLocalSource.preload(poisoned);
+  group('キャッシュ読み出しが失敗しても getCached は投げない', () {
+    // getCached は取得失敗後の復帰手段として呼ばれる。ここで投げると
+    // 呼び出し側の catch を突き抜けて画面が AsyncLoading のまま固まる
+    test('読み出しが例外を投げても null を返す', () async {
+      fakeLocalSource.failOnLoad = true;
 
       expect(await repository.getCached(), isNull);
     });
 
-    test('解釈できないキャッシュでも旧キャッシュがあればそちらを返す', () async {
-      fakeLocalSource.preload(poisoned);
+    test('読み出しが失敗しても旧キャッシュがあればそちらを返す', () async {
+      fakeLocalSource.failOnLoad = true;
       fakeLocalSource.legacy = ScheduleResponse(
         updatedAt: '2026-08-01',
-        current: const BusTimetable(
-          validFrom: '',
-          validTo: '',
-          schedules: [],
-        ),
+        current: const BusTimetable(validFrom: '', validTo: '', schedules: []),
       );
 
-      // preload で storedStops が入るため、この経路では旧キャッシュは使われない
-      expect(await repository.getCached(), isNull);
+      expect((await repository.getCached())?.updatedAt, '2026-08-01');
     });
   });
 }
