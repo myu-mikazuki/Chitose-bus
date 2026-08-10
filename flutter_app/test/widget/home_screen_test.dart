@@ -802,6 +802,71 @@ void main() {
       });
     });
 
+    group('行き先の見出し', () {
+      // 千歳駅は長都行き（系統3 復路）の途中停留所。イオン千歳店前を足しても
+      // 見出しは終点のままでなければならない
+      const master = [
+        BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+        BusStop(id: 'aeon', label: 'イオン千歳店前'),
+        BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+        BusStop(id: 'osatsu', label: '長都駅東口'),
+      ];
+
+      ScheduleResult resultWith({required String? terminus}) => ScheduleResult(
+            data: ScheduleResponse(
+              stopMaster: master,
+              updatedAt: '2024-01-01',
+              current: BusTimetable(
+                validFrom: '2024-01-01',
+                validTo: '2024-12-31',
+                schedules: [
+                  const BusEntry(
+                    time: '09:00',
+                    boardingStopId: 'chitose',
+                    destination: '科技大',
+                    terminusStopId: 'honbuto',
+                    arrivals: {'honbuto': '09:30'},
+                  ),
+                  BusEntry(
+                    time: '09:10',
+                    boardingStopId: 'chitose',
+                    destination: '千歳駅',
+                    terminusStopId: terminus,
+                    // 選んだ停留所だけに絞られた到着地
+                    arrivals: const {'aeon': '09:16'},
+                  ),
+                ],
+              ),
+            ),
+          );
+
+      Widget wrap(ScheduleResult result) => ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(result)),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          );
+
+      testWidgets('終点を出す。途中で足した停留所には引きずられない', (tester) async {
+        await tester.pumpWidget(wrap(resultWith(terminus: 'osatsu')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('→ 長都駅東口'), findsOneWidget);
+        expect(find.text('→ イオン千歳店前'), findsNothing);
+        expect(find.text('→ 本部棟'), findsOneWidget);
+      });
+
+      testWidgets('終点が分からない供給元では到着地の末尾に頼る', (tester) async {
+        // 未デプロイの GAS・#177 以前のキャッシュ
+        await tester.pumpWidget(wrap(resultWith(terminus: null)));
+        await tester.pumpAndSettle();
+
+        expect(find.text('→ イオン千歳店前'), findsOneWidget);
+      });
+    });
+
     group('OfflineCacheBanner', () {
       testWidgets('isFromCache: true のとき OfflineCacheBanner が表示される',
           (tester) async {

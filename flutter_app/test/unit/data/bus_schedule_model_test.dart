@@ -72,6 +72,39 @@ void main() {
       expect(entries.map((e) => e.time), ['11:36', '11:39', '11:51']);
     });
 
+    test('terminus は全ての乗車地の BusEntry に載る', () {
+      // 終点は便の属性なので、どこから乗っても同じ
+      final entries = entriesOf([
+        _outbound.copyWith(terminus: 'honbuto'),
+      ]);
+      expect(entries.map((e) => e.terminusStopId),
+          everyElement('honbuto'));
+    });
+
+    test('terminus が無ければ null（未デプロイの GAS・旧キャッシュ）', () {
+      final entries = entriesOf([_outbound]);
+      expect(entries.map((e) => e.terminusStopId), everyElement(isNull));
+    });
+
+    test('terminus は絞り込みの影響を受けない', () {
+      // 長都行き（千歳駅を通過して長都駅東口まで続く）から、
+      // 途中のイオン千歳店前だけを選んだ状態
+      const osatsuBound = TripModel(
+        destination: '千歳駅',
+        routeLabel: '長都行き',
+        terminus: 'osatsu',
+        stops: [
+          StopTimeModel(id: 'chitose', time: '12:02'),
+          StopTimeModel(id: 'aeon', time: '12:08'),
+        ],
+      );
+      final entries = entriesOf([osatsuBound]);
+
+      // 到着地の末尾はイオン千歳店前だが、終点は長都駅東口のまま
+      expect(entries.single.arrivals.keys.last, 'aeon');
+      expect(entries.single.terminusStopId, 'osatsu');
+    });
+
     test('arrivals は乗車地より後の停留所を通過順に持つ', () {
       final entries = entriesOf([_outbound]);
       expect(entries[0].arrivals, {

@@ -642,11 +642,19 @@ class _StopTab extends StatefulWidget {
   }
 
   /// [destination] へ向かうとき、この停留所から見た終点の表示名。
-  /// 「→ 本部棟」のように出す。最後の到着地をデータから引く
+  /// 「→ 本部棟」のように出す。
+  ///
+  /// 終点は便ごとの属性で、GAS が絞り込みの前に決めて返す（[BusEntry.terminusStopId]）。
+  /// **到着地の末尾から導いてはいけない** — 選んだ停留所で変わってしまう。
+  /// 古い供給元（未デプロイの GAS・#177 以前のキャッシュ）だけ末尾に頼る。
+  ///
+  /// 同じ行き先でも便によって終点が違うことはある（もりもと本店前から千歳駅方面
+  /// なら、多くは千歳駅前止まりで長都行きだけ先へ続く）。見出しは1つなので
+  /// 最初の便のものを使う。
   String terminusLabel(String destination) {
     for (final e in timetable.schedules) {
       if (e.boardingStopId != stopId || e.destination != destination) continue;
-      final last = e.arrivals.keys.lastOrNull;
+      final last = e.terminusStopId ?? e.arrivals.keys.lastOrNull;
       if (last == null) continue;
       return stopMaster.labelOf(last);
     }

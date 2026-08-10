@@ -25,6 +25,13 @@ class TripModel with _$TripModel {
   const factory TripModel({
     @Default('') String destination,
     String? routeLabel,
+
+    /// 終点（一般に降りられる最後の停留所）の ID。
+    ///
+    /// GAS が絞り込みの前に決めて返す。`stops` の末尾から導くと、選んだ停留所で
+    /// 終点が変わってしまう。`terminus` を返さない GAS（未デプロイ・#177 以前の
+    /// キャッシュ）もあるため null 許容。
+    String? terminus,
     @Default(false) bool weekdayOnly,
     @Default(false) bool weekendOnly,
     @Default(false) bool academicOnly,
@@ -105,6 +112,7 @@ extension TripModelMapper on TripModel {
         time: stops[i].time,
         boardingStopId: stops[i].id,
         destination: destination,
+        terminusStopId: terminus,
         arrivals: arrivals,
         routeLabel: routeLabel,
         platformNumber: stops[i].platform,

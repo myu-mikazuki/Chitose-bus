@@ -138,6 +138,7 @@
    {
     "destination": "科技大",
     "routeLabel": "空港経由",
+    "terminus": "honbuto",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
@@ -205,6 +206,7 @@
    {
     "destination": "科技大",
     "routeLabel": "空港経由",
+    "terminus": "honbuto",
     "weekdayOnly": false,
     "weekendOnly": true,
     "academicOnly": false,
@@ -272,6 +274,7 @@
    {
     "destination": "科技大",
     "routeLabel": "空港経由",
+    "terminus": "honbuto",
     "weekdayOnly": false,
     "weekendOnly": true,
     "academicOnly": false,
@@ -339,6 +342,7 @@
    {
     "destination": "科技大",
     "routeLabel": "空港経由",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -406,6 +410,7 @@
    {
     "destination": "科技大",
     "routeLabel": "空港経由",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -473,6 +478,7 @@
    {
     "destination": "科技大",
     "routeLabel": "空港経由",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -540,6 +546,7 @@
    {
     "destination": "科技大",
     "routeLabel": "空港経由",
+    "terminus": "honbuto",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
@@ -607,6 +614,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -673,6 +681,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": false,
     "weekendOnly": true,
     "academicOnly": false,
@@ -739,6 +748,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -805,6 +815,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": false,
     "weekendOnly": true,
     "academicOnly": false,
@@ -871,6 +882,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
@@ -937,6 +949,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
@@ -1003,6 +1016,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
@@ -1069,6 +1083,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
@@ -1135,6 +1150,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -1201,6 +1217,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -1267,6 +1284,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1318,6 +1336,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1369,6 +1388,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1420,6 +1440,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1471,6 +1492,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1522,6 +1544,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1573,6 +1596,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1624,6 +1648,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1675,6 +1700,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1726,6 +1752,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1777,6 +1804,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1828,6 +1856,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1879,6 +1908,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1930,6 +1960,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -1981,6 +2012,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2032,6 +2064,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2083,6 +2116,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2134,6 +2168,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2185,6 +2220,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2236,6 +2272,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -2283,6 +2320,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -2330,6 +2368,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -2377,6 +2416,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -2424,6 +2464,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -2471,6 +2512,7 @@
    {
     "destination": "科技大",
     "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -2518,6 +2560,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2568,6 +2611,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2618,6 +2662,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2668,6 +2713,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2718,6 +2764,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2768,6 +2815,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2818,6 +2866,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2868,6 +2917,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2918,6 +2968,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": true,
@@ -2968,6 +3019,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -3018,6 +3070,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -3068,6 +3121,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -3118,6 +3172,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "直通",
+    "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -3168,6 +3223,7 @@
    {
     "destination": "科技大",
     "routeLabel": "長都発",
+    "terminus": "honbuto",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
@@ -3299,6 +3355,7 @@
    {
     "destination": "科技大",
     "routeLabel": "長都発",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -3430,6 +3487,7 @@
    {
     "destination": "科技大",
     "routeLabel": "長都発",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -3561,6 +3619,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "長都行き",
+    "terminus": "osatsu",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
@@ -3692,6 +3751,7 @@
    {
     "destination": "千歳駅",
     "routeLabel": "長都行き",
+    "terminus": "osatsu",
     "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
