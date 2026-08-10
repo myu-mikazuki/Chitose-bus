@@ -591,6 +591,10 @@ function dayTypeForYmd(ymd) {
  *
  * 名称は大学配付物「美々空港線」に準拠する。
  *
+ * shortLabel はタブなど幅の狭い場所で使う短縮名。**略称を勝手に作らないこと。**
+ * アプリが以前から短い名前で表示していた4停留所にだけ付けてある。
+ * 出典の無い略称を発明すると、利用者が実際のバス停の表記と対応付けられなくなる。
+ *
  * 千歳市の PDF を一次情報にしないこと。空17・空18 の表が画像で、
  * pdftotext で読めず目視に頼ることになる。実際に #159 で誤読した
  * （詳細は系統1復路のコメント）。
@@ -612,20 +616,20 @@ var STOPS = [
   { id: 'hoyukai', label: '千歳豊友会病院前' },
   { id: 'hokuei2', label: '北栄2丁目' },
   { id: 'aeon', label: 'イオン千歳店前' },
-  { id: 'chitose', label: '千歳駅前' },
+  { id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅' },
   { id: 'morimoto', label: 'もりもと本店前' },
   { id: 'koizumi', label: '古泉循環器内科クリニック前' },
   { id: 'shiyakusho', label: '市役所前' },
   { id: 'asahicho4', label: '朝日町4丁目' },
   { id: 'asahicho7', label: '朝日町7丁目' },
   { id: 'arcadia', label: 'オフィス・アルカディア入口' },
-  { id: 'minamiChitose', label: '南千歳駅' },
+  { id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳' },
   { id: 'airCargo', label: 'エアカーゴ前' },
   { id: 'domestic28', label: '空港国内線28番' },
   { id: 'domestic1', label: '空港国内線1番' },
   { id: 'international85', label: '空港国際線85番' },
-  { id: 'kenkyuto', label: '科技大研究棟' },
-  { id: 'honbuto', label: '科技大本部棟' },
+  { id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟' },
+  { id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟' },
   { id: 'rapidus', label: 'ラピダス前', boardable: false },
 ];
 
@@ -919,6 +923,8 @@ function buildStopsResponse(wanted) {
     updatedAt: today,
     stopMaster: STOPS.map(function(s) {
       var out = { id: s.id, label: s.label };
+      // 正式名と同じなら返さない（アプリ側は shortLabel || label で解決する）
+      if (s.shortLabel) out.shortLabel = s.shortLabel;
       // 乗車できない停留所（ラピダス前）は選択肢から外すための印。
       // stopMaster から省くことはできない — ラベルの供給元がここしかないため
       if (s.boardable === false) out.boardable = false;
