@@ -12,6 +12,9 @@ import '../viewmodels/stop_selection_viewmodel.dart';
 ///
 /// 選択肢は GAS の `stopMaster` から取る。アプリ側に対応表を持つと、
 /// 停留所が増えるたびにリリースが必要になる。
+///
+/// **編集は下書きで、「適用」を押すまで反映しない。** 反映すると時刻表を
+/// 取り直すため、1操作ごとに適用すると停留所を3つ足すだけで3往復する。
 class StopSettingsScreen extends ConsumerStatefulWidget {
   const StopSettingsScreen({super.key});
 
@@ -20,19 +23,29 @@ class StopSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
-  /// 編集中の並び。表示は常にこれを見る。
-  ///
-  /// [stopSelectionProvider] を直接描画すると、保存が終わるまでの1フレームで
-  /// 並べ替えが元に戻って見える。操作は即座にここへ反映し、保存は後追いさせる。
-  List<String>? _ids;
+  /// 編集中の並び。表示は常にこれを見る
+  List<String>? _draft;
+
+  /// 適用済みの並び。「適用」を出すかどうかの判定に使う
+  List<String>? _applied;
 
   /// 直近に受け取った停留所マスタ。
   ///
-  /// 選択を変えると [scheduleViewModelProvider] が作り直されて一時的に
-  /// loading になる。そのたびに選択肢が消えると操作できないため保持する。
+  /// 適用すると [scheduleViewModelProvider] が作り直されて一時的に loading に
+  /// なる。そのたびに選択肢が消えると操作できないため保持する。
   List<BusStop> _master = const [];
 
-  List<String> get _selected => _ids ?? const [];
+  List<String> get _selected => _draft ?? const [];
+
+  bool get _dirty {
+    final applied = _applied;
+    if (applied == null) return false;
+    if (applied.length != _selected.length) return true;
+    for (var i = 0; i < applied.length; i++) {
+      if (applied[i] != _selected[i]) return true;
+    }
+    return false;
+  }
 
   BusStop? _stopOf(String id) => _master.where((s) => s.id == id).firstOrNull;
 
@@ -44,56 +57,116 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
       .where((s) => s.boardable && !_selected.contains(s.id))
       .toList(growable: false);
 
-  void _apply(List<String> next) {
-    setState(() => _ids = next);
-    ref.read(stopSelectionProvider.notifier).select(StopSelection(stopIds: next));
-  }
+  void _edit(List<String> next) => setState(() => _draft = next);
 
-  void _add(String id) => _apply([..._selected, id]);
+  void _add(String id) => _edit([..._selected, id]);
 
   void _remove(String id) =>
-      _apply(_selected.where((e) => e != id).toList(growable: false));
+      _edit(_selected.where((e) => e != id).toList(growable: false));
 
   void _reorder(int oldIndex, int newIndex) {
     final next = [..._selected];
     // ReorderableListView は「取り除く前」の位置で newIndex を渡してくる
     if (newIndex > oldIndex) newIndex -= 1;
     next.insert(newIndex, next.removeAt(oldIndex));
-    _apply(next);
+    _edit(next);
+  }
+
+  void _apply() {
+    final next = _selected;
+    setState(() => _applied = next);
+    ref.read(stopSelectionProvider.notifier).select(StopSelection(stopIds: next));
+    Navigator.of(context).pop();
+  }
+
+  /// 適用せずに戻ろうとしたときの確認。
+  /// 下書きのまま消えると、操作した分が黙って無かったことになる。
+  Future<bool> _confirmDiscard() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: ctx.appColors.surface,
+        title: const Text('変更を破棄しますか',
+            style: TextStyle(color: AppColors.primary)),
+        content: Text(
+          'バス停の変更はまだ適用されていません。',
+          style: TextStyle(color: ctx.appColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('編集に戻る',
+                style: TextStyle(color: AppColors.primary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child:
+                const Text('破棄', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    return discard ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-    // 最初に解決した選択を編集の起点にする。以降は _ids が正とする
-    // （保存の往復で操作が巻き戻らないようにするため）。
-    _ids ??= ref.watch(stopSelectionProvider).valueOrNull?.stopIds;
+    // 最初に解決した選択を編集の起点にする。以降は _draft が正とする
+    final saved = ref.watch(stopSelectionProvider).valueOrNull?.stopIds;
+    if (_draft == null && saved != null) {
+      _draft = saved;
+      _applied = saved;
+    }
 
     final master =
         ref.watch(scheduleViewModelProvider).valueOrNull?.data.stopMaster;
     if (master != null && master.isNotEmpty) _master = master;
 
-    return Scaffold(
-      backgroundColor: context.appColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: !_dirty,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await _confirmDiscard() && mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
         backgroundColor: context.appColors.background,
-        foregroundColor: AppColors.primary,
-        title: const Text(
-          'バス停',
-          style: TextStyle(
-            color: AppColors.primary,
-            fontSize: 16,
-            letterSpacing: 2,
+        appBar: AppBar(
+          backgroundColor: context.appColors.background,
+          foregroundColor: AppColors.primary,
+          title: const Text(
+            'バス停',
+            style: TextStyle(
+              color: AppColors.primary,
+              fontSize: 16,
+              letterSpacing: 2,
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: _dirty ? _apply : null,
+              child: Text(
+                '適用',
+                style: TextStyle(
+                  color: _dirty
+                      ? AppColors.primary
+                      : context.appColors.textDisabled,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ],
         ),
+        // 選択が読めるまで操作させない。空の状態で追加を押すと、
+        // あとから解決した選択を上書きしてしまう
+        body: _draft == null
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary))
+            : _master.isEmpty
+                ? const _MasterUnavailable()
+                : _buildBody(context),
       ),
-      // 選択が読めるまで操作させない。空の状態で追加を押すと、
-      // あとから解決した選択を上書きしてしまう
-      body: _ids == null
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary))
-          : _master.isEmpty
-              ? const _MasterUnavailable()
-              : _buildBody(context),
     );
   }
 
@@ -103,6 +176,10 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (_dirty) ...[
+          _PendingNotice(),
+          const SizedBox(height: 16),
+        ],
         const _SectionHeader(label: 'タブに表示する'),
         Text(
           '長押しで並べ替えられます。並びがそのままタブの並びになります。',
@@ -157,6 +234,34 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// 未適用の変更があることを伝える。
+/// 「適用」がヘッダにしか無いと、変更が保存されたと思われかねない。
+class _PendingNotice extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.warning),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.edit_outlined, color: AppColors.warning, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '「適用」を押すと時刻表を取り直します',
+              style: TextStyle(
+                  color: context.appColors.textPrimary, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
