@@ -4,6 +4,7 @@ import '../../core/constants/app_constants.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
 import '../../data/sources/schedule_remote_source.dart';
 import '../../data/sources/schedule_local_source.dart';
+import 'stop_selection_viewmodel.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../../domain/repositories/schedule_repository.dart';
 import 'schedule_result.dart';
@@ -17,7 +18,11 @@ final scheduleLocalSourceProvider = Provider<ScheduleLocalSource>((ref) {
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
   final remote = ScheduleRemoteSource(endpointUrl: AppConstants.gasEndpointUrl);
   final local = ref.read(scheduleLocalSourceProvider);
-  return ScheduleRepositoryImpl(remoteSource: remote, localSource: local);
+  return ScheduleRepositoryImpl(
+    remoteSource: remote,
+    localSource: local,
+    stopSelectionRepository: ref.read(stopSelectionRepositoryProvider),
+  );
 });
 
 final scheduleViewModelProvider =

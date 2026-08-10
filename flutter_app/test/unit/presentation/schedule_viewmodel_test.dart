@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
 import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
+import 'package:kagi_bus/data/repositories/stop_selection_repository.dart';
+import 'package:kagi_bus/domain/entities/stop_selection.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 
@@ -17,18 +20,27 @@ const _responseModel = ScheduleResponseModel(
     validFrom: '2024-01-01',
     validTo: '2024-03-31',
     pdfUrl: '',
-    schedules: [
-      BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '千歳科技大'),
+    trips: [
+      TripModel(
+        destination: '科技大',
+        stops: [
+          StopTimeModel(id: 'chitose', time: '09:30'),
+          StopTimeModel(id: 'honbuto', time: '09:55'),
+        ],
+      ),
     ],
   ),
   upcoming: null,
 );
 
 void main() {
+  setUpAll(() => registerFallbackValue(StopSelection.initial));
+
   late MockScheduleRemoteSource mockSource;
   late FakeScheduleLocalSource fakeLocalSource;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     mockSource = MockScheduleRemoteSource();
     fakeLocalSource = FakeScheduleLocalSource();
   });
@@ -41,6 +53,7 @@ void main() {
           (ref) => ScheduleRepositoryImpl(
             remoteSource: mockSource,
             localSource: ref.read(scheduleLocalSourceProvider),
+            stopSelectionRepository: StopSelectionRepository(),
           ),
         ),
       ],
@@ -49,7 +62,7 @@ void main() {
 
   group('ScheduleViewModel', () {
     test('build() returns data on success (no cache)', () async {
-      when(() => mockSource.fetchSchedule())
+      when(() => mockSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       final container = makeContainer();
@@ -62,7 +75,7 @@ void main() {
     });
 
     test('build() sets AsyncError on failure with no cache', () async {
-      when(() => mockSource.fetchSchedule())
+      when(() => mockSource.fetchSchedule(any()))
           .thenThrow(Exception('network error'));
 
       final container = makeContainer();
@@ -76,8 +89,8 @@ void main() {
     });
 
     test('build() returns cached data immediately when cache exists', () async {
-      fakeLocalSource.stored = _responseModel;
-      when(() => mockSource.fetchSchedule())
+      fakeLocalSource.preload(_responseModel);
+      when(() => mockSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       final container = makeContainer();
@@ -89,8 +102,8 @@ void main() {
 
     test('build() silently updates to fresh data after returning cache',
         () async {
-      fakeLocalSource.stored = _responseModel;
-      when(() => mockSource.fetchSchedule())
+      fakeLocalSource.preload(_responseModel);
+      when(() => mockSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       final container = makeContainer();
@@ -105,8 +118,8 @@ void main() {
     });
 
     test('build() keeps showing cache when background update fails', () async {
-      fakeLocalSource.stored = _responseModel;
-      when(() => mockSource.fetchSchedule())
+      fakeLocalSource.preload(_responseModel);
+      when(() => mockSource.fetchSchedule(any()))
           .thenThrow(Exception('network error'));
 
       final container = makeContainer();
@@ -123,7 +136,7 @@ void main() {
     });
 
     test('refresh() transitions through AsyncLoading then AsyncData', () async {
-      when(() => mockSource.fetchSchedule())
+      when(() => mockSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       final container = makeContainer();
@@ -144,7 +157,7 @@ void main() {
     });
 
     test('refresh() falls back to cache when fetch fails', () async {
-      when(() => mockSource.fetchSchedule())
+      when(() => mockSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       final container = makeContainer();
@@ -152,7 +165,7 @@ void main() {
 
       await container.read(scheduleViewModelProvider.future);
 
-      when(() => mockSource.fetchSchedule())
+      when(() => mockSource.fetchSchedule(any()))
           .thenThrow(Exception('server error'));
 
       await container.read(scheduleViewModelProvider.notifier).refresh();

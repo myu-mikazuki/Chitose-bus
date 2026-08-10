@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
+import 'package:kagi_bus/data/repositories/stop_selection_repository.dart';
+import 'package:kagi_bus/domain/entities/stop_selection.dart';
 
 import '../../helpers/fake_schedule_local_source.dart';
 
@@ -14,11 +17,13 @@ const _responseModel = ScheduleResponseModel(
     validFrom: '2024-01-01',
     validTo: '2024-03-31',
     pdfUrl: '',
-    schedules: [
-      BusEntryModel(
-        time: '09:30',
-        direction: 'from_chitose',
-        destination: '千歳科技大',
+    trips: [
+      TripModel(
+        destination: '科技大',
+        stops: [
+          StopTimeModel(id: 'chitose', time: '09:30'),
+          StopTimeModel(id: 'honbuto', time: '09:55'),
+        ],
       ),
     ],
   ),
@@ -31,45 +36,49 @@ const _responseModelWithUpcoming = ScheduleResponseModel(
     validFrom: '2024-01-01',
     validTo: '2024-03-31',
     pdfUrl: '',
-    schedules: [],
+    trips: [],
   ),
   upcoming: BusTimetableModel(
     validFrom: '2024-04-01',
     validTo: '2024-06-30',
     pdfUrl: '',
-    schedules: [],
+    trips: [],
   ),
 );
 
 void main() {
+  setUpAll(() => registerFallbackValue(StopSelection.initial));
+
   late MockScheduleRemoteSource mockRemoteSource;
   late FakeScheduleLocalSource fakeLocalSource;
   late ScheduleRepositoryImpl repository;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     mockRemoteSource = MockScheduleRemoteSource();
     fakeLocalSource = FakeScheduleLocalSource();
     repository = ScheduleRepositoryImpl(
       remoteSource: mockRemoteSource,
       localSource: fakeLocalSource,
+      stopSelectionRepository: StopSelectionRepository(),
     );
   });
 
   group('ScheduleRepositoryImpl.fetchSchedule', () {
     test('maps remoteSource result to ScheduleResponse entity', () async {
-      when(() => mockRemoteSource.fetchSchedule())
+      when(() => mockRemoteSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       final result = await repository.fetchSchedule();
 
-      verify(() => mockRemoteSource.fetchSchedule()).called(1);
+      verify(() => mockRemoteSource.fetchSchedule(any())).called(1);
       expect(result.updatedAt, '2024-01-01');
       expect(result.current.schedules.length, 1);
       expect(result.upcoming, isNull);
     });
 
     test('saves to local cache on success', () async {
-      when(() => mockRemoteSource.fetchSchedule())
+      when(() => mockRemoteSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       await repository.fetchSchedule();
@@ -79,14 +88,14 @@ void main() {
     });
 
     test('propagates exception when remote fails', () async {
-      when(() => mockRemoteSource.fetchSchedule())
+      when(() => mockRemoteSource.fetchSchedule(any()))
           .thenThrow(Exception('network error'));
 
       expect(() => repository.fetchSchedule(), throwsException);
     });
 
     test('maps upcoming timetable when non-null', () async {
-      when(() => mockRemoteSource.fetchSchedule())
+      when(() => mockRemoteSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModelWithUpcoming);
 
       final result = await repository.fetchSchedule();
@@ -102,7 +111,7 @@ void main() {
     });
 
     test('returns cached data', () async {
-      fakeLocalSource.stored = _responseModel;
+      fakeLocalSource.preload(_responseModel);
 
       final result = await repository.getCached();
 
@@ -111,7 +120,7 @@ void main() {
     });
 
     test('returns cached upcoming timetable correctly', () async {
-      fakeLocalSource.stored = _responseModelWithUpcoming;
+      fakeLocalSource.preload(_responseModelWithUpcoming);
 
       final result = await repository.getCached();
 
