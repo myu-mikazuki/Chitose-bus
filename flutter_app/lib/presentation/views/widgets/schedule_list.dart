@@ -41,8 +41,8 @@ class ScheduleList extends ConsumerStatefulWidget {
 class _ScheduleListState extends ConsumerState<ScheduleList> {
   final GlobalKey _nextBusKey = GlobalKey();
   // LayoutBuilder のコールバックで設定される。
-  // true = 有界コンテキスト（_DirectionTab の Expanded 配下）→ 独立スクロール
-  // false = 非有界コンテキスト（_KenkyutoTab・来週ダイヤ BottomSheet）→ スクロールなし
+  // true = 有界コンテキスト（_StopTab の Expanded 配下）→ 独立スクロール
+  // false = 非有界コンテキスト（来週ダイヤ BottomSheet）→ スクロールなし
   bool _isBounded = false;
 
   @override
@@ -52,7 +52,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
     // - stopId / destination は各タブで固定のため変化しない
     // - timetable 更新時の再スクロールは要件外（ユーザー操作の上書きを避けるため）
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 非有界コンテキスト（KenkyutoTab・来週ダイヤ等）はスクロールしない。
+      // 非有界コンテキスト（来週ダイヤ BottomSheet 等）はスクロールしない。
       // nextBus が null の場合は _nextBusKey が付与されず currentContext が null となり
       // スクロールは発生しない（意図通り）。
       if (!_isBounded) return;
@@ -106,8 +106,8 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // maxHeight が有限 = Expanded 等で有界な高さが与えられている（_DirectionTab）。
-        // maxHeight が無限大 = SingleChildScrollView 配下（_KenkyutoTab・BottomSheet 等）。
+        // maxHeight が有限 = Expanded 等で有界な高さが与えられている（_StopTab）。
+        // maxHeight が無限大 = SingleChildScrollView 配下（来週ダイヤ BottomSheet 等）。
         _isBounded = constraints.maxHeight.isFinite;
 
         final rows = List.generate(buses.length, (index) {
