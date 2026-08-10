@@ -33,7 +33,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     final cached = await localSource.load(selection.query);
     if (cached != null) return cached.toEntity();
 
-    // #177 以前のキャッシュがあれば読む（移行用・1〜2リリース後に削除）
+    // #177 以前のキャッシュがあれば読む（移行用・v1.4.0 で削除 / #186）
     return localSource.loadLegacy();
   }
 }

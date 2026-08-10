@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-08-08
+最終更新: 2026-08-10
 
 ---
 
@@ -13,14 +13,24 @@
 | — | [#158](https://github.com/myu-mikazuki/Chitose-bus/issues/158) | 祝日ダイヤの判定 | ✅ 完了・デプロイ済み |
 | — | [#165](https://github.com/myu-mikazuki/Chitose-bus/issues/165) | Google Play へのアップロードを自動化 | ✅ 完了（次回リリースで初回検証） |
 | 1 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
-| 2 | [#177](https://github.com/myu-mikazuki/Chitose-bus/issues/177) | 任意のバス停を乗車地として選べるようにする | 方針決定済み |
+| 2 | [#177](https://github.com/myu-mikazuki/Chitose-bus/issues/177) | 任意のバス停を乗車地として選べるようにする | **v1.3.0 で出す**・実装中 |
 | 3 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
 | 4 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
 | 5 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
 
-#177 は `?v=` を上げずに済む見込み（`stops` パラメータが無ければ現在の挙動を維持するため）。
-一方 #146（臨時便）は応答に便を追加するため、旧アプリへの影響を確認する必要がある。
-どちらも GAS 側だけで大半が完結し、アプリのリリースを待たずに進められる。
+#177 は `?v=4` を足して実装中。GAS 側（PR #182 / #183）は完了し、アプリ側は
+データ層（PR #184）まで進んでいる。残りは乗車地選択の UI。
+#146（臨時便）は応答に便を追加するため、旧アプリへの影響を確認する必要がある。
+
+### v1.3.0（#177）のリリース時にやること
+
+1. **本番 GAS をデプロイする**（`v=4` に対応していないと新アプリが動かない）
+2. ストアへ提出する
+3. リリースノートに「更新後の初回起動」について記載する — #177 以前のキャッシュは
+   [移行用の経路](https://github.com/myu-mikazuki/Chitose-bus/issues/186)で読めるようにしてあるため、
+   オフラインでも時刻表は出る
+
+移行用の経路は **v1.4.0 で削除する**（[#186](https://github.com/myu-mikazuki/Chitose-bus/issues/186)）。
 
 ### 後回しにしたもの
 

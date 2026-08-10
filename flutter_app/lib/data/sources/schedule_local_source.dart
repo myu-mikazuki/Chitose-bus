@@ -45,7 +45,8 @@ class ScheduleLocalSource {
   /// 停留所の選択が記録されていないキャッシュだけが対象。一度でも取得に成功すれば
   /// 新形式で保存され、この経路は二度と使われない。
   ///
-  /// TODO(#177): 1〜2 リリース後に削除する。それまでに大半の端末が移行しきる。
+  /// TODO(#186): **v1.4.0 で削除する。** #177 を出す v1.3.0 の次のリリース。
+  /// 1リリース分あれば大半の端末が新形式へ移行しきる。
   Future<ScheduleResponse?> loadLegacy() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getString(_keyStops) != null) return null;
