@@ -162,28 +162,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // index が変わり、TabBarView 初回生成時に PageView の initialPage と
     // TabController の内部状態がずれて SegmentedButton の高さが 0 になる場合がある。
     // initialIndex を正しく設定した新しい TabController を作り直すことで回避する。
-    ref.listen(favoriteTabProvider, (prev, next) {
-      if (_favoriteApplied) return;
-      next.whenData((fav) {
-        _favoriteApplied = true;
-        final index = stopIds.indexOf(fav.stopId ?? '');
-        if (index >= 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            setState(() {
-              _tabController.dispose();
-              _tabController = TabController(
-                length: stopIds.length,
-                initialIndex: index,
-                vsync: this,
-              );
-            });
+    // お気に入りタブの初回適用（アプリ起動時のみ）
+    //
+    // 停留所の選択と favorite の両方が揃ってから適用する。ref.listen は変化時に
+    // しか発火しないため、片方が先に解決した時点で適用済みにすると、あとから
+    // もう片方が届いても再適用されない。build で両方を watch して判定する。
+    if (!_favoriteApplied &&
+        favoriteAsync.hasValue &&
+        ref.watch(stopSelectionProvider).hasValue) {
+      _favoriteApplied = true;
+      final index = stopIds.indexOf(favoriteStopId ?? '');
+      if (index >= 0) {
+        // addPostFrameCallback で index だけ変えると、TabBarView 初回生成時に
+        // PageView の initialPage と TabController の内部状態がずれて
+        // SegmentedButton の高さが 0 になる。initialIndex を持つ TabController を
+        // 作り直すことで回避する。
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            _tabController.dispose();
+            _tabController = TabController(
+              length: stopIds.length,
+              initialIndex: index,
+              vsync: this,
+            );
           });
-        }
-      });
-    });
+        });
+      }
+    }
 
-    // 停留所の選択が変わるとタブの数も変わる。TabController を作り直す
+    // 停留所の選択が変わるとタブの数も変わる。TabController を作り直す。
+    //
+    // TODO(#177): setState 無しで build 中に状態を書き換えている。現在のタブ位置も
+    // 失われる（停留所を1つ足しただけで先頭へ飛ぶ）。選択を key にした子へ
+    // TabController ごと追い出すのが筋。設定画面でタブ数が実際に変わるので、
+    // そのときに直す。
     if (_tabController.length != stopIds.length) {
       final old = _tabController;
       _tabController = TabController(length: stopIds.length, vsync: this);
@@ -599,8 +612,26 @@ class _StopTab extends StatefulWidget {
 class _StopTabState extends State<_StopTab> {
   String? _selected;
 
+  /// 時刻表の全便を走査するので、build のたびに数えない
+  late List<String> _destinations;
+
+  @override
+  void initState() {
+    super.initState();
+    _destinations = widget.destinations;
+  }
+
+  @override
+  void didUpdateWidget(_StopTab old) {
+    super.didUpdateWidget(old);
+    if (!identical(old.timetable, widget.timetable) ||
+        old.stopId != widget.stopId) {
+      _destinations = widget.destinations;
+    }
+  }
+
   String get _destination =>
-      _selected ?? widget.destinations.firstOrNull ?? BusDestination.campus;
+      _selected ?? _destinations.firstOrNull ?? BusDestination.campus;
 
   @override
   Widget build(BuildContext context) {
@@ -609,16 +640,23 @@ class _StopTabState extends State<_StopTab> {
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: SeasonNoticeBanner(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 現在は無効化中だが、再有効化したときにここへ出る
+              WeekendWarningBanner(),
+              SeasonNoticeBanner(),
+            ],
+          ),
         ),
         // 行き先が複数ある停留所だけ切り替えを出す。
         // 終点や片方向しか通らない停留所では選ぶものが無い
-        if (widget.destinations.length > 1)
+        if (_destinations.length > 1)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: SegmentedButton<String>(
               segments: [
-                for (final d in widget.destinations)
+                for (final d in _destinations)
                   ButtonSegment(
                     value: d,
                     label: Text('→ ${widget.terminusLabel(d)}'),
@@ -652,9 +690,9 @@ class _StopTabState extends State<_StopTab> {
                 GestureDetector(
                   onVerticalDragUpdate: (_) {},
                   child: IndexedStack(
-                    index: widget.destinations.indexOf(_destination).clamp(0, 99),
+                    index: _destinations.indexOf(_destination).clamp(0, 99),
                     children: [
-                      for (final d in widget.destinations)
+                      for (final d in _destinations)
                         NextBusDisplay(
                           timetable: widget.timetable,
                           stopId: widget.stopId,
@@ -682,9 +720,9 @@ class _StopTabState extends State<_StopTab> {
           child: GestureDetector(
             onVerticalDragUpdate: (_) {},
             child: IndexedStack(
-              index: widget.destinations.indexOf(_destination).clamp(0, 99),
+              index: _destinations.indexOf(_destination).clamp(0, 99),
               children: [
-                for (final d in widget.destinations)
+                for (final d in _destinations)
                   ScheduleList(
                     key: ValueKey(
                         '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
@@ -710,107 +748,6 @@ class _StopTabState extends State<_StopTab> {
   }
 }
 
-class _DirectionTab extends StatelessWidget {
-  const _DirectionTab({
-    required this.timetable,
-    required this.stopId,
-    required this.destination,
-    required this.updatedAt,
-    this.dayType,
-    this.season,
-  });
-
-  final BusTimetable timetable;
-  final String stopId;
-  final String destination;
-  final String updatedAt;
-  final DayType? dayType;
-  final SeasonType? season;
-
-  @override
-  Widget build(BuildContext context) {
-    // Column + Expanded 構成により:
-    // - NEXT BUS セクションを固定ヘッダとして常時表示
-    // - ScheduleList に有界な高さを与えて独立スクロール可能にする
-    // - Scrollable.ensureVisible が ListView 自身をスクロール（親は不変）
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const WeekendWarningBanner(),
-              const SeasonNoticeBanner(),
-              const SizedBox(height: 8),
-              // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
-              if (dayType == null) ...[
-                Text(
-                  'NEXT BUS',
-                  style: TextStyle(
-                    color: context.appColors.textTertiary,
-                    fontSize: 12,
-                    letterSpacing: 3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-                // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
-                // これにより TabBarView（PageView）への伝播を防ぐ。
-                GestureDetector(
-                  onVerticalDragUpdate: (_) {},
-                  child: NextBusDisplay(
-                    timetable: timetable,
-                    stopId: stopId,
-                    destination: destination,
-                    showPlatform: stopId == 'chitose',
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-              Text(
-                dayType == null ? 'TODAY\'S SCHEDULE' : 'SCHEDULE',
-                style: TextStyle(
-                  color: context.appColors.textTertiary,
-                  fontSize: 12,
-                  letterSpacing: 3,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-        // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-        // ジェスチャーアリーナに参加し、スクロール不可時の縦スワイプを消費する。
-        // これにより TabBarView（PageView）への伝播を防ぐ。
-        Expanded(
-          child: GestureDetector(
-            onVerticalDragUpdate: (_) {},
-            // dayType をキーに含めて表示モード切替時に State を再生成し、
-            // 当日表示に戻ったとき NEXT への自動スクロールを再実行させる。
-            child: ScheduleList(
-              key: ValueKey(
-                  '${stopId}_${destination}_${dayType?.name ?? 'today'}_${season?.name ?? ''}'),
-              timetable: timetable,
-              stopId: stopId,
-              destination: destination,
-              dayType: dayType,
-              season: season,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Text(
-            '更新: $updatedAt',
-            style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _BannerAdWidget extends StatefulWidget {
   const _BannerAdWidget({required this.onDismissed});

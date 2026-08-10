@@ -1,13 +1,18 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/entities/favorite_tab.dart';
-import '../../domain/entities/stop_selection.dart';
 
 class FavoriteTabRepository {
   static const _key = 'favorite_tab_stop';
 
   /// #177 以前のキー。タブ番号（0〜3）を保存していた
   static const _legacyKey = 'favorite_tab_index';
+
+  /// **#177 以前のタブ順**。過去の事実なので凍結する。
+  ///
+  /// StopSelection.defaultStopIds は「現在の既定選択」で、将来並びを変えうる。
+  /// それを参照すると、変えた瞬間に旧番号 0 が別の停留所へ移行されてしまう。
+  static const _legacyTabOrder = ['chitose', 'minamiChitose', 'kenkyuto', 'honbuto'];
 
   Future<FavoriteTab> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -40,7 +45,7 @@ class FavoriteTabRepository {
 
     await prefs.remove(_legacyKey);
 
-    const order = StopSelection.defaultStopIds;
+    const order = _legacyTabOrder;
     if (index < 0 || index >= order.length) return const FavoriteTab();
 
     final stopId = order[index];
