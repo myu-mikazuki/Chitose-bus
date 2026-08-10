@@ -157,6 +157,19 @@ abstract final class ServiceCalendar {
       (date.month == DateTime.january && date.day <= 3);
 }
 
+/// 便の行き先。GAS の `destination` がこの2つだけであることは
+/// scripts/check_gas_response.js が検査している。
+///
+/// 表記が変わると、これで絞っている画面が**黙って空になる**。
+/// リテラルを散らさず、変更箇所を1つに保つためここに置く。
+abstract final class BusDestination {
+  /// 科技大（研究棟・本部棟）方面
+  static const campus = '科技大';
+
+  /// 千歳駅方面
+  static const station = '千歳駅';
+}
+
 /// ある停留所から乗る場合の1便。
 ///
 /// 便そのものではなく「どこから乗るか」を決めたあとの見え方を表す。
@@ -198,15 +211,16 @@ class BusEntry {
   /// #177 以前は `BusDirection` の名前を使っていたため、その5通りは同じ文字列に
   /// なるようにしてある。新しい停留所は該当が無いので `<乗車地>_<行き先>` を使う。
   ///
-  /// TODO(#187): 任意の停留所に対応したら形式を統一し、保存済みキーを移行する。
+  /// TODO(#190): 系統が入っておらず同時刻の便で衝突する。形式を統一する際に
+  /// 保存済みキーの移行も要る。
   String get notificationKey {
     final legacy = switch ((boardingStopId, destination)) {
       // 旧 BusDirection の enum 名（.name）。JSON の文字列ではない
-      ('chitose', '科技大') => 'fromChitose',
-      ('minamiChitose', '科技大') => 'fromMinamiChitose',
-      ('kenkyuto', '科技大') => 'fromKenkyutoToHonbuto',
-      ('kenkyuto', '千歳駅') => 'fromKenkyutoToStation',
-      ('honbuto', '千歳駅') => 'fromHonbuto',
+      ('chitose', BusDestination.campus) => 'fromChitose',
+      ('minamiChitose', BusDestination.campus) => 'fromMinamiChitose',
+      ('kenkyuto', BusDestination.campus) => 'fromKenkyutoToHonbuto',
+      ('kenkyuto', BusDestination.station) => 'fromKenkyutoToStation',
+      ('honbuto', BusDestination.station) => 'fromHonbuto',
       _ => null,
     };
     return '${legacy ?? '${boardingStopId}_$destination'}_$time';

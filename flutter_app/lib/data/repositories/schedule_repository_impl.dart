@@ -36,11 +36,10 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   /// refresh を突き抜けて AsyncLoading のまま固着する。
   @override
   Future<ScheduleResponse?> getCached() async {
-    final selection = await stopSelectionRepository.load();
-
-    // 読み出しも変換もまとめて包む。どこで失敗してもミス扱いにして下へ落とす。
+    // メソッド全体を包む。選択の読み出しを含め、どこで失敗してもミス扱いにする。
     // 取得経路（fetchSchedule）は従来どおり loud に失敗する
     try {
+      final selection = await stopSelectionRepository.load();
       final cached = await localSource.load(selection.query);
       if (cached != null) return cached.toEntity();
     } catch (_) {

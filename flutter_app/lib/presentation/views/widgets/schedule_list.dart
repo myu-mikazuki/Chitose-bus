@@ -247,9 +247,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   List<Widget> _buildArrivalRows() {
     final colors = context.appColors;
     final order = widget.bus.arrivals.keys.toList();
-    return order
-        .where((key) => widget.bus.arrivals.containsKey(key))
-        .map((key) => Padding(
+    return order.map((key) => Padding(
               padding: const EdgeInsets.only(top: 4, left: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

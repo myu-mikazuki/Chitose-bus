@@ -299,10 +299,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _DirectionTab(timetable: result.data.current, stopId: 'chitose', destination: '科技大', updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, stopId: 'minamiChitose', destination: '科技大', updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _DirectionTab(timetable: result.data.current, stopId: 'chitose', destination: BusDestination.campus, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _DirectionTab(timetable: result.data.current, stopId: 'minamiChitose', destination: BusDestination.campus, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
                         _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, stopId: 'honbuto', destination: '千歳駅', updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _DirectionTab(timetable: result.data.current, stopId: 'honbuto', destination: BusDestination.station, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
                       ],
                     ),
                   ),
@@ -420,23 +420,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 16),
               const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'chitose', destination: '科技大'),
+              ScheduleList(timetable: upcoming, stopId: 'chitose', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'minamiChitose', destination: '科技大'),
+              ScheduleList(timetable: upcoming, stopId: 'minamiChitose', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: '科技大'),
+              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: '千歳駅'),
+              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.station),
               const SizedBox(height: 16),
               const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'honbuto', destination: '千歳駅'),
+              ScheduleList(timetable: upcoming, stopId: 'honbuto', destination: BusDestination.station),
             ],
           ),
         ),
@@ -536,7 +536,7 @@ class _KenkyutoTab extends StatefulWidget {
 
 class _KenkyutoTabState extends State<_KenkyutoTab> {
   // 研究棟は途中の停留所なので、上下どちらへ乗るかを選ばせる
-  String _destination = '科技大';
+  String _destination = BusDestination.campus;
 
   @override
   Widget build(BuildContext context) {
@@ -553,11 +553,11 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: SegmentedButton<String>(
             segments: const [
               ButtonSegment(
-                value: '科技大',
+                value: BusDestination.campus,
                 label: Text('→ 本部棟'),
               ),
               ButtonSegment(
-                value: '千歳駅',
+                value: BusDestination.station,
                 label: Text('→ 千歳駅'),
               ),
             ],
@@ -589,10 +589,10 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                 GestureDetector(
                   onVerticalDragUpdate: (_) {},
                   child: IndexedStack(
-                    index: _destination == '科技大' ? 0 : 1,
+                    index: _destination == BusDestination.campus ? 0 : 1,
                     children: [
-                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: '科技大'),
-                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: '千歳駅'),
+                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: BusDestination.campus),
+                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: BusDestination.station),
                     ],
                   ),
                 ),
@@ -614,13 +614,13 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: GestureDetector(
             onVerticalDragUpdate: (_) {},
             child: IndexedStack(
-              index: _destination == '科技大' ? 0 : 1,
+              index: _destination == BusDestination.campus ? 0 : 1,
               children: [
                 ScheduleList(
                   key: PageStorageKey(
                       'kenkyuto_honbuto_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
                   timetable: widget.timetable,
-                  stopId: 'kenkyuto', destination: '科技大',
+                  stopId: 'kenkyuto', destination: BusDestination.campus,
                   dayType: widget.dayType,
                   season: widget.season,
                 ),
@@ -628,7 +628,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                   key: PageStorageKey(
                       'kenkyuto_chitose_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
                   timetable: widget.timetable,
-                  stopId: 'kenkyuto', destination: '千歳駅',
+                  stopId: 'kenkyuto', destination: BusDestination.station,
                   dayType: widget.dayType,
                   season: widget.season,
                 ),
