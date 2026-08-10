@@ -38,6 +38,10 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<ScheduleResponse?> getCached() async {
     // メソッド全体を包む。選択の読み出しを含め、どこで失敗してもミス扱いにする。
     // 取得経路（fetchSchedule）は従来どおり loud に失敗する
+    //
+    // TODO(#191): stopSelectionRepository.load() が投げる経路にテストが無い。
+    // StopSelectionRepository が具象クラスのため差し替えられないのが理由で、
+    // ここを触るときに interface 化して塞ぐこと。
     try {
       final selection = await stopSelectionRepository.load();
       final cached = await localSource.load(selection.query);
