@@ -1,8 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kagi_bus/data/repositories/schedule_repository_impl.dart';
 import 'package:kagi_bus/data/sources/schedule_remote_source.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/data/repositories/stop_selection_repository.dart';
+import 'package:kagi_bus/domain/entities/stop_selection.dart';
 
 import '../../helpers/fake_schedule_local_source.dart';
 
@@ -14,11 +18,13 @@ const _responseModel = ScheduleResponseModel(
     validFrom: '2024-01-01',
     validTo: '2024-03-31',
     pdfUrl: '',
-    schedules: [
-      BusEntryModel(
-        time: '09:30',
-        direction: 'from_chitose',
-        destination: '千歳科技大',
+    trips: [
+      TripModel(
+        destination: '科技大',
+        stops: [
+          StopTimeModel(id: 'chitose', time: '09:30'),
+          StopTimeModel(id: 'honbuto', time: '09:55'),
+        ],
       ),
     ],
   ),
@@ -31,45 +37,49 @@ const _responseModelWithUpcoming = ScheduleResponseModel(
     validFrom: '2024-01-01',
     validTo: '2024-03-31',
     pdfUrl: '',
-    schedules: [],
+    trips: [],
   ),
   upcoming: BusTimetableModel(
     validFrom: '2024-04-01',
     validTo: '2024-06-30',
     pdfUrl: '',
-    schedules: [],
+    trips: [],
   ),
 );
 
 void main() {
+  setUpAll(() => registerFallbackValue(StopSelection.initial));
+
   late MockScheduleRemoteSource mockRemoteSource;
   late FakeScheduleLocalSource fakeLocalSource;
   late ScheduleRepositoryImpl repository;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     mockRemoteSource = MockScheduleRemoteSource();
     fakeLocalSource = FakeScheduleLocalSource();
     repository = ScheduleRepositoryImpl(
       remoteSource: mockRemoteSource,
       localSource: fakeLocalSource,
+      stopSelectionRepository: StopSelectionRepository(),
     );
   });
 
   group('ScheduleRepositoryImpl.fetchSchedule', () {
     test('maps remoteSource result to ScheduleResponse entity', () async {
-      when(() => mockRemoteSource.fetchSchedule())
+      when(() => mockRemoteSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       final result = await repository.fetchSchedule();
 
-      verify(() => mockRemoteSource.fetchSchedule()).called(1);
+      verify(() => mockRemoteSource.fetchSchedule(any())).called(1);
       expect(result.updatedAt, '2024-01-01');
       expect(result.current.schedules.length, 1);
       expect(result.upcoming, isNull);
     });
 
     test('saves to local cache on success', () async {
-      when(() => mockRemoteSource.fetchSchedule())
+      when(() => mockRemoteSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModel);
 
       await repository.fetchSchedule();
@@ -79,14 +89,14 @@ void main() {
     });
 
     test('propagates exception when remote fails', () async {
-      when(() => mockRemoteSource.fetchSchedule())
+      when(() => mockRemoteSource.fetchSchedule(any()))
           .thenThrow(Exception('network error'));
 
       expect(() => repository.fetchSchedule(), throwsException);
     });
 
     test('maps upcoming timetable when non-null', () async {
-      when(() => mockRemoteSource.fetchSchedule())
+      when(() => mockRemoteSource.fetchSchedule(any()))
           .thenAnswer((_) async => _responseModelWithUpcoming);
 
       final result = await repository.fetchSchedule();
@@ -102,7 +112,7 @@ void main() {
     });
 
     test('returns cached data', () async {
-      fakeLocalSource.stored = _responseModel;
+      fakeLocalSource.preload(_responseModel);
 
       final result = await repository.getCached();
 
@@ -111,12 +121,145 @@ void main() {
     });
 
     test('returns cached upcoming timetable correctly', () async {
-      fakeLocalSource.stored = _responseModelWithUpcoming;
+      fakeLocalSource.preload(_responseModelWithUpcoming);
 
       final result = await repository.getCached();
 
       expect(result!.upcoming, isNotNull);
       expect(result.upcoming!.validFrom, '2024-04-01');
+    });
+  });
+
+  group('停留所の選択が remote / local に伝わる', () {
+    test('保存済みの選択がそのまま fetchSchedule と キャッシュキーに渡る', () async {
+      SharedPreferences.setMockInitialValues({
+        'stop_selection_ids': ['chitose', 'morimoto'],
+      });
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => _responseModel);
+
+      await repository.fetchSchedule();
+
+      verify(() => mockRemoteSource.fetchSchedule(
+            const StopSelection(stopIds: ['chitose', 'morimoto']),
+          )).called(1);
+      expect(fakeLocalSource.storedStops, 'chitose,morimoto');
+    });
+
+    test('選択が未設定なら既定の4停留所で取得する', () async {
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => _responseModel);
+
+      await repository.fetchSchedule();
+
+      verify(() => mockRemoteSource.fetchSchedule(StopSelection.initial))
+          .called(1);
+      expect(fakeLocalSource.storedStops, StopSelection.initial.query);
+    });
+
+    test('選択が変わるとキャッシュは当たらない', () async {
+      // 既定の選択で保存されたキャッシュは、別の選択では使えない
+      fakeLocalSource.preload(_responseModel);
+      SharedPreferences.setMockInitialValues({
+        'stop_selection_ids': ['chitose', 'morimoto'],
+      });
+
+      expect(await repository.getCached(), isNull);
+    });
+  });
+
+  group('#177 以前のキャッシュへのフォールバック（移行用）', () {
+    final legacy = ScheduleResponse(
+      updatedAt: '2026-08-01',
+      current: BusTimetable(
+        validFrom: '',
+        validTo: '',
+        schedules: [
+          BusEntry(
+            time: '07:20',
+            direction: BusDirection.fromChitose,
+            destination: '科技大',
+            arrivals: const {'honbuto': '07:45'},
+          ),
+        ],
+      ),
+    );
+
+    test('新形式のキャッシュが無ければ旧キャッシュを返す', () async {
+      // 更新直後にオフラインでも時刻表を出せるようにする
+      fakeLocalSource.legacy = legacy;
+
+      final result = await repository.getCached();
+      expect(result, isNotNull);
+      expect(result!.updatedAt, '2026-08-01');
+      expect(result.current.schedules.single.time, '07:20');
+    });
+
+    test('新形式のキャッシュがあればそちらを優先する', () async {
+      fakeLocalSource.preload(_responseModel);
+      fakeLocalSource.legacy = legacy;
+
+      final result = await repository.getCached();
+      expect(result!.updatedAt, _responseModel.updatedAt);
+    });
+
+    test('どちらも無ければ null', () async {
+      expect(await repository.getCached(), isNull);
+    });
+  });
+
+  group('解釈できない応答の扱い', () {
+    // GAS が想定外の destination を返したときの経路。
+    // check_gas_response.js が本来ここを止めるが、止められなかった場合の備え
+    const poisoned = ScheduleResponseModel(
+      updatedAt: '2026-08-10',
+      current: BusTimetableModel(
+        trips: [
+          TripModel(
+            destination: '長都駅',
+            stops: [StopTimeModel(id: 'chitose', time: '21:00')],
+          ),
+        ],
+      ),
+    );
+
+    test('取得経路は例外を投げる（黙って消さない）', () async {
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => poisoned);
+
+      expect(() => repository.fetchSchedule(), throwsA(isA<FormatException>()));
+    });
+
+    test('解釈できない応答はキャッシュに保存しない', () async {
+      // 先に保存すると、以降のキャッシュ読み出しが毎回失敗するようになる
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => poisoned);
+
+      await expectLater(repository.fetchSchedule(), throwsA(isA<Exception>()));
+      expect(fakeLocalSource.stored, isNull);
+      expect(fakeLocalSource.saveCallCount, 0);
+    });
+
+    test('解釈できないキャッシュは投げずに null を返す', () async {
+      // getCached は復帰手段なので投げてはいけない（投げると画面が固まる）
+      fakeLocalSource.preload(poisoned);
+
+      expect(await repository.getCached(), isNull);
+    });
+
+    test('解釈できないキャッシュでも旧キャッシュがあればそちらを返す', () async {
+      fakeLocalSource.preload(poisoned);
+      fakeLocalSource.legacy = ScheduleResponse(
+        updatedAt: '2026-08-01',
+        current: const BusTimetable(
+          validFrom: '',
+          validTo: '',
+          schedules: [],
+        ),
+      );
+
+      // preload で storedStops が入るため、この経路では旧キャッシュは使われない
+      expect(await repository.getCached(), isNull);
     });
   });
 }

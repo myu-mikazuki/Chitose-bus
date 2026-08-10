@@ -273,14 +273,34 @@ class BusTimetable {
   }
 }
 
+/// 路線上の停留所。表示名の供給元は GAS の `stopMaster` のみ（Issue #177）。
+///
+/// アプリ側に名前の対応表を持つと、停留所が増えるたびにリリースが必要になる。
+class BusStop {
+  const BusStop({
+    required this.id,
+    required this.label,
+    this.boardable = true,
+  });
+
+  final String id;
+  final String label;
+
+  /// 乗車地として選べるか。
+  /// ラピダス前は工場敷地内で一般利用できないため false。
+  final bool boardable;
+}
+
 class ScheduleResponse {
   const ScheduleResponse({
     required this.updatedAt,
     required this.current,
+    this.stopMaster = const [],
     this.upcoming,
   });
 
   final String updatedAt;
+  final List<BusStop> stopMaster;
   final BusTimetable current;
   final BusTimetable? upcoming;
 }
