@@ -129,6 +129,20 @@ function checkRouteData() {
       }
     }
   }
+  // v=4 の応答には direction が無いため、アプリ側の adapter は destination の
+  // 文字列で乗車地を決めている（bus_schedule_model.dart の _legacyBoarding）。
+  // ここを増やすとアプリが未知の行き先として落ちるので、集合を固定する。
+  // 乗車地選択の UI が入って adapter が消えたら、この検査も不要になる。
+  const APP_KNOWN_DESTINATIONS = ['科技大', '千歳駅'];
+  const actual = [...new Set(ROUTES.map((r) => r.destination))].sort();
+  const expected = [...APP_KNOWN_DESTINATIONS].sort();
+  if (actual.join('|') !== expected.join('|')) {
+    console.log(`  FAIL destination の集合がアプリの adapter と食い違う`);
+    console.log(`         アプリが知っている: ${expected.join(' / ')}`);
+    console.log(`         ROUTES にあるもの : ${actual.join(' / ')}`);
+    failures++;
+  }
+
   // ROUTES は「系統」ではなく往復・期別に分けた表なので、系統数とは一致しない
   console.log(`  ok   便テーブル ${ROUTES.length}表 / ${trips}便 / ${times}時刻 / 停留所 ${STOPS.length}`);
 }

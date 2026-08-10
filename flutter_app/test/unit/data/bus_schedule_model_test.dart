@@ -129,6 +129,20 @@ void main() {
       }
     });
 
+    test('知らない行き先は黙って捨てず例外にする', () {
+      // 空を返すとその系統の便がエラーも出さず全部消え、「バスがありません」に
+      // なってしまう。GAS 側の destination を増やしたら気付けるようにする
+      expect(
+        () => entriesOf([
+          const TripModel(
+            destination: '長都駅',
+            stops: [StopTimeModel(id: 'chitose', time: '21:00')],
+          ),
+        ]),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
     test('乗車地を1つも含まない便は展開されない', () {
       // 利用者が4停留所以外だけを選ぶと起きる。pr-c では選択を変えないので通常は無い
       final entries = entriesOf([

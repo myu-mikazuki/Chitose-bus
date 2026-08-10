@@ -128,4 +128,42 @@ void main() {
       expect(result.upcoming!.validFrom, '2024-04-01');
     });
   });
+
+  group('停留所の選択が remote / local に伝わる', () {
+    test('保存済みの選択がそのまま fetchSchedule と キャッシュキーに渡る', () async {
+      SharedPreferences.setMockInitialValues({
+        'stop_selection_ids': ['chitose', 'morimoto'],
+      });
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => _responseModel);
+
+      await repository.fetchSchedule();
+
+      verify(() => mockRemoteSource.fetchSchedule(
+            const StopSelection(stopIds: ['chitose', 'morimoto']),
+          )).called(1);
+      expect(fakeLocalSource.storedStops, 'chitose,morimoto');
+    });
+
+    test('選択が未設定なら既定の4停留所で取得する', () async {
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => _responseModel);
+
+      await repository.fetchSchedule();
+
+      verify(() => mockRemoteSource.fetchSchedule(StopSelection.initial))
+          .called(1);
+      expect(fakeLocalSource.storedStops, StopSelection.initial.query);
+    });
+
+    test('選択が変わるとキャッシュは当たらない', () async {
+      // 既定の選択で保存されたキャッシュは、別の選択では使えない
+      fakeLocalSource.preload(_responseModel);
+      SharedPreferences.setMockInitialValues({
+        'stop_selection_ids': ['chitose', 'morimoto'],
+      });
+
+      expect(await repository.getCached(), isNull);
+    });
+  });
 }

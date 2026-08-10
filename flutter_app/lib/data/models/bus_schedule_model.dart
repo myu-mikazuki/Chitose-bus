@@ -88,6 +88,11 @@ class ScheduleResponseModel with _$ScheduleResponseModel {
 
 /// 旧形式で乗車地として出す停留所と、対応する BusDirection。
 /// GAS 側の LEGACY_BOARDING と同じ内容（片方だけ変えると表示が食い違う）。
+///
+/// GAS 側は ROUTES の direction をキーにしているが、v=4 の応答は direction を
+/// 持たないため、ここでは destination で引くしかない。表示用の文字列に依存する
+/// 弱い作りなので、解決できなければ**黙って捨てずに落とす**（下記参照）。
+/// scripts/check_gas_response.js が GAS 側の destination の集合を検査している。
 const _legacyBoarding = <String, List<(String, BusDirection)>>{
   '科技大': [
     ('chitose', BusDirection.fromChitose),
@@ -107,7 +112,11 @@ extension TripModelMapper on TripModel {
   /// 乗車地ごとの BusEntry に展開する（通らない乗車地は作らない）
   List<BusEntry> toEntries() {
     final boarding = _legacyBoarding[destination];
-    if (boarding == null) return const [];
+    // 空を返すと、その系統の便がエラーも出さず全部消えて「バスがありません」に
+    // なる。時刻表アプリでは黙って消えるのが一番まずいので、見えるように落とす。
+    if (boarding == null) {
+      throw FormatException('未知の行き先です: $destination');
+    }
 
     final out = <BusEntry>[];
     for (final (stopId, direction) in boarding) {

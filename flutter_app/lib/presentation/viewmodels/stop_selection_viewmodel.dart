@@ -16,7 +16,12 @@ class StopSelectionNotifier extends AsyncNotifier<StopSelection> {
   Future<StopSelection> build() =>
       ref.read(stopSelectionRepositoryProvider).load();
 
-  /// AsyncNotifierBase.update と名前が衝突するため select とする
+  /// AsyncNotifierBase.update と名前が衝突するため select とする。
+  ///
+  /// TODO(#177): 呼び出し側は時刻表の再取得も促すこと。
+  /// scheduleRepositoryProvider は SharedPreferences を直接読むため、
+  /// ここで state を変えても scheduleViewModelProvider は再構築されない。
+  /// 乗車地選択の UI を入れる際に ref.invalidate(scheduleViewModelProvider) が要る。
   Future<void> select(StopSelection selection) async {
     if (state.value == selection) return;
     await ref.read(stopSelectionRepositoryProvider).save(selection);
