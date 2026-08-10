@@ -52,7 +52,7 @@ class _ErrorViewModel extends ScheduleViewModel {
 
 class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
   final FavoriteTab _initial;
-  int? lastToggleIndex;
+  String? lastToggleStopId;
 
   _FakeFavoriteTabNotifier(this._initial);
 
@@ -60,13 +60,13 @@ class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
   Future<FavoriteTab> build() async => _initial;
 
   @override
-  Future<void> toggleFavorite(int tabIndex) async {
-    lastToggleIndex = tabIndex;
+  Future<void> toggleFavorite(String stopId) async {
+    lastToggleStopId = stopId;
     final current = state.value!;
     state = AsyncData(
-      current.tabIndex == tabIndex
+      current.stopId == stopId
           ? const FavoriteTab()
-          : FavoriteTab(tabIndex: tabIndex),
+          : FavoriteTab(stopId: stopId),
     );
   }
 }
@@ -111,11 +111,12 @@ class _TrackingErrorViewModel extends ScheduleViewModel {
 final _emptyTimetable = BusTimetable(
   validFrom: '2024-01-01',
   validTo: '2024-03-31',
-  schedules: const [],
+  schedules: _kenkyutoBothWays,
 );
 
 final _mockResponse = ScheduleResult(
   data: ScheduleResponse(
+    stopMaster: _stopMaster,
     updatedAt: '2024-01-01',
     current: _emptyTimetable,
   ),
@@ -123,6 +124,7 @@ final _mockResponse = ScheduleResult(
 
 final _mockResponseWithUpcoming = ScheduleResult(
   data: ScheduleResponse(
+    stopMaster: _stopMaster,
     updatedAt: '2024-01-01',
     current: _emptyTimetable,
     upcoming: BusTimetable(
@@ -136,6 +138,29 @@ final _mockResponseWithUpcoming = ScheduleResult(
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+// 行き先の選択肢はデータから導くため、研究棟から両方向の便が要る
+const _kenkyutoBothWays = [
+  BusEntry(
+    time: '09:00',
+    boardingStopId: 'kenkyuto',
+    destination: '科技大',
+    arrivals: {'honbuto': '09:03'},
+  ),
+  BusEntry(
+    time: '09:10',
+    boardingStopId: 'kenkyuto',
+    destination: '千歳駅',
+    arrivals: {'chitose': '09:30'},
+  ),
+];
+
+const _stopMaster = [
+  BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+  BusStop(id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳'),
+  BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
+  BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+];
 
 void main() {
   setUp(() {
@@ -383,6 +408,7 @@ void main() {
         // 平日限定・土日祝限定の便を含むタイムテーブル
         final result = ScheduleResult(
           data: ScheduleResponse(
+            stopMaster: _stopMaster,
             updatedAt: '2024-01-01',
             current: BusTimetable(
               validFrom: '2024-01-01',
@@ -479,7 +505,7 @@ void main() {
 
       testWidgets('タブ0がお気に入り: star 1個 + star_border 3個が表示される', (tester) async {
         final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 0));
+            _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'chitose'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -497,7 +523,7 @@ void main() {
         expect(find.byIcon(Icons.star_border), findsNWidgets(3));
       });
 
-      testWidgets('タブ0のスタータップ: toggleFavorite(0) が呼ばれる', (tester) async {
+      testWidgets('タブ0のスタータップ: toggleFavorite(chitose) が呼ばれる', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
@@ -516,10 +542,10 @@ void main() {
         await tester.tap(find.byIcon(Icons.star_border).first);
         await tester.pump();
 
-        expect(favNotifier.lastToggleIndex, equals(0));
+        expect(favNotifier.lastToggleStopId, equals('chitose'));
       });
 
-      testWidgets('タブ2のスタータップ: toggleFavorite(2) が呼ばれる', (tester) async {
+      testWidgets('タブ2のスタータップ: toggleFavorite(kenkyuto) が呼ばれる', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
@@ -538,7 +564,7 @@ void main() {
         await tester.tap(find.byIcon(Icons.star_border).at(2));
         await tester.pump();
 
-        expect(favNotifier.lastToggleIndex, equals(2));
+        expect(favNotifier.lastToggleStopId, equals('kenkyuto'));
       });
 
       testWidgets('タブ2がお気に入り未設定でタブ2に切り替え: → 本部棟・→ 千歳駅の選択肢が見える',
@@ -568,7 +594,7 @@ void main() {
       testWidgets('タブ2がお気に入りで起動: 研究棟タブが表示され → 本部棟・→ 千歳駅の選択肢が見える',
           (tester) async {
         final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+            _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -589,7 +615,7 @@ void main() {
       testWidgets('タブ2がお気に入り: star 1個 + star_border 3個が表示される',
           (tester) async {
         final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+            _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -622,7 +648,7 @@ void main() {
             overrides: [
               scheduleViewModelProvider.overrideWith(() => scheduleVM),
               favoriteTabProvider.overrideWith(
-                () => _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2)),
+                () => _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto')),
               ),
               countdownOverride(),
             ],
@@ -651,7 +677,7 @@ void main() {
       testWidgets('タブ2がお気に入りで起動後: 千歳駅タブをタップするとタブ切り替えできる',
           (tester) async {
         final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+            _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -682,6 +708,7 @@ void main() {
           (tester) async {
         final cachedResult = ScheduleResult(
           data: ScheduleResponse(
+            stopMaster: _stopMaster,
             updatedAt: '2024-01-01',
             current: _emptyTimetable,
           ),

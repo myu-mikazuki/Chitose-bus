@@ -11,6 +11,8 @@ import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/favorite_tab_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
+import '../viewmodels/stop_selection_viewmodel.dart';
+import '../../domain/entities/stop_selection.dart';
 import 'settings_screen.dart';
 import 'widgets/next_bus_display.dart';
 import 'widgets/offline_cache_banner.dart';
@@ -43,11 +45,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  Tab _buildTab(String label, int index, int? favoriteTabIndex) {
+  /// 停留所の表示名。供給元は GAS の stopMaster のみ（Issue #177）。
+  /// まだ取得できていない場合は ID を出す（起動直後の一瞬のみ）。
+  String _stopLabelOf(List<BusStop>? master, String id) {
+    final stop = master?.where((s) => s.id == id).firstOrNull;
+    return stop?.displayLabel ?? id;
+  }
+
+  Tab _buildTab(String label, String stopId, String? favoriteStopId) {
     return Tab(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isFavorite = favoriteTabIndex == index;
+          final isFavorite = favoriteStopId == stopId;
           final tabWidth = constraints.maxWidth;
 
           // タブ内のラベルスタイルでテキスト幅を計測
@@ -65,7 +74,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 behavior: HitTestBehavior.opaque,
                 onTap: () => ref
                     .read(favoriteTabProvider.notifier)
-                    .toggleFavorite(index),
+                    .toggleFavorite(stopId),
                 child: Icon(
                   isFavorite ? Icons.star : Icons.star_border,
                   size: size,
@@ -141,7 +150,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
     final favoriteAsync = ref.watch(favoriteTabProvider);
-    final favoriteTabIndex = favoriteAsync.valueOrNull?.tabIndex;
+    final favoriteStopId = favoriteAsync.valueOrNull?.stopId;
+    final selection =
+        ref.watch(stopSelectionProvider).valueOrNull ?? StopSelection.initial;
+    final stopIds = selection.stopIds;
     final dayType = ref.watch(dayTypeOverrideProvider);
     final season = ref.watch(seasonOverrideProvider);
 
@@ -154,14 +166,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (_favoriteApplied) return;
       next.whenData((fav) {
         _favoriteApplied = true;
-        if (fav.hasFavorite) {
+        final index = stopIds.indexOf(fav.stopId ?? '');
+        if (index >= 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             setState(() {
               _tabController.dispose();
               _tabController = TabController(
-                length: 4,
-                initialIndex: fav.tabIndex!,
+                length: stopIds.length,
+                initialIndex: index,
                 vsync: this,
               );
             });
@@ -169,6 +182,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         }
       });
     });
+
+    // 停留所の選択が変わるとタブの数も変わる。TabController を作り直す
+    if (_tabController.length != stopIds.length) {
+      final old = _tabController;
+      _tabController = TabController(length: stopIds.length, vsync: this);
+      WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    }
 
     return Scaffold(
       backgroundColor: context.appColors.background,
@@ -255,10 +275,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           labelColor: AppColors.primary,
           unselectedLabelColor: context.appColors.textDisabled,
           tabs: [
-            _buildTab('千歳駅', 0, favoriteTabIndex),
-            _buildTab('南千歳', 1, favoriteTabIndex),
-            _buildTab('研究棟', 2, favoriteTabIndex),
-            _buildTab('本部棟', 3, favoriteTabIndex),
+            for (final id in stopIds)
+              _buildTab(
+                _stopLabelOf(scheduleAsync.valueOrNull?.data.stopMaster, id),
+                id,
+                favoriteStopId,
+              ),
           ],
         ),
       ),
@@ -299,10 +321,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _DirectionTab(timetable: result.data.current, stopId: 'chitose', destination: '科技大', updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, stopId: 'minamiChitose', destination: '科技大', updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, stopId: 'honbuto', destination: '千歳駅', updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        for (final id in stopIds)
+                          _StopTab(
+                            key: ValueKey(id),
+                            timetable: result.data.current,
+                            stopId: id,
+                            stopMaster: result.data.stopMaster,
+                            updatedAt: result.data.updatedAt,
+                            dayType: dayType,
+                            season: season,
+                          ),
                       ],
                     ),
                   ),
@@ -518,25 +546,61 @@ class _SeasonSelector extends ConsumerWidget {
   }
 }
 
-class _KenkyutoTab extends StatefulWidget {
-  const _KenkyutoTab({
+class _StopTab extends StatefulWidget {
+  const _StopTab({
+    super.key,
+    required this.stopId,
+    required this.stopMaster,
     required this.timetable,
     required this.updatedAt,
     this.dayType,
     this.season,
   });
+  final String stopId;
+  final List<BusStop> stopMaster;
   final BusTimetable timetable;
   final String updatedAt;
   final DayType? dayType;
   final SeasonType? season;
 
+  /// この停留所から行ける行き先。途中の停留所は上下両方向のバスが通るため、
+  /// 複数あるときは利用者に選ばせる。データから導くのでハードコードしない。
+  List<String> get destinations {
+    final seen = <String>{};
+    for (final e in timetable.schedules) {
+      if (e.boardingStopId == stopId) seen.add(e.destination);
+    }
+    // 表示順を安定させる（科技大 → 千歳駅）
+    const order = ['科技大', '千歳駅'];
+    final out = order.where(seen.contains).toList();
+    for (final d in seen) {
+      if (!out.contains(d)) out.add(d);
+    }
+    return out;
+  }
+
+  /// [destination] へ向かうとき、この停留所から見た終点の表示名。
+  /// 「→ 本部棟」のように出す。最後の到着地をデータから引く
+  String terminusLabel(String destination) {
+    for (final e in timetable.schedules) {
+      if (e.boardingStopId != stopId || e.destination != destination) continue;
+      final last = e.arrivals.keys.lastOrNull;
+      if (last == null) continue;
+      final stop = stopMaster.where((s) => s.id == last).firstOrNull;
+      return stop?.displayLabel ?? last;
+    }
+    return destination;
+  }
+
   @override
-  State<_KenkyutoTab> createState() => _KenkyutoTabState();
+  State<_StopTab> createState() => _StopTabState();
 }
 
-class _KenkyutoTabState extends State<_KenkyutoTab> {
-  // 研究棟は途中の停留所なので、上下どちらへ乗るかを選ばせる
-  String _destination = '科技大';
+class _StopTabState extends State<_StopTab> {
+  String? _selected;
+
+  String get _destination =>
+      _selected ?? widget.destinations.firstOrNull ?? '科技大';
 
   @override
   Widget build(BuildContext context) {
@@ -547,31 +611,30 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: SeasonNoticeBanner(),
         ),
-        // SegmentedButton で本部棟/千歳駅を切り替え
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(
-                value: '科技大',
-                label: Text('→ 本部棟'),
+        // 行き先が複数ある停留所だけ切り替えを出す。
+        // 終点や片方向しか通らない停留所では選ぶものが無い
+        if (widget.destinations.length > 1)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: SegmentedButton<String>(
+              segments: [
+                for (final d in widget.destinations)
+                  ButtonSegment(
+                    value: d,
+                    label: Text('→ ${widget.terminusLabel(d)}'),
+                  ),
+              ],
+              selected: {_destination},
+              onSelectionChanged: (selection) =>
+                  setState(() => _selected = selection.first),
+              style: SegmentedButton.styleFrom(
+                backgroundColor: context.appColors.surface,
+                foregroundColor: context.appColors.textTertiary,
+                selectedBackgroundColor: AppColors.primary,
+                selectedForegroundColor: AppColors.onPrimary,
               ),
-              ButtonSegment(
-                value: '千歳駅',
-                label: Text('→ 千歳駅'),
-              ),
-            ],
-            selected: {_destination},
-            onSelectionChanged: (selection) =>
-                setState(() => _destination = selection.first),
-            style: SegmentedButton.styleFrom(
-              backgroundColor: context.appColors.surface,
-              foregroundColor: context.appColors.textTertiary,
-              selectedBackgroundColor: AppColors.primary,
-              selectedForegroundColor: AppColors.onPrimary,
             ),
           ),
-        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Column(
@@ -589,10 +652,15 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                 GestureDetector(
                   onVerticalDragUpdate: (_) {},
                   child: IndexedStack(
-                    index: _destination == '科技大' ? 0 : 1,
+                    index: widget.destinations.indexOf(_destination).clamp(0, 99),
                     children: [
-                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: '科技大'),
-                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: '千歳駅'),
+                      for (final d in widget.destinations)
+                        NextBusDisplay(
+                          timetable: widget.timetable,
+                          stopId: widget.stopId,
+                          destination: d,
+                          showPlatform: widget.stopId == 'chitose',
+                        ),
                     ],
                   ),
                 ),
@@ -614,24 +682,18 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: GestureDetector(
             onVerticalDragUpdate: (_) {},
             child: IndexedStack(
-              index: _destination == '科技大' ? 0 : 1,
+              index: widget.destinations.indexOf(_destination).clamp(0, 99),
               children: [
-                ScheduleList(
-                  key: PageStorageKey(
-                      'kenkyuto_honbuto_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-                  timetable: widget.timetable,
-                  stopId: 'kenkyuto', destination: '科技大',
-                  dayType: widget.dayType,
-                  season: widget.season,
-                ),
-                ScheduleList(
-                  key: PageStorageKey(
-                      'kenkyuto_chitose_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-                  timetable: widget.timetable,
-                  stopId: 'kenkyuto', destination: '千歳駅',
-                  dayType: widget.dayType,
-                  season: widget.season,
-                ),
+                for (final d in widget.destinations)
+                  ScheduleList(
+                    key: ValueKey(
+                        '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
+                    timetable: widget.timetable,
+                    stopId: widget.stopId,
+                    destination: d,
+                    dayType: widget.dayType,
+                    season: widget.season,
+                  ),
               ],
             ),
           ),
