@@ -11,6 +11,8 @@ import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/favorite_tab_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
+import '../viewmodels/stop_selection_viewmodel.dart';
+import '../../domain/entities/stop_selection.dart';
 import 'settings_screen.dart';
 import 'widgets/next_bus_display.dart';
 import 'widgets/offline_cache_banner.dart';
@@ -43,11 +45,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  Tab _buildTab(String label, int index, int? favoriteTabIndex) {
+  /// 停留所の表示名。供給元は GAS の stopMaster のみ（Issue #177）。
+  /// まだ取得できていない場合は ID を出す（起動直後の一瞬のみ）。
+  String _stopLabelOf(List<BusStop>? master, String id) {
+    final stop = master?.where((s) => s.id == id).firstOrNull;
+    return stop?.displayLabel ?? id;
+  }
+
+  Tab _buildTab(String label, String stopId, String? favoriteStopId) {
     return Tab(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isFavorite = favoriteTabIndex == index;
+          final isFavorite = favoriteStopId == stopId;
           final tabWidth = constraints.maxWidth;
 
           // タブ内のラベルスタイルでテキスト幅を計測
@@ -65,7 +74,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 behavior: HitTestBehavior.opaque,
                 onTap: () => ref
                     .read(favoriteTabProvider.notifier)
-                    .toggleFavorite(index),
+                    .toggleFavorite(stopId),
                 child: Icon(
                   isFavorite ? Icons.star : Icons.star_border,
                   size: size,
@@ -141,7 +150,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
     final favoriteAsync = ref.watch(favoriteTabProvider);
-    final favoriteTabIndex = favoriteAsync.valueOrNull?.tabIndex;
+    final favoriteStopId = favoriteAsync.valueOrNull?.stopId;
+    final selection =
+        ref.watch(stopSelectionProvider).valueOrNull ?? StopSelection.initial;
+    final stopIds = selection.stopIds;
     final dayType = ref.watch(dayTypeOverrideProvider);
     final season = ref.watch(seasonOverrideProvider);
 
@@ -150,25 +162,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // index が変わり、TabBarView 初回生成時に PageView の initialPage と
     // TabController の内部状態がずれて SegmentedButton の高さが 0 になる場合がある。
     // initialIndex を正しく設定した新しい TabController を作り直すことで回避する。
-    ref.listen(favoriteTabProvider, (prev, next) {
-      if (_favoriteApplied) return;
-      next.whenData((fav) {
-        _favoriteApplied = true;
-        if (fav.hasFavorite) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            setState(() {
-              _tabController.dispose();
-              _tabController = TabController(
-                length: 4,
-                initialIndex: fav.tabIndex!,
-                vsync: this,
-              );
-            });
+    // お気に入りタブの初回適用（アプリ起動時のみ）
+    //
+    // 停留所の選択と favorite の両方が揃ってから適用する。ref.listen は変化時に
+    // しか発火しないため、片方が先に解決した時点で適用済みにすると、あとから
+    // もう片方が届いても再適用されない。build で両方を watch して判定する。
+    if (!_favoriteApplied &&
+        favoriteAsync.hasValue &&
+        ref.watch(stopSelectionProvider).hasValue) {
+      _favoriteApplied = true;
+      final index = stopIds.indexOf(favoriteStopId ?? '');
+      if (index >= 0) {
+        // addPostFrameCallback で index だけ変えると、TabBarView 初回生成時に
+        // PageView の initialPage と TabController の内部状態がずれて
+        // SegmentedButton の高さが 0 になる。initialIndex を持つ TabController を
+        // 作り直すことで回避する。
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            _tabController.dispose();
+            _tabController = TabController(
+              length: stopIds.length,
+              initialIndex: index,
+              vsync: this,
+            );
           });
-        }
-      });
-    });
+        });
+      }
+    }
+
+    // 停留所の選択が変わるとタブの数も変わる。TabController を作り直す。
+    //
+    // TODO(#177): setState 無しで build 中に状態を書き換えている。現在のタブ位置も
+    // 失われる（停留所を1つ足しただけで先頭へ飛ぶ）。選択を key にした子へ
+    // TabController ごと追い出すのが筋。設定画面でタブ数が実際に変わるので、
+    // そのときに直す。
+    if (_tabController.length != stopIds.length) {
+      final old = _tabController;
+      _tabController = TabController(length: stopIds.length, vsync: this);
+      WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    }
 
     return Scaffold(
       backgroundColor: context.appColors.background,
@@ -255,10 +288,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           labelColor: AppColors.primary,
           unselectedLabelColor: context.appColors.textDisabled,
           tabs: [
-            _buildTab('千歳駅', 0, favoriteTabIndex),
-            _buildTab('南千歳', 1, favoriteTabIndex),
-            _buildTab('研究棟', 2, favoriteTabIndex),
-            _buildTab('本部棟', 3, favoriteTabIndex),
+            for (final id in stopIds)
+              _buildTab(
+                _stopLabelOf(scheduleAsync.valueOrNull?.data.stopMaster, id),
+                id,
+                favoriteStopId,
+              ),
           ],
         ),
       ),
@@ -299,10 +334,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _DirectionTab(timetable: result.data.current, stopId: 'chitose', destination: BusDestination.campus, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, stopId: 'minamiChitose', destination: BusDestination.campus, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, stopId: 'honbuto', destination: BusDestination.station, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        for (final id in stopIds)
+                          _StopTab(
+                            key: ValueKey(id),
+                            timetable: result.data.current,
+                            stopId: id,
+                            stopMaster: result.data.stopMaster,
+                            updatedAt: result.data.updatedAt,
+                            dayType: dayType,
+                            season: season,
+                          ),
                       ],
                     ),
                   ),
@@ -518,25 +559,79 @@ class _SeasonSelector extends ConsumerWidget {
   }
 }
 
-class _KenkyutoTab extends StatefulWidget {
-  const _KenkyutoTab({
+class _StopTab extends StatefulWidget {
+  const _StopTab({
+    super.key,
+    required this.stopId,
+    required this.stopMaster,
     required this.timetable,
     required this.updatedAt,
     this.dayType,
     this.season,
   });
+  final String stopId;
+  final List<BusStop> stopMaster;
   final BusTimetable timetable;
   final String updatedAt;
   final DayType? dayType;
   final SeasonType? season;
 
+  /// この停留所から行ける行き先。途中の停留所は上下両方向のバスが通るため、
+  /// 複数あるときは利用者に選ばせる。データから導くのでハードコードしない。
+  List<String> get destinations {
+    final seen = <String>{};
+    for (final e in timetable.schedules) {
+      if (e.boardingStopId == stopId) seen.add(e.destination);
+    }
+    // 表示順を安定させる（科技大 → 千歳駅）
+    const order = [BusDestination.campus, BusDestination.station];
+    final out = order.where(seen.contains).toList();
+    for (final d in seen) {
+      if (!out.contains(d)) out.add(d);
+    }
+    return out;
+  }
+
+  /// [destination] へ向かうとき、この停留所から見た終点の表示名。
+  /// 「→ 本部棟」のように出す。最後の到着地をデータから引く
+  String terminusLabel(String destination) {
+    for (final e in timetable.schedules) {
+      if (e.boardingStopId != stopId || e.destination != destination) continue;
+      final last = e.arrivals.keys.lastOrNull;
+      if (last == null) continue;
+      final stop = stopMaster.where((s) => s.id == last).firstOrNull;
+      return stop?.displayLabel ?? last;
+    }
+    return destination;
+  }
+
   @override
-  State<_KenkyutoTab> createState() => _KenkyutoTabState();
+  State<_StopTab> createState() => _StopTabState();
 }
 
-class _KenkyutoTabState extends State<_KenkyutoTab> {
-  // 研究棟は途中の停留所なので、上下どちらへ乗るかを選ばせる
-  String _destination = BusDestination.campus;
+class _StopTabState extends State<_StopTab> {
+  String? _selected;
+
+  /// 時刻表の全便を走査するので、build のたびに数えない
+  late List<String> _destinations;
+
+  @override
+  void initState() {
+    super.initState();
+    _destinations = widget.destinations;
+  }
+
+  @override
+  void didUpdateWidget(_StopTab old) {
+    super.didUpdateWidget(old);
+    if (!identical(old.timetable, widget.timetable) ||
+        old.stopId != widget.stopId) {
+      _destinations = widget.destinations;
+    }
+  }
+
+  String get _destination =>
+      _selected ?? _destinations.firstOrNull ?? BusDestination.campus;
 
   @override
   Widget build(BuildContext context) {
@@ -545,33 +640,39 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: SeasonNoticeBanner(),
-        ),
-        // SegmentedButton で本部棟/千歳駅を切り替え
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(
-                value: BusDestination.campus,
-                label: Text('→ 本部棟'),
-              ),
-              ButtonSegment(
-                value: BusDestination.station,
-                label: Text('→ 千歳駅'),
-              ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 現在は無効化中だが、再有効化したときにここへ出る
+              WeekendWarningBanner(),
+              SeasonNoticeBanner(),
             ],
-            selected: {_destination},
-            onSelectionChanged: (selection) =>
-                setState(() => _destination = selection.first),
-            style: SegmentedButton.styleFrom(
-              backgroundColor: context.appColors.surface,
-              foregroundColor: context.appColors.textTertiary,
-              selectedBackgroundColor: AppColors.primary,
-              selectedForegroundColor: AppColors.onPrimary,
-            ),
           ),
         ),
+        // 行き先が複数ある停留所だけ切り替えを出す。
+        // 終点や片方向しか通らない停留所では選ぶものが無い
+        if (_destinations.length > 1)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: SegmentedButton<String>(
+              segments: [
+                for (final d in _destinations)
+                  ButtonSegment(
+                    value: d,
+                    label: Text('→ ${widget.terminusLabel(d)}'),
+                  ),
+              ],
+              selected: {_destination},
+              onSelectionChanged: (selection) =>
+                  setState(() => _selected = selection.first),
+              style: SegmentedButton.styleFrom(
+                backgroundColor: context.appColors.surface,
+                foregroundColor: context.appColors.textTertiary,
+                selectedBackgroundColor: AppColors.primary,
+                selectedForegroundColor: AppColors.onPrimary,
+              ),
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Column(
@@ -589,10 +690,15 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                 GestureDetector(
                   onVerticalDragUpdate: (_) {},
                   child: IndexedStack(
-                    index: _destination == BusDestination.campus ? 0 : 1,
+                    index: _destinations.indexOf(_destination).clamp(0, 99),
                     children: [
-                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: BusDestination.campus),
-                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: BusDestination.station),
+                      for (final d in _destinations)
+                        NextBusDisplay(
+                          timetable: widget.timetable,
+                          stopId: widget.stopId,
+                          destination: d,
+                          showPlatform: widget.stopId == 'chitose',
+                        ),
                     ],
                   ),
                 ),
@@ -614,24 +720,18 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: GestureDetector(
             onVerticalDragUpdate: (_) {},
             child: IndexedStack(
-              index: _destination == BusDestination.campus ? 0 : 1,
+              index: _destinations.indexOf(_destination).clamp(0, 99),
               children: [
-                ScheduleList(
-                  key: PageStorageKey(
-                      'kenkyuto_honbuto_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-                  timetable: widget.timetable,
-                  stopId: 'kenkyuto', destination: BusDestination.campus,
-                  dayType: widget.dayType,
-                  season: widget.season,
-                ),
-                ScheduleList(
-                  key: PageStorageKey(
-                      'kenkyuto_chitose_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-                  timetable: widget.timetable,
-                  stopId: 'kenkyuto', destination: BusDestination.station,
-                  dayType: widget.dayType,
-                  season: widget.season,
-                ),
+                for (final d in _destinations)
+                  ScheduleList(
+                    key: ValueKey(
+                        '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
+                    timetable: widget.timetable,
+                    stopId: widget.stopId,
+                    destination: d,
+                    dayType: widget.dayType,
+                    season: widget.season,
+                  ),
               ],
             ),
           ),
@@ -648,107 +748,6 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
   }
 }
 
-class _DirectionTab extends StatelessWidget {
-  const _DirectionTab({
-    required this.timetable,
-    required this.stopId,
-    required this.destination,
-    required this.updatedAt,
-    this.dayType,
-    this.season,
-  });
-
-  final BusTimetable timetable;
-  final String stopId;
-  final String destination;
-  final String updatedAt;
-  final DayType? dayType;
-  final SeasonType? season;
-
-  @override
-  Widget build(BuildContext context) {
-    // Column + Expanded 構成により:
-    // - NEXT BUS セクションを固定ヘッダとして常時表示
-    // - ScheduleList に有界な高さを与えて独立スクロール可能にする
-    // - Scrollable.ensureVisible が ListView 自身をスクロール（親は不変）
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const WeekendWarningBanner(),
-              const SeasonNoticeBanner(),
-              const SizedBox(height: 8),
-              // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
-              if (dayType == null) ...[
-                Text(
-                  'NEXT BUS',
-                  style: TextStyle(
-                    color: context.appColors.textTertiary,
-                    fontSize: 12,
-                    letterSpacing: 3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-                // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
-                // これにより TabBarView（PageView）への伝播を防ぐ。
-                GestureDetector(
-                  onVerticalDragUpdate: (_) {},
-                  child: NextBusDisplay(
-                    timetable: timetable,
-                    stopId: stopId,
-                    destination: destination,
-                    showPlatform: stopId == 'chitose',
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-              Text(
-                dayType == null ? 'TODAY\'S SCHEDULE' : 'SCHEDULE',
-                style: TextStyle(
-                  color: context.appColors.textTertiary,
-                  fontSize: 12,
-                  letterSpacing: 3,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-        // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-        // ジェスチャーアリーナに参加し、スクロール不可時の縦スワイプを消費する。
-        // これにより TabBarView（PageView）への伝播を防ぐ。
-        Expanded(
-          child: GestureDetector(
-            onVerticalDragUpdate: (_) {},
-            // dayType をキーに含めて表示モード切替時に State を再生成し、
-            // 当日表示に戻ったとき NEXT への自動スクロールを再実行させる。
-            child: ScheduleList(
-              key: ValueKey(
-                  '${stopId}_${destination}_${dayType?.name ?? 'today'}_${season?.name ?? ''}'),
-              timetable: timetable,
-              stopId: stopId,
-              destination: destination,
-              dayType: dayType,
-              season: season,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Text(
-            '更新: $updatedAt',
-            style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _BannerAdWidget extends StatefulWidget {
   const _BannerAdWidget({required this.onDismissed});
