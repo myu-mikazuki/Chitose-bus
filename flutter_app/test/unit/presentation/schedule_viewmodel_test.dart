@@ -179,21 +179,10 @@ void main() {
   });
 
   group('再試行が固まらない', () {
-    test('取得も失敗しキャッシュも解釈できないとき、AsyncError で止まる', () async {
+    test('取得も失敗しキャッシュ読み出しも失敗するとき、AsyncError で止まる', () async {
       // getCached が投げると refresh の catch を突き抜け、
       // AsyncLoading のまま戻れないスピナーになる
-      final poisoned = ScheduleResponseModel(
-        updatedAt: '2026-08-10',
-        current: const BusTimetableModel(
-          trips: [
-            TripModel(
-              destination: '長都駅',
-              stops: [StopTimeModel(id: 'chitose', time: '21:00')],
-            ),
-          ],
-        ),
-      );
-      fakeLocalSource.preload(poisoned);
+      fakeLocalSource.failOnLoad = true;
       when(() => mockSource.fetchSchedule(any()))
           .thenThrow(Exception('network error'));
 
@@ -204,11 +193,10 @@ void main() {
         await container.read(scheduleViewModelProvider.future);
       } catch (_) {}
 
-      // 修正前はここで getCached() の例外が refresh を突き抜けていた
       await container.read(scheduleViewModelProvider.notifier).refresh();
 
-      final state = container.read(scheduleViewModelProvider);
-      expect(state, isA<AsyncError<ScheduleResult>>(),
+      expect(container.read(scheduleViewModelProvider),
+          isA<AsyncError<ScheduleResult>>(),
           reason: 'AsyncLoading のまま残ってはいけない');
     });
   });

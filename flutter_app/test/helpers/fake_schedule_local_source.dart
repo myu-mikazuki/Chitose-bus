@@ -10,6 +10,9 @@ class FakeScheduleLocalSource implements ScheduleLocalSource {
   String? storedStops;
   int saveCallCount = 0;
 
+  /// 読み出しが失敗する状況を作る（キャッシュ破損など）
+  bool failOnLoad = false;
+
   /// キャッシュを事前に置く。停留所の選択を指定しなければ既定の4停留所として扱う
   void preload(ScheduleResponseModel model, {String? stopsKey}) {
     stored = model;
@@ -17,8 +20,10 @@ class FakeScheduleLocalSource implements ScheduleLocalSource {
   }
 
   @override
-  Future<ScheduleResponseModel?> load(String stopsKey) async =>
-      storedStops == stopsKey ? stored : null;
+  Future<ScheduleResponseModel?> load(String stopsKey) async {
+    if (failOnLoad) throw const FormatException('壊れたキャッシュ');
+    return storedStops == stopsKey ? stored : null;
+  }
 
   @override
   Future<void> save(ScheduleResponseModel model, String stopsKey) async {

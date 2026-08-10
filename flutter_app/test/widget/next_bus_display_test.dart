@@ -22,15 +22,15 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
           ),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       // Departure time text (HH:MM format)
@@ -62,15 +62,15 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
           ),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       // minutesFromNow() ≤ 5 → label is 'あと N 分' or '発車中', color is red.
@@ -100,15 +100,15 @@ void main() {
         schedules: [
           BusEntry(
             time: nearFuture,
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
           ),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       // Label is either '発車中' (minutes == 0) or 'あと 1 分' (minutes == 1).
@@ -131,7 +131,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       expect(find.text('本日の運行は終了しました'), findsOneWidget);
@@ -145,15 +145,15 @@ void main() {
         schedules: [
           BusEntry(
             time: '00:01',
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
           ),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       expect(find.text('本日の運行は終了しました'), findsOneWidget);
@@ -167,15 +167,15 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
           ),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       expect(find.text('あと 59 分'), findsOneWidget);
@@ -189,15 +189,15 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
           ),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       expect(find.text('あと 1:00'), findsOneWidget);
@@ -211,15 +211,15 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
           ),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       expect(find.text('あと 1:30'), findsOneWidget);
@@ -234,7 +234,7 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '科技大',
             platformNumber: '5番',
           ),
@@ -244,7 +244,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
           timetable: timetable,
-          direction: BusDirection.fromChitose,
+          stopId: 'chitose',
           showPlatform: true,
         )),
       );
@@ -262,8 +262,8 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
-            destination: '千歳科技大',
+            boardingStopId: 'chitose',
+            destination: '科技大',
             arrivals: {'kenkyuto': arrivalTime},
           ),
         ],
@@ -271,7 +271,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       expect(find.text('研究棟 着'), findsOneWidget);

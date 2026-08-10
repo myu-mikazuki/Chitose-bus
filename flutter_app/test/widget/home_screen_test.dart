@@ -390,14 +390,14 @@ void main() {
               schedules: const [
                 BusEntry(
                   time: '09:00',
-                  direction: BusDirection.fromChitose,
-                  destination: '千歳科技大',
+                  boardingStopId: 'chitose',
+                  destination: '科技大',
                   weekdayOnly: true,
                 ),
                 BusEntry(
                   time: '10:00',
-                  direction: BusDirection.fromChitose,
-                  destination: '千歳科技大',
+                  boardingStopId: 'chitose',
+                  destination: '科技大',
                   weekendOnly: true,
                 ),
               ],
@@ -640,7 +640,7 @@ void main() {
         scheduleVM.complete();
         await tester.pump();
 
-        final segmentedFinder = find.byType(SegmentedButton<BusDirection>);
+        final segmentedFinder = find.byType(SegmentedButton<String>);
         expect(segmentedFinder, findsOneWidget);
 
         // バグが再現すると高さが 0 になる

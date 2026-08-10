@@ -13,7 +13,7 @@ const _responseModel = ScheduleResponseModel(
     validTo: '2024-03-31',
     trips: [
       TripModel(
-        destination: '千歳科技大',
+        destination: '科技大',
         stops: [StopTimeModel(id: 'chitose', time: '09:30')],
       ),
     ],

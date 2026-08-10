@@ -299,10 +299,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _DirectionTab(timetable: result.data.current, stopId: 'chitose', destination: BusDestination.campus, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _DirectionTab(timetable: result.data.current, stopId: 'minamiChitose', destination: BusDestination.campus, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
                         _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        _DirectionTab(timetable: result.data.current, stopId: 'honbuto', destination: BusDestination.station, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
                       ],
                     ),
                   ),
@@ -420,23 +420,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 16),
               const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromChitose),
+              ScheduleList(timetable: upcoming, stopId: 'chitose', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromMinamiChitose),
+              ScheduleList(timetable: upcoming, stopId: 'minamiChitose', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromKenkyutoToHonbuto),
+              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromKenkyutoToStation),
+              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.station),
               const SizedBox(height: 16),
               const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromHonbuto),
+              ScheduleList(timetable: upcoming, stopId: 'honbuto', destination: BusDestination.station),
             ],
           ),
         ),
@@ -535,7 +535,8 @@ class _KenkyutoTab extends StatefulWidget {
 }
 
 class _KenkyutoTabState extends State<_KenkyutoTab> {
-  BusDirection _direction = BusDirection.fromKenkyutoToHonbuto;
+  // 研究棟は途中の停留所なので、上下どちらへ乗るかを選ばせる
+  String _destination = BusDestination.campus;
 
   @override
   Widget build(BuildContext context) {
@@ -549,20 +550,20 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
         // SegmentedButton で本部棟/千歳駅を切り替え
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: SegmentedButton<BusDirection>(
+          child: SegmentedButton<String>(
             segments: const [
               ButtonSegment(
-                value: BusDirection.fromKenkyutoToHonbuto,
+                value: BusDestination.campus,
                 label: Text('→ 本部棟'),
               ),
               ButtonSegment(
-                value: BusDirection.fromKenkyutoToStation,
+                value: BusDestination.station,
                 label: Text('→ 千歳駅'),
               ),
             ],
-            selected: {_direction},
+            selected: {_destination},
             onSelectionChanged: (selection) =>
-                setState(() => _direction = selection.first),
+                setState(() => _destination = selection.first),
             style: SegmentedButton.styleFrom(
               backgroundColor: context.appColors.surface,
               foregroundColor: context.appColors.textTertiary,
@@ -588,10 +589,10 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                 GestureDetector(
                   onVerticalDragUpdate: (_) {},
                   child: IndexedStack(
-                    index: _direction == BusDirection.fromKenkyutoToHonbuto ? 0 : 1,
+                    index: _destination == BusDestination.campus ? 0 : 1,
                     children: [
-                      NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToHonbuto),
-                      NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToStation),
+                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: BusDestination.campus),
+                      NextBusDisplay(timetable: widget.timetable, stopId: 'kenkyuto', destination: BusDestination.station),
                     ],
                   ),
                 ),
@@ -613,13 +614,13 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: GestureDetector(
             onVerticalDragUpdate: (_) {},
             child: IndexedStack(
-              index: _direction == BusDirection.fromKenkyutoToHonbuto ? 0 : 1,
+              index: _destination == BusDestination.campus ? 0 : 1,
               children: [
                 ScheduleList(
                   key: PageStorageKey(
                       'kenkyuto_honbuto_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
                   timetable: widget.timetable,
-                  direction: BusDirection.fromKenkyutoToHonbuto,
+                  stopId: 'kenkyuto', destination: BusDestination.campus,
                   dayType: widget.dayType,
                   season: widget.season,
                 ),
@@ -627,7 +628,7 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                   key: PageStorageKey(
                       'kenkyuto_chitose_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
                   timetable: widget.timetable,
-                  direction: BusDirection.fromKenkyutoToStation,
+                  stopId: 'kenkyuto', destination: BusDestination.station,
                   dayType: widget.dayType,
                   season: widget.season,
                 ),
@@ -650,14 +651,16 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
 class _DirectionTab extends StatelessWidget {
   const _DirectionTab({
     required this.timetable,
-    required this.direction,
+    required this.stopId,
+    required this.destination,
     required this.updatedAt,
     this.dayType,
     this.season,
   });
 
   final BusTimetable timetable;
-  final BusDirection direction;
+  final String stopId;
+  final String destination;
   final String updatedAt;
   final DayType? dayType;
   final SeasonType? season;
@@ -697,8 +700,9 @@ class _DirectionTab extends StatelessWidget {
                   onVerticalDragUpdate: (_) {},
                   child: NextBusDisplay(
                     timetable: timetable,
-                    direction: direction,
-                    showPlatform: direction == BusDirection.fromChitose,
+                    stopId: stopId,
+                    destination: destination,
+                    showPlatform: stopId == 'chitose',
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -725,9 +729,10 @@ class _DirectionTab extends StatelessWidget {
             // 当日表示に戻ったとき NEXT への自動スクロールを再実行させる。
             child: ScheduleList(
               key: ValueKey(
-                  '${direction.name}_${dayType?.name ?? 'today'}_${season?.name ?? ''}'),
+                  '${stopId}_${destination}_${dayType?.name ?? 'today'}_${season?.name ?? ''}'),
               timetable: timetable,
-              direction: direction,
+              stopId: stopId,
+              destination: destination,
               dayType: dayType,
               season: season,
             ),

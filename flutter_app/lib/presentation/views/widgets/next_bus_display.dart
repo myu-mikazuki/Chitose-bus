@@ -9,24 +9,46 @@ class NextBusDisplay extends ConsumerWidget {
   const NextBusDisplay({
     super.key,
     required this.timetable,
-    required this.direction,
+    required this.stopId,
+    this.destination,
     this.showPlatform = false,
   });
 
   final BusTimetable timetable;
-  final BusDirection direction;
+
+  /// 乗車地
+  final String stopId;
+
+  /// 行き先（科技大 / 千歳駅）。指定しなければ絞らない。
+  /// 途中の停留所は上下両方向のバスが通るため、画面では指定する
+  final String? destination;
   final bool showPlatform;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = ref.watch(countdownProvider);
 
-    final next = timetable.nextBus(direction, now: now);
+    final next = timetable.nextBus(stopId, destination: destination, now: now);
     if (next == null) {
       return const _NoMoreBusCard();
     }
     return _NextBusCard(entry: next, now: now, showPlatform: showPlatform);
   }
+}
+
+/// NEXT BUS に出す行き先の表示名。
+///
+/// 便の destination（科技大 / 千歳駅）をそのまま出すと、研究棟から乗る場合に
+/// 「科技大」となって現在の表示と変わる。実際に向かうのは本部棟なので、
+/// 現在は乗車地との組で決めている。
+///
+/// TODO(#177): 乗車地選択の UI を入れる際に見直す。任意の停留所では
+/// この対応表を持てないため、行き先の出し方そのものを決め直す必要がある。
+String destinationLabelOf(BusEntry entry) {
+  if (entry.boardingStopId == 'kenkyuto' && entry.destination == BusDestination.campus) {
+    return '本部棟';
+  }
+  return entry.destination;
 }
 
 class _NextBusCard extends StatelessWidget {
@@ -46,32 +68,10 @@ class _NextBusCard extends StatelessWidget {
     'chitose': '千歳駅',
   };
 
-  List<String> _getArrivalOrder(BusEntry entry) {
-    final isRoute2 = entry.routeLabel == '直通';
-    switch (entry.direction) {
-      case BusDirection.fromChitose:
-        return isRoute2
-            ? ['kenkyuto', 'honbuto']
-            : ['minamiChitose', 'kenkyuto', 'honbuto'];
-      case BusDirection.fromMinamiChitose:
-        return ['kenkyuto', 'honbuto'];
-      case BusDirection.fromKenkyutoToHonbuto:
-        return ['honbuto'];
-      case BusDirection.fromKenkyutoToStation:
-        return isRoute2 ? ['chitose'] : ['minamiChitose', 'chitose'];
-      case BusDirection.fromHonbuto:
-        return isRoute2
-            ? ['kenkyuto', 'chitose']
-            : ['kenkyuto', 'minamiChitose', 'chitose'];
-    }
-  }
-
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
-    final order = _getArrivalOrder(entry);
-    return order
-        .where((key) => entry.arrivals.containsKey(key))
-        .map((key) => Padding(
+    final order = entry.arrivals.keys.toList();
+    return order.map((key) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -127,13 +127,7 @@ class _NextBusCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  switch (entry.direction) {
-                    BusDirection.fromChitose => '科技大',
-                    BusDirection.fromMinamiChitose => '科技大',
-                    BusDirection.fromKenkyutoToHonbuto => '本部棟',
-                    BusDirection.fromKenkyutoToStation => '千歳駅',
-                    BusDirection.fromHonbuto => '千歳駅',
-                  },
+                  destinationLabelOf(entry),
                   style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 14,

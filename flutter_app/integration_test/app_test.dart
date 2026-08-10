@@ -19,53 +19,53 @@ final _mockResponse = ScheduleResponse(
     schedules: [
       BusEntry(
         time: '09:00',
-        direction: BusDirection.fromChitose,
-        destination: '千歳科技大',
+        boardingStopId: 'chitose',
+        destination: '科技大',
         arrivals: {'kenkyuto': '09:20', 'honbuto': '09:25'},
       ),
       BusEntry(
         time: '23:59',
-        direction: BusDirection.fromChitose,
-        destination: '千歳科技大',
+        boardingStopId: 'chitose',
+        destination: '科技大',
       ),
       BusEntry(
         time: '09:30',
-        direction: BusDirection.fromMinamiChitose,
-        destination: '千歳科技大',
+        boardingStopId: 'minamiChitose',
+        destination: '科技大',
       ),
       BusEntry(
         time: '23:59',
-        direction: BusDirection.fromMinamiChitose,
-        destination: '千歳科技大',
+        boardingStopId: 'minamiChitose',
+        destination: '科技大',
       ),
       BusEntry(
         time: '10:00',
-        direction: BusDirection.fromKenkyutoToHonbuto,
+        boardingStopId: 'kenkyuto',
         destination: '本部棟',
       ),
       BusEntry(
         time: '23:59',
-        direction: BusDirection.fromKenkyutoToHonbuto,
+        boardingStopId: 'kenkyuto',
         destination: '本部棟',
       ),
       BusEntry(
         time: '10:30',
-        direction: BusDirection.fromKenkyutoToStation,
+        boardingStopId: 'kenkyuto',
         destination: '千歳駅',
       ),
       BusEntry(
         time: '23:59',
-        direction: BusDirection.fromKenkyutoToStation,
+        boardingStopId: 'kenkyuto',
         destination: '千歳駅',
       ),
       BusEntry(
         time: '11:00',
-        direction: BusDirection.fromHonbuto,
+        boardingStopId: 'honbuto',
         destination: '千歳駅',
       ),
       BusEntry(
         time: '23:59',
-        direction: BusDirection.fromHonbuto,
+        boardingStopId: 'honbuto',
         destination: '千歳駅',
       ),
     ],
@@ -76,8 +76,8 @@ final _mockResponse = ScheduleResponse(
     schedules: [
       BusEntry(
         time: '09:00',
-        direction: BusDirection.fromChitose,
-        destination: '千歳科技大',
+        boardingStopId: 'chitose',
+        destination: '科技大',
       ),
     ],
   ),

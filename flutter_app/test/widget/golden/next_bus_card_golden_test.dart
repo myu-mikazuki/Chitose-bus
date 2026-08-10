@@ -15,8 +15,8 @@ final _timetableWithNextBus = BusTimetable(
   schedules: [
     BusEntry(
       time: '23:59',
-      direction: BusDirection.fromChitose,
-      destination: '千歳科技大',
+      boardingStopId: 'chitose',
+      destination: '科技大',
       arrivals: {'kenkyuto': '00:10', 'honbuto': '00:15'},
     ),
   ],
@@ -58,7 +58,7 @@ void main() {
         child: _buildTestApp(
           child: NextBusDisplay(
             timetable: _timetableWithNextBus,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
           ),
         ),
       ),
@@ -85,7 +85,7 @@ void main() {
         child: _buildTestApp(
           child: NextBusDisplay(
             timetable: _timetableNoMoreBus,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
           ),
         ),
       ),

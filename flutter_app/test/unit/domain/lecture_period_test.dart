@@ -112,7 +112,7 @@ void main() {
     test('arrivals に honbuto あり → 対応する講時を返す', () {
       final bus = BusEntry(
         time: '08:30',
-        direction: BusDirection.fromChitose,
+        boardingStopId: 'chitose',
         destination: '本部棟',
         arrivals: const {'honbuto': '08:59'},
       );
@@ -122,7 +122,7 @@ void main() {
     test('arrivals に honbuto なし → null', () {
       final bus = BusEntry(
         time: '08:30',
-        direction: BusDirection.fromKenkyutoToStation,
+        boardingStopId: 'kenkyuto',
         destination: '千歳駅',
         arrivals: const {'chitose': '09:00'},
       );
@@ -132,7 +132,7 @@ void main() {
     test('arrivals が空 → null', () {
       final bus = BusEntry(
         time: '08:30',
-        direction: BusDirection.fromChitose,
+        boardingStopId: 'chitose',
         destination: '本部棟',
       );
       expect(LecturePeriodCalculator.forBus(bus), isNull);

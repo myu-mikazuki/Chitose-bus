@@ -89,7 +89,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       expect(find.text('時刻表データなし'), findsOneWidget);
@@ -104,18 +104,18 @@ void main() {
         schedules: [
           BusEntry(
               time: t1,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大'),
           BusEntry(
               time: t2,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大'),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       // When t1 == t2 (both capped at 23:58 near midnight), two widgets share
@@ -138,14 +138,14 @@ void main() {
         schedules: [
           BusEntry(
               time: nextTime,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大'),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       expect(find.text('◀ NEXT'), findsOneWidget);
@@ -166,14 +166,14 @@ void main() {
         schedules: [
           BusEntry(
               time: pastTime,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大'),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       final timeText = tester.widget<Text>(find.text(pastTime));
@@ -192,18 +192,18 @@ void main() {
         schedules: [
           BusEntry(
               time: t1,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大'),
           BusEntry(
               time: t2,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大'),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       // t2 is neither next nor past → textColor should be 0xFFCCCCCC.
@@ -225,7 +225,7 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '千歳科技大',
             arrivals: {'kenkyuto': arrivalTime},
           ),
@@ -234,7 +234,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       // タップ前は到着情報が非表示
@@ -257,7 +257,7 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '千歳科技大',
             arrivals: {'kenkyuto': arrivalTime},
           ),
@@ -266,7 +266,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       // 1回目タップ → 展開
@@ -289,12 +289,12 @@ void main() {
           schedules: [
             BusEntry(
                 time: busTime,
-                direction: BusDirection.fromChitose,
+                boardingStopId: 'chitose',
                 destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          ScheduleList(timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
@@ -310,12 +310,12 @@ void main() {
           schedules: [
             BusEntry(
                 time: busTime,
-                direction: BusDirection.fromChitose,
+                boardingStopId: 'chitose',
                 destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          ScheduleList(timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: false),
         ));
         await tester.pump();
@@ -332,12 +332,12 @@ void main() {
           schedules: [
             BusEntry(
                 time: pastTime,
-                direction: BusDirection.fromChitose,
+                boardingStopId: 'chitose',
                 destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          ScheduleList(timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
@@ -350,7 +350,7 @@ void main() {
         final busTime = safeFutureHhmm(60);
         final bus = BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '千歳科技大');
         final key = NotificationSettingsNotifier.busKey(bus);
         final timetable = BusTimetable(
@@ -359,7 +359,7 @@ void main() {
           schedules: [bus],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          ScheduleList(timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true, scheduledBusKeys: {key}),
         ));
         await tester.pump();
@@ -376,12 +376,12 @@ void main() {
           schedules: [
             BusEntry(
                 time: busTime,
-                direction: BusDirection.fromChitose,
+                boardingStopId: 'chitose',
                 destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          ScheduleList(timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
@@ -394,7 +394,7 @@ void main() {
         final busTime = safeFutureHhmm(60);
         final bus = BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '千歳科技大');
         final timetable = BusTimetable(
           validFrom: '2024-01-01',
@@ -415,7 +415,7 @@ void main() {
             theme: buildTestTheme(),
             home: Scaffold(
               body: ScheduleList(
-                  timetable: timetable, direction: BusDirection.fromChitose),
+                  timetable: timetable, stopId: 'chitose'),
             ),
           ),
         ));
@@ -440,12 +440,12 @@ void main() {
           schedules: [
             BusEntry(
                 time: busTime,
-                direction: BusDirection.fromChitose,
+                boardingStopId: 'chitose',
                 destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          ScheduleList(timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true, minutesBefore: minutesBefore),
         ));
         await tester.pump();
@@ -464,12 +464,12 @@ void main() {
           schedules: [
             BusEntry(
                 time: busTime,
-                direction: BusDirection.fromChitose,
+                boardingStopId: 'chitose',
                 destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, direction: BusDirection.fromChitose),
+          ScheduleList(timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true, minutesBefore: minutesBefore),
         ));
         await tester.pump();
@@ -486,7 +486,7 @@ void main() {
         schedules: [
           BusEntry(
             time: busTime,
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '千歳科技大',
           ),
         ],
@@ -494,7 +494,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-            timetable: timetable, direction: BusDirection.fromChitose)),
+            timetable: timetable, stopId: 'chitose')),
       );
 
       await tester.tap(find.text(busTime));
@@ -511,7 +511,7 @@ void main() {
           schedules: [
             BusEntry(
               time: _futureDeparture,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大',
               arrivals: const {'honbuto': '08:59'},
             ),
@@ -519,7 +519,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-              timetable: timetable, direction: BusDirection.fromChitose)),
+              timetable: timetable, stopId: 'chitose')),
         );
         expect(find.text('1講'), findsOneWidget);
       });
@@ -531,7 +531,7 @@ void main() {
           schedules: [
             BusEntry(
               time: _futureDeparture,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大',
               arrivals: const {'honbuto': '09:00'},
             ),
@@ -539,7 +539,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-              timetable: timetable, direction: BusDirection.fromChitose)),
+              timetable: timetable, stopId: 'chitose')),
         );
         expect(find.text('2講'), findsOneWidget);
       });
@@ -551,7 +551,7 @@ void main() {
           schedules: [
             BusEntry(
               time: _futureDeparture,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大',
               arrivals: const {'honbuto': '16:45'},
             ),
@@ -559,7 +559,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-              timetable: timetable, direction: BusDirection.fromChitose)),
+              timetable: timetable, stopId: 'chitose')),
         );
         expect(find.text('放課後'), findsOneWidget);
       });
@@ -571,7 +571,7 @@ void main() {
           schedules: [
             BusEntry(
               time: _futureDeparture,
-              direction: BusDirection.fromKenkyutoToStation,
+              boardingStopId: 'kenkyuto',
               destination: '千歳駅',
               arrivals: const {'chitose': '09:30'},
             ),
@@ -580,7 +580,7 @@ void main() {
         await tester.pumpWidget(
           _wrap(ScheduleList(
               timetable: timetable,
-              direction: BusDirection.fromKenkyutoToStation)),
+              stopId: 'kenkyuto')),
         );
         for (final label in ['1講', '2講', '昼休み', '3講', '4講', '5講', '放課後']) {
           expect(find.text(label), findsNothing);
@@ -594,14 +594,14 @@ void main() {
           schedules: [
             BusEntry(
               time: _futureDeparture,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大',
             ),
           ],
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-              timetable: timetable, direction: BusDirection.fromChitose)),
+              timetable: timetable, stopId: 'chitose')),
         );
         for (final label in ['1講', '2講', '昼休み', '3講', '4講', '5講', '放課後']) {
           expect(find.text(label), findsNothing);
@@ -615,7 +615,7 @@ void main() {
           schedules: [
             BusEntry(
               time: _futureDeparture,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大',
               arrivals: const {'honbuto': '10:00'},
             ),
@@ -624,7 +624,7 @@ void main() {
         await tester.pumpWidget(
           _wrapWithDisplay(
             ScheduleList(
-                timetable: timetable, direction: BusDirection.fromChitose),
+                timetable: timetable, stopId: 'chitose'),
             const DisplaySettings(showLectureTags: false),
           ),
         );
@@ -641,7 +641,7 @@ void main() {
           schedules: [
             BusEntry(
               time: _futureDeparture,
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大',
               arrivals: const {'honbuto': '10:00'},
             ),
@@ -649,7 +649,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-              timetable: timetable, direction: BusDirection.fromChitose)),
+              timetable: timetable, stopId: 'chitose')),
         );
         // NEXT行であることを確認
         expect(find.text('◀ NEXT'), findsOneWidget);
@@ -666,19 +666,19 @@ void main() {
         schedules: const [
           BusEntry(
             time: '09:00',
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '千歳科技大',
             weekdayOnly: true,
           ),
           BusEntry(
             time: '10:00',
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '千歳科技大',
             weekendOnly: true,
           ),
           BusEntry(
             time: '11:00',
-            direction: BusDirection.fromChitose,
+            boardingStopId: 'chitose',
             destination: '千歳科技大',
           ),
         ],
@@ -688,7 +688,7 @@ void main() {
         await tester.pumpWidget(
           _wrap(ScheduleList(
             timetable: mixedTimetable,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
             dayType: DayType.weekday,
           )),
         );
@@ -702,7 +702,7 @@ void main() {
         await tester.pumpWidget(
           _wrap(ScheduleList(
             timetable: mixedTimetable,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
             dayType: DayType.weekendHoliday,
           )),
         );
@@ -718,7 +718,7 @@ void main() {
         await tester.pumpWidget(
           _wrap(ScheduleList(
             timetable: mixedTimetable,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
             dayType: DayType.weekday,
           )),
         );
@@ -734,7 +734,7 @@ void main() {
           schedules: const [
             BusEntry(
               time: '00:01',
-              direction: BusDirection.fromChitose,
+              boardingStopId: 'chitose',
               destination: '千歳科技大',
             ),
           ],
@@ -742,7 +742,7 @@ void main() {
         await tester.pumpWidget(
           _wrap(ScheduleList(
             timetable: timetable,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
             dayType: DayType.weekday,
           )),
         );
@@ -759,14 +759,14 @@ void main() {
           schedules: [
             BusEntry(
                 time: busTime,
-                direction: BusDirection.fromChitose,
+                boardingStopId: 'chitose',
                 destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
           ScheduleList(
             timetable: timetable,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
             dayType: DayType.weekday,
           ),
           NotificationSettings(enabled: true),
@@ -792,13 +792,13 @@ void main() {
         schedules: [
           ...pastTimes.map((t) => BusEntry(
                 time: t,
-                direction: BusDirection.fromChitose,
-                destination: '科技大',
+                boardingStopId: 'chitose',
+                destination: '千歳科技大',
               )),
           BusEntry(
             time: nextTime,
-            direction: BusDirection.fromChitose,
-            destination: '科技大',
+            boardingStopId: 'chitose',
+            destination: '千歳科技大',
           ),
         ],
       );
@@ -814,7 +814,7 @@ void main() {
                 height: 200,
                 child: ScheduleList(
                     timetable: timetable,
-                    direction: BusDirection.fromChitose),
+                    stopId: 'chitose'),
               ),
             ),
           ),
