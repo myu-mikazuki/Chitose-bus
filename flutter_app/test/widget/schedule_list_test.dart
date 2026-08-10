@@ -89,6 +89,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -115,6 +116,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -145,6 +147,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -173,6 +176,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -203,6 +207,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -234,6 +239,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -266,6 +272,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -294,7 +301,7 @@ void main() {
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, stopId: 'chitose'),
+          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
@@ -315,7 +322,7 @@ void main() {
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, stopId: 'chitose'),
+          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: false),
         ));
         await tester.pump();
@@ -337,7 +344,7 @@ void main() {
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, stopId: 'chitose'),
+          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
@@ -359,7 +366,7 @@ void main() {
           schedules: [bus],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, stopId: 'chitose'),
+          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true, scheduledBusKeys: {key}),
         ));
         await tester.pump();
@@ -381,7 +388,7 @@ void main() {
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, stopId: 'chitose'),
+          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
@@ -415,6 +422,7 @@ void main() {
             theme: buildTestTheme(),
             home: Scaffold(
               body: ScheduleList(
+          stopMaster: kTestStopMaster,
                   timetable: timetable, stopId: 'chitose'),
             ),
           ),
@@ -445,7 +453,7 @@ void main() {
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, stopId: 'chitose'),
+          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true, minutesBefore: minutesBefore),
         ));
         await tester.pump();
@@ -469,7 +477,7 @@ void main() {
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(timetable: timetable, stopId: 'chitose'),
+          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
           NotificationSettings(enabled: true, minutesBefore: minutesBefore),
         ));
         await tester.pump();
@@ -494,6 +502,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -519,6 +528,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
               timetable: timetable, stopId: 'chitose')),
         );
         expect(find.text('1講'), findsOneWidget);
@@ -539,6 +549,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
               timetable: timetable, stopId: 'chitose')),
         );
         expect(find.text('2講'), findsOneWidget);
@@ -559,6 +570,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
               timetable: timetable, stopId: 'chitose')),
         );
         expect(find.text('放課後'), findsOneWidget);
@@ -579,6 +591,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
               timetable: timetable,
               stopId: 'kenkyuto')),
         );
@@ -601,6 +614,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
               timetable: timetable, stopId: 'chitose')),
         );
         for (final label in ['1講', '2講', '昼休み', '3講', '4講', '5講', '放課後']) {
@@ -624,6 +638,7 @@ void main() {
         await tester.pumpWidget(
           _wrapWithDisplay(
             ScheduleList(
+          stopMaster: kTestStopMaster,
                 timetable: timetable, stopId: 'chitose'),
             const DisplaySettings(showLectureTags: false),
           ),
@@ -649,6 +664,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
               timetable: timetable, stopId: 'chitose')),
         );
         // NEXT行であることを確認
@@ -687,6 +703,7 @@ void main() {
       testWidgets('weekday 指定: weekendOnly の便が表示されない', (tester) async {
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: mixedTimetable,
             stopId: 'chitose',
             dayType: DayType.weekday,
@@ -701,6 +718,7 @@ void main() {
       testWidgets('weekendHoliday 指定: weekdayOnly の便が表示されない', (tester) async {
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: mixedTimetable,
             stopId: 'chitose',
             dayType: DayType.weekendHoliday,
@@ -717,6 +735,7 @@ void main() {
         // dayType 指定時は NEXT の概念がない
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: mixedTimetable,
             stopId: 'chitose',
             dayType: DayType.weekday,
@@ -741,6 +760,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable,
             stopId: 'chitose',
             dayType: DayType.weekday,
@@ -765,6 +785,7 @@ void main() {
         );
         await tester.pumpWidget(_wrapWithNotification(
           ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: timetable,
             stopId: 'chitose',
             dayType: DayType.weekday,
@@ -813,6 +834,7 @@ void main() {
               body: SizedBox(
                 height: 200,
                 child: ScheduleList(
+          stopMaster: kTestStopMaster,
                     timetable: timetable,
                     stopId: 'chitose'),
               ),

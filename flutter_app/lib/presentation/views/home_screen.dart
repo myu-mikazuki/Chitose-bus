@@ -152,12 +152,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             );
           }
 
-          // 縮小表示（横並びでも収まらない場合）
+          // 縮小表示（横並びでも収まらない場合）。
+          // ここは「入らないと分かっている」経路なので、Flexible + ellipsis で
+          // 必ず幅に収める。短縮名を持たない停留所（古泉循環器内科クリニック前
+          // など）を選ぶと、11px でもタブ幅を超える（#177）
           return Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(label, style: const TextStyle(fontSize: 11)),
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 11),
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
+              ),
               const SizedBox(width: 2),
               starIcon(14),
             ],
@@ -266,7 +276,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     icon: const Icon(Icons.calendar_month,
                         color: AppColors.warning),
                     tooltip: '来週のダイヤ',
-                    onPressed: () => _showUpcomingSheet(context, r.data.upcoming!),
+                    onPressed: () => _showUpcomingSheet(
+                        context, r.data.upcoming!, r.data.stopMaster),
                   )
                 : const SizedBox.shrink(),
             orElse: () => const SizedBox.shrink(),
@@ -431,7 +442,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  void _showUpcomingSheet(BuildContext context, BusTimetable upcoming) {
+  void _showUpcomingSheet(
+      BuildContext context, BusTimetable upcoming, List<BusStop> stopMaster) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -472,23 +484,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 16),
               const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'chitose', destination: BusDestination.campus),
+              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'chitose', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'minamiChitose', destination: BusDestination.campus),
+              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'minamiChitose', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.campus),
+              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.station),
+              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.station),
               const SizedBox(height: 16),
               const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'honbuto', destination: BusDestination.station),
+              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'honbuto', destination: BusDestination.station),
             ],
           ),
         ),
@@ -707,6 +719,7 @@ class _StopTabState extends State<_StopTab> {
                         NextBusDisplay(
                           timetable: widget.timetable,
                           stopId: widget.stopId,
+                          stopMaster: widget.stopMaster,
                           destination: d,
                           showPlatform: widget.stopId == 'chitose',
                         ),
@@ -739,6 +752,7 @@ class _StopTabState extends State<_StopTab> {
                         '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
                     timetable: widget.timetable,
                     stopId: widget.stopId,
+                    stopMaster: widget.stopMaster,
                     destination: d,
                     dayType: widget.dayType,
                     season: widget.season,

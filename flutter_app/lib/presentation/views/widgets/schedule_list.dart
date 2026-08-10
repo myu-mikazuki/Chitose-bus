@@ -13,12 +13,18 @@ class ScheduleList extends ConsumerStatefulWidget {
     super.key,
     required this.timetable,
     required this.stopId,
+    required this.stopMaster,
     this.destination,
     this.dayType,
     this.season,
   });
 
   final BusTimetable timetable;
+
+  /// 停留所の表示名の供給元（GAS の stopMaster）。
+  /// アプリ側に対応表を持つと、停留所が増えるたびにリリースが要る（#177）
+  final List<BusStop> stopMaster;
+
   /// 乗車地
   final String stopId;
 
@@ -118,6 +124,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
           return _ScheduleRow(
             key: isNext ? _nextBusKey : null,
             bus: bus,
+            stopMaster: widget.stopMaster,
             isPast: isPast,
             isNext: isNext,
             showBell: dayType == null,
@@ -152,14 +159,21 @@ class _ScheduleRow extends ConsumerStatefulWidget {
   const _ScheduleRow({
     super.key,
     required this.bus,
+    required this.stopMaster,
     required this.isPast,
     required this.isNext,
     this.showBell = true,
   });
 
   final BusEntry bus;
+  final List<BusStop> stopMaster;
   final bool isPast;
   final bool isNext;
+
+  /// 停留所の表示名。stopMaster に無ければ ID をそのまま出す。
+  /// 対応表を持っていた頃は、既定の4停留所以外が `null 着` になっていた（#177）
+  String labelOf(String id) =>
+      stopMaster.where((s) => s.id == id).firstOrNull?.displayLabel ?? id;
 
   /// 通知ベルは当日の便に対してのみ意味を持つため、
   /// 当日以外のダイヤ表示では false を渡して非表示にする。
@@ -171,13 +185,6 @@ class _ScheduleRow extends ConsumerStatefulWidget {
 
 class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   bool _expanded = false;
-
-  static const _stopLabels = {
-    'kenkyuto': '研究棟',
-    'honbuto': '本部棟',
-    'minamiChitose': '南千歳',
-    'chitose': '千歳駅',
-  };
 
   List<Widget> _buildLectureTagWidgets() {
     final showTags =
@@ -253,7 +260,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_stopLabels[key]} 着',
+                    '${widget.labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 12,

@@ -10,11 +10,16 @@ class NextBusDisplay extends ConsumerWidget {
     super.key,
     required this.timetable,
     required this.stopId,
+    required this.stopMaster,
     this.destination,
     this.showPlatform = false,
   });
 
   final BusTimetable timetable;
+
+  /// 停留所の表示名の供給元（GAS の stopMaster）。
+  /// アプリ側に対応表を持つと、停留所が増えるたびにリリースが要る（#177）
+  final List<BusStop> stopMaster;
 
   /// 乗車地
   final String stopId;
@@ -32,7 +37,8 @@ class NextBusDisplay extends ConsumerWidget {
     if (next == null) {
       return const _NoMoreBusCard();
     }
-    return _NextBusCard(entry: next, now: now, showPlatform: showPlatform);
+    return _NextBusCard(
+      stopMaster: stopMaster,entry: next, now: now, showPlatform: showPlatform);
   }
 }
 
@@ -56,17 +62,17 @@ class _NextBusCard extends StatelessWidget {
     required this.entry,
     required this.now,
     required this.showPlatform,
+    required this.stopMaster,
   });
   final BusEntry entry;
   final DateTime now;
   final bool showPlatform;
+  final List<BusStop> stopMaster;
 
-  static const _stopLabels = {
-    'kenkyuto': '研究棟',
-    'honbuto': '本部棟',
-    'minamiChitose': '南千歳',
-    'chitose': '千歳駅',
-  };
+  /// 停留所の表示名。stopMaster に無ければ ID をそのまま出す。
+  /// 対応表を持っていた頃は、既定の4停留所以外が `null 着` になっていた（#177）
+  String _labelOf(String id) =>
+      stopMaster.where((s) => s.id == id).firstOrNull?.displayLabel ?? id;
 
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
@@ -77,7 +83,7 @@ class _NextBusCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_stopLabels[key]} 着',
+                    '${_labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 13,

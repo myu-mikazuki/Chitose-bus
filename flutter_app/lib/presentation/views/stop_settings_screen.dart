@@ -72,11 +72,27 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
     _edit(next);
   }
 
-  void _apply() {
+  /// 保存が終わるまで閉じない。**待たずに閉じると、保存に失敗しても
+  /// 適用されたように見え**、次の起動で元に戻る理由が分からなくなる。
+  Future<void> _apply() async {
     final next = _selected;
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      await ref
+          .read(stopSelectionProvider.notifier)
+          .select(StopSelection(stopIds: next));
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(content: Text('バス停の設定を保存できませんでした')),
+      );
+      return;
+    }
+    if (!mounted) return;
     setState(() => _applied = next);
-    ref.read(stopSelectionProvider.notifier).select(StopSelection(stopIds: next));
-    Navigator.of(context).pop();
+    navigator.pop();
   }
 
   /// 適用せずに戻ろうとしたときの確認。
@@ -126,9 +142,9 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
       canPop: !_dirty,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        if (await _confirmDiscard() && mounted) {
-          Navigator.of(context).pop();
-        }
+        // await をまたいで context を触らないよう先に取っておく
+        final navigator = Navigator.of(context);
+        if (await _confirmDiscard() && mounted) navigator.pop();
       },
       child: Scaffold(
         backgroundColor: context.appColors.background,
@@ -177,7 +193,7 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         if (_dirty) ...[
-          _PendingNotice(),
+          const _PendingNotice(),
           const SizedBox(height: 16),
         ],
         const _SectionHeader(label: 'タブに表示する'),
@@ -241,6 +257,8 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
 /// 未適用の変更があることを伝える。
 /// 「適用」がヘッダにしか無いと、変更が保存されたと思われかねない。
 class _PendingNotice extends StatelessWidget {
+  const _PendingNotice();
+
   @override
   Widget build(BuildContext context) {
     return Container(

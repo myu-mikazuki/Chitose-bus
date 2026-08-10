@@ -57,6 +57,7 @@ void main() {
         ],
         child: _buildTestApp(
           child: NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: _timetableWithNextBus,
             stopId: 'chitose',
           ),
@@ -84,6 +85,7 @@ void main() {
         ],
         child: _buildTestApp(
           child: NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: _timetableNoMoreBus,
             stopId: 'chitose',
           ),

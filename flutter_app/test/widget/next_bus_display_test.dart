@@ -30,6 +30,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -70,6 +71,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -108,6 +110,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -131,6 +134,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -153,6 +157,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -175,6 +180,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -197,6 +203,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -219,6 +226,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
@@ -243,6 +251,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
           timetable: timetable,
           stopId: 'chitose',
           showPlatform: true,
@@ -271,6 +280,7 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: timetable, stopId: 'chitose')),
       );
 
