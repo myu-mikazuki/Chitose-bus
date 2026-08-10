@@ -373,11 +373,27 @@ class ScheduleResponse {
     required this.updatedAt,
     required this.current,
     this.stopMaster = const [],
+    this.coveredStopIds = const [],
     this.upcoming,
   });
 
   final String updatedAt;
   final List<BusStop> stopMaster;
+
+  /// この応答が時刻を持っている停留所。取得時の `?stops=` そのもの。
+  ///
+  /// キャッシュを選択と食い違ったまま使うため必要になる（#177）。オフラインで
+  /// 停留所を足すと、足した分だけ時刻が無いキャッシュを表示することになる。
+  /// 「便が1本も無い停留所」と「そもそも取得していない停留所」は画面での
+  /// 出し方が違うので、[current] から導かず記録したものを使う。
+  ///
+  /// 空なら「分からない」。判定する側は全停留所を取得済みとみなすこと
+  /// （#177 以前のキャッシュがこれにあたる）。
+  final List<String> coveredStopIds;
+
+  /// [stopId] の時刻を持っているか
+  bool covers(String stopId) =>
+      coveredStopIds.isEmpty || coveredStopIds.contains(stopId);
   final BusTimetable current;
   final BusTimetable? upcoming;
 }

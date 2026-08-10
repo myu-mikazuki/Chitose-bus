@@ -145,9 +145,13 @@ extension BusTimetableModelMapper on BusTimetableModel {
 }
 
 extension ScheduleResponseModelMapper on ScheduleResponseModel {
-  ScheduleResponse toEntity() => ScheduleResponse(
+  /// [coveredStopIds] は取得時の `?stops=`。応答そのものには入っていないため
+  /// 外から渡す（キャッシュなら保存時の記録、取得直後なら今の選択）。
+  ScheduleResponse toEntity({List<String> coveredStopIds = const []}) =>
+      ScheduleResponse(
         updatedAt: updatedAt,
         stopMaster: stopMaster.map((s) => s.toEntity()).toList(),
+        coveredStopIds: coveredStopIds,
         current: current.toEntity(),
         upcoming: upcoming?.toEntity(),
       );

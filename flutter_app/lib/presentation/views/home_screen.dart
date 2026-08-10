@@ -355,15 +355,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       controller: _tabController,
                       children: [
                         for (final id in stopIds)
-                          _StopTab(
-                            key: ValueKey(id),
-                            timetable: result.data.current,
-                            stopId: id,
-                            stopMaster: result.data.stopMaster,
-                            updatedAt: result.data.updatedAt,
-                            dayType: dayType,
-                            season: season,
-                          ),
+                          // オフラインで停留所を足すと、その停留所の時刻を
+                          // 持たないキャッシュを表示することになる。
+                          // 「便が1本も無い」と区別して伝える（#177）
+                          if (!result.data.covers(id))
+                            _StopNotFetched(
+                              key: ValueKey('notFetched_$id'),
+                              onRetry: () => ref
+                                  .read(scheduleViewModelProvider.notifier)
+                                  .refresh(),
+                            )
+                          else
+                            _StopTab(
+                              key: ValueKey(id),
+                              timetable: result.data.current,
+                              stopId: id,
+                              stopMaster: result.data.stopMaster,
+                              updatedAt: result.data.updatedAt,
+                              dayType: dayType,
+                              season: season,
+                            ),
                       ],
                     ),
                   ),
@@ -602,6 +613,43 @@ class _SeasonSelector extends ConsumerWidget {
           foregroundColor: context.appColors.textTertiary,
           selectedBackgroundColor: AppColors.primary,
           selectedForegroundColor: AppColors.onPrimary,
+        ),
+      ),
+    );
+  }
+}
+
+/// キャッシュにこの停留所の時刻が入っていないときの表示。
+///
+/// オフラインで停留所を足すと起きる。「時刻表データなし」（便が1本も無い）とは
+/// 別物なので、取得すれば出ることが分かる言い方にする。
+class _StopNotFetched extends StatelessWidget {
+  const _StopNotFetched({super.key, required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cloud_off, color: context.appColors.textDisabled),
+            const SizedBox(height: 12),
+            Text(
+              'このバス停の時刻はまだ取得できていません。\n通信できる場所で読み込んでください。',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: context.appColors.textTertiary),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: onRetry,
+              child: const Text('再試行',
+                  style: TextStyle(color: AppColors.primary)),
+            ),
+          ],
         ),
       ),
     );

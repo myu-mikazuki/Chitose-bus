@@ -157,14 +157,31 @@ void main() {
       expect(fakeLocalSource.storedStops, StopSelection.initial.query);
     });
 
-    test('選択が変わるとキャッシュは当たらない', () async {
-      // 既定の選択で保存されたキャッシュは、別の選択では使えない
+    test('選択が変わってもキャッシュを返し、持っている停留所を伝える', () async {
+      // オフラインで停留所を足しただけで時刻表が全く出せなくなるのを避ける。
+      // 足りない分は coveredStopIds で分かるので、画面側が出し分ける（#177）
       fakeLocalSource.preload(_responseModel);
       SharedPreferences.setMockInitialValues({
         'stop_selection_ids': ['chitose', 'morimoto'],
       });
 
-      expect(await repository.getCached(), isNull);
+      final cached = await repository.getCached();
+      expect(cached, isNotNull);
+      expect(cached!.coveredStopIds, StopSelection.initial.stopIds);
+      expect(cached.covers('chitose'), isTrue);
+      // 足したばかりで一度も取得していない停留所
+      expect(cached.covers('morimoto'), isFalse);
+    });
+
+    test('取得直後はいま選んでいる停留所を持っていると伝える', () async {
+      SharedPreferences.setMockInitialValues({
+        'stop_selection_ids': ['chitose', 'morimoto'],
+      });
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => _responseModel);
+
+      final fresh = await repository.fetchSchedule();
+      expect(fresh.coveredStopIds, ['chitose', 'morimoto']);
     });
   });
 

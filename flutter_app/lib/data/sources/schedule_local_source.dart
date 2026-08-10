@@ -3,27 +3,42 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../models/bus_schedule_model.dart';
 
+/// 保存されているキャッシュと、それが時刻を持っている停留所。
+class CachedSchedule {
+  const CachedSchedule({required this.model, required this.stopIds});
+
+  final ScheduleResponseModel model;
+
+  /// 保存時に選ばれていた停留所（`StopSelection.query` を分解したもの）
+  final List<String> stopIds;
+}
+
 class ScheduleLocalSource {
   static const _keyJson = 'schedule_cache_json';
   static const _keyAt = 'schedule_cache_at';
   static const _keyStops = 'schedule_cache_stops';
 
-  /// [stopsKey] は保存時に選んでいた停留所（`StopSelection.query`）。
+  /// 保存されているキャッシュを読む。**選択と一致しなくても返す。**
   ///
-  /// 応答は選んだ停留所に依存するため、選択が変わったキャッシュは使えない。
-  /// 一致しなければミス扱いにして取り直す。オフラインで選択を変えた直後は
-  /// 時刻表が出せなくなるが、中途半端に別の停留所を出すよりは良い。
+  /// 一致を条件にすると、オフラインで停留所を1つ足しただけで時刻表が全く
+  /// 出せなくなる。持っている停留所（保存時の `?stops=`）を添えて返し、
+  /// 足りない分は画面側でその停留所だけ「取得できていない」と出す（#177）。
   ///
-  /// 記録が無いキャッシュ（#177 以前のもの）も形式が違うのでミス扱いにする。
-  Future<ScheduleResponseModel?> load(String stopsKey) async {
+  /// 記録が無いキャッシュ（#177 以前のもの）は形式が違うのでミス扱いにする。
+  /// そちらは [loadLegacy] が読む。
+  Future<CachedSchedule?> load() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getString(_keyStops) != stopsKey) return null;
+    final stops = prefs.getString(_keyStops);
+    if (stops == null) return null;
 
     final json = prefs.getString(_keyJson);
     if (json == null) return null;
     try {
-      return ScheduleResponseModel.fromJson(
-          jsonDecode(json) as Map<String, dynamic>);
+      return CachedSchedule(
+        model: ScheduleResponseModel.fromJson(
+            jsonDecode(json) as Map<String, dynamic>),
+        stopIds: stops.isEmpty ? const [] : stops.split(','),
+      );
     } catch (_) {
       return null;
     }
@@ -63,6 +78,14 @@ class ScheduleLocalSource {
 
       return ScheduleResponse(
         updatedAt: root['updatedAt'] as String? ?? '',
+        // 旧形式が持っているのはこの4停留所だけ。停留所を足していれば、
+        // その分は「取得できていない」として出る
+        coveredStopIds: const [
+          'chitose',
+          'minamiChitose',
+          'kenkyuto',
+          'honbuto',
+        ],
         current: BusTimetable(
           validFrom: current?['validFrom'] as String? ?? '',
           validTo: current?['validTo'] as String? ?? '',
