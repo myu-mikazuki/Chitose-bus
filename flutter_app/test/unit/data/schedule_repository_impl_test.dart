@@ -207,4 +207,59 @@ void main() {
       expect(await repository.getCached(), isNull);
     });
   });
+
+  group('解釈できない応答の扱い', () {
+    // GAS が想定外の destination を返したときの経路。
+    // check_gas_response.js が本来ここを止めるが、止められなかった場合の備え
+    const poisoned = ScheduleResponseModel(
+      updatedAt: '2026-08-10',
+      current: BusTimetableModel(
+        trips: [
+          TripModel(
+            destination: '長都駅',
+            stops: [StopTimeModel(id: 'chitose', time: '21:00')],
+          ),
+        ],
+      ),
+    );
+
+    test('取得経路は例外を投げる（黙って消さない）', () async {
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => poisoned);
+
+      expect(() => repository.fetchSchedule(), throwsA(isA<FormatException>()));
+    });
+
+    test('解釈できない応答はキャッシュに保存しない', () async {
+      // 先に保存すると、以降のキャッシュ読み出しが毎回失敗するようになる
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => poisoned);
+
+      await expectLater(repository.fetchSchedule(), throwsA(isA<Exception>()));
+      expect(fakeLocalSource.stored, isNull);
+      expect(fakeLocalSource.saveCallCount, 0);
+    });
+
+    test('解釈できないキャッシュは投げずに null を返す', () async {
+      // getCached は復帰手段なので投げてはいけない（投げると画面が固まる）
+      fakeLocalSource.preload(poisoned);
+
+      expect(await repository.getCached(), isNull);
+    });
+
+    test('解釈できないキャッシュでも旧キャッシュがあればそちらを返す', () async {
+      fakeLocalSource.preload(poisoned);
+      fakeLocalSource.legacy = ScheduleResponse(
+        updatedAt: '2026-08-01',
+        current: const BusTimetable(
+          validFrom: '',
+          validTo: '',
+          schedules: [],
+        ),
+      );
+
+      // preload で storedStops が入るため、この経路では旧キャッシュは使われない
+      expect(await repository.getCached(), isNull);
+    });
+  });
 }

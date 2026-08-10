@@ -23,15 +23,29 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<ScheduleResponse> fetchSchedule() async {
     final selection = await stopSelectionRepository.load();
     final model = await remoteSource.fetchSchedule(selection);
+
+    // 保存する前に解釈できることを確かめる。先に保存すると、解釈できない応答が
+    // 永続化されて以降のキャッシュ読み出しが毎回失敗するようになる
+    final entity = model.toEntity();
     await localSource.save(model, selection.query);
-    return model.toEntity();
+    return entity;
   }
 
+  /// **例外を投げてはいけない。** 呼び出し側（ScheduleViewModel.refresh）は
+  /// 取得に失敗したあとの復帰手段としてこれを呼ぶため、ここで投げると
+  /// refresh を突き抜けて AsyncLoading のまま固着する。
   @override
   Future<ScheduleResponse?> getCached() async {
     final selection = await stopSelectionRepository.load();
     final cached = await localSource.load(selection.query);
-    if (cached != null) return cached.toEntity();
+    if (cached != null) {
+      try {
+        return cached.toEntity();
+      } catch (_) {
+        // 解釈できないキャッシュはクラッシュではなくミス扱いにして下へ落とす。
+        // 取得経路（fetchSchedule）は従来どおり loud に失敗する
+      }
+    }
 
     // #177 以前のキャッシュがあれば読む（移行用・v1.4.0 で削除 / #186）
     return localSource.loadLegacy();
