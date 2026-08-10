@@ -45,7 +45,7 @@ class NextBusDisplay extends ConsumerWidget {
 /// TODO(#177): 乗車地選択の UI を入れる際に見直す。任意の停留所では
 /// この対応表を持てないため、行き先の出し方そのものを決め直す必要がある。
 String destinationLabelOf(BusEntry entry) {
-  if (entry.boardingStopId == 'kenkyuto' && entry.destination == '科技大') {
+  if (entry.boardingStopId == 'kenkyuto' && entry.destination == BusDestination.campus) {
     return '本部棟';
   }
   return entry.destination;
@@ -71,9 +71,7 @@ class _NextBusCard extends StatelessWidget {
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
     final order = entry.arrivals.keys.toList();
-    return order
-        .where((key) => entry.arrivals.containsKey(key))
-        .map((key) => Padding(
+    return order.map((key) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

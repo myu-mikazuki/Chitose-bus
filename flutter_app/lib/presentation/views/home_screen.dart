@@ -448,23 +448,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 16),
               const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'chitose', destination: '科技大'),
+              ScheduleList(timetable: upcoming, stopId: 'chitose', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'minamiChitose', destination: '科技大'),
+              ScheduleList(timetable: upcoming, stopId: 'minamiChitose', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: '科技大'),
+              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.campus),
               const SizedBox(height: 16),
               const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: '千歳駅'),
+              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.station),
               const SizedBox(height: 16),
               const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'honbuto', destination: '千歳駅'),
+              ScheduleList(timetable: upcoming, stopId: 'honbuto', destination: BusDestination.station),
             ],
           ),
         ),
@@ -571,7 +571,7 @@ class _StopTab extends StatefulWidget {
       if (e.boardingStopId == stopId) seen.add(e.destination);
     }
     // 表示順を安定させる（科技大 → 千歳駅）
-    const order = ['科技大', '千歳駅'];
+    const order = [BusDestination.campus, BusDestination.station];
     final out = order.where(seen.contains).toList();
     for (final d in seen) {
       if (!out.contains(d)) out.add(d);
@@ -600,7 +600,7 @@ class _StopTabState extends State<_StopTab> {
   String? _selected;
 
   String get _destination =>
-      _selected ?? widget.destinations.firstOrNull ?? '科技大';
+      _selected ?? widget.destinations.firstOrNull ?? BusDestination.campus;
 
   @override
   Widget build(BuildContext context) {
