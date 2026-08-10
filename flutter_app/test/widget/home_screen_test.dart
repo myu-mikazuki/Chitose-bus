@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:kagi_bus/domain/entities/favorite_tab.dart';
+import 'package:kagi_bus/domain/entities/stop_selection.dart';
 import 'package:kagi_bus/presentation/viewmodels/favorite_tab_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
+import 'package:kagi_bus/presentation/viewmodels/stop_selection_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
 import 'package:kagi_bus/presentation/views/widgets/offline_cache_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -89,6 +91,18 @@ class _DelayedScheduleViewModel extends ScheduleViewModel {
 
   @override
   Future<void> refresh() async {}
+}
+
+/// 選択を外から差し替えられる VM。設定画面での操作を再現する。
+/// 本物の select() は scheduleViewModelProvider を invalidate するため使わない。
+class _FakeStopSelectionNotifier extends StopSelectionNotifier {
+  _FakeStopSelectionNotifier(this._initial);
+  final StopSelection _initial;
+
+  @override
+  Future<StopSelection> build() async => _initial;
+
+  void set(StopSelection selection) => state = AsyncData(selection);
 }
 
 /// Error VM that also tracks refresh() calls.
@@ -699,6 +713,91 @@ void main() {
         await tester.pumpAndSettle();
 
         // タブ0（千歳駅）に切り替わり、研究棟のSegmentedButtonは表示されない
+        expect(find.text('→ 本部棟'), findsNothing);
+      });
+    });
+
+    group('停留所の選択', () {
+      testWidgets('選択に沿ったタブが、選択の順で出る', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              stopSelectionProvider.overrideWith(
+                () => _FakeStopSelectionNotifier(
+                    const StopSelection(stopIds: ['honbuto', 'chitose'])),
+              ),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Tab), findsNWidgets(2));
+        expect(find.text('研究棟'), findsNothing);
+        // タブの並びは選択の並び
+        final tabs = tester.widgetList<Tab>(find.byType(Tab)).toList();
+        expect(tester.getTopLeft(find.byWidget(tabs[0])).dx,
+            lessThan(tester.getTopLeft(find.byWidget(tabs[1])).dx));
+        expect(find.text('本部棟'), findsOneWidget);
+        expect(find.text('千歳駅'), findsOneWidget);
+      });
+
+      testWidgets('停留所を足すとタブが増え、見ていた停留所のまま残る', (tester) async {
+        final selection = _FakeStopSelectionNotifier(StopSelection.initial);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              stopSelectionProvider.overrideWith(() => selection),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // 研究棟（index 2）を開いておく
+        await tester.tap(find.text('研究棟'));
+        await tester.pumpAndSettle();
+        expect(find.text('→ 本部棟'), findsOneWidget);
+
+        // 設定で先頭に停留所を足す = index がずれる
+        selection.set(const StopSelection(
+            stopIds: ['morimoto', 'chitose', 'minamiChitose', 'kenkyuto', 'honbuto']));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Tab), findsNWidgets(5));
+        // 番号ではなく停留所で追いかけるので、研究棟のままでいる
+        expect(find.text('→ 本部棟'), findsOneWidget);
+      });
+
+      testWidgets('見ていた停留所が外されたら先頭のタブに戻る', (tester) async {
+        final selection = _FakeStopSelectionNotifier(StopSelection.initial);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              stopSelectionProvider.overrideWith(() => selection),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('研究棟'));
+        await tester.pumpAndSettle();
+        expect(find.text('→ 本部棟'), findsOneWidget);
+
+        selection.set(const StopSelection(stopIds: ['chitose', 'honbuto']));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Tab), findsNWidgets(2));
         expect(find.text('→ 本部棟'), findsNothing);
       });
     });

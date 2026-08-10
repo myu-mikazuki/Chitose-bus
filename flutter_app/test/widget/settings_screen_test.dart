@@ -54,6 +54,15 @@ Widget _wrap({
 }
 
 void main() {
+  group('SettingsScreen バス停', () {
+    testWidgets('「タブに表示するバス停」への入口が表示される', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pump();
+
+      expect(find.text('タブに表示するバス停'), findsOneWidget);
+    });
+  });
+
   group('SettingsScreen 表示設定', () {
     testWidgets('「講時タグを表示」スイッチが表示される', (tester) async {
       await tester.pumpWidget(_wrap());

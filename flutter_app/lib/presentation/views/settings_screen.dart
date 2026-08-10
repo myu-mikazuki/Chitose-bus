@@ -9,6 +9,7 @@ import '../viewmodels/app_info_viewmodel.dart';
 import '../viewmodels/display_settings_viewmodel.dart';
 import 'contact_screen.dart';
 import 'notification_settings_screen.dart';
+import 'stop_settings_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -51,6 +52,30 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 MaterialPageRoute(
                     builder: (_) => const NotificationSettingsScreen()),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _SectionHeader(label: 'バス停'),
+          _SectionCard(
+            child: ListTile(
+              leading: const Icon(Icons.directions_bus_outlined,
+                  color: AppColors.primary),
+              title: Text(
+                'タブに表示するバス停',
+                style: TextStyle(color: context.appColors.textPrimary),
+              ),
+              subtitle: Text(
+                '乗り降りするバス停を選んで並べ替えられます',
+                style: TextStyle(
+                    color: context.appColors.textTertiary, fontSize: 12),
+              ),
+              trailing: Icon(Icons.chevron_right,
+                  color: context.appColors.textDisabled),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const StopSettingsScreen()),
               ),
             ),
           ),

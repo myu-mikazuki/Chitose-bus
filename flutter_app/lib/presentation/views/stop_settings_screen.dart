@@ -1,0 +1,258 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_colors_theme.dart';
+import '../../domain/entities/bus_schedule.dart';
+import '../../domain/entities/stop_selection.dart';
+import '../viewmodels/schedule_viewmodel.dart';
+import '../viewmodels/stop_selection_viewmodel.dart';
+
+/// タブに出す停留所を選ぶ画面（Issue #177）。
+///
+/// 選択肢は GAS の `stopMaster` から取る。アプリ側に対応表を持つと、
+/// 停留所が増えるたびにリリースが必要になる。
+class StopSettingsScreen extends ConsumerStatefulWidget {
+  const StopSettingsScreen({super.key});
+
+  @override
+  ConsumerState<StopSettingsScreen> createState() => _StopSettingsScreenState();
+}
+
+class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
+  /// 編集中の並び。表示は常にこれを見る。
+  ///
+  /// [stopSelectionProvider] を直接描画すると、保存が終わるまでの1フレームで
+  /// 並べ替えが元に戻って見える。操作は即座にここへ反映し、保存は後追いさせる。
+  List<String>? _ids;
+
+  /// 直近に受け取った停留所マスタ。
+  ///
+  /// 選択を変えると [scheduleViewModelProvider] が作り直されて一時的に
+  /// loading になる。そのたびに選択肢が消えると操作できないため保持する。
+  List<BusStop> _master = const [];
+
+  List<String> get _selected => _ids ?? const [];
+
+  BusStop? _stopOf(String id) => _master.where((s) => s.id == id).firstOrNull;
+
+  /// 追加できる停留所。路線の並び（stopMaster の順）で出す。
+  ///
+  /// ラピダス前のように乗車地として使えない停留所は [BusStop.boardable] が
+  /// false で、選択肢に出さない。
+  List<BusStop> get _candidates => _master
+      .where((s) => s.boardable && !_selected.contains(s.id))
+      .toList(growable: false);
+
+  void _apply(List<String> next) {
+    setState(() => _ids = next);
+    ref.read(stopSelectionProvider.notifier).select(StopSelection(stopIds: next));
+  }
+
+  void _add(String id) => _apply([..._selected, id]);
+
+  void _remove(String id) =>
+      _apply(_selected.where((e) => e != id).toList(growable: false));
+
+  void _reorder(int oldIndex, int newIndex) {
+    final next = [..._selected];
+    // ReorderableListView は「取り除く前」の位置で newIndex を渡してくる
+    if (newIndex > oldIndex) newIndex -= 1;
+    next.insert(newIndex, next.removeAt(oldIndex));
+    _apply(next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 最初に解決した選択を編集の起点にする。以降は _ids が正とする
+    // （保存の往復で操作が巻き戻らないようにするため）。
+    _ids ??= ref.watch(stopSelectionProvider).valueOrNull?.stopIds;
+
+    final master =
+        ref.watch(scheduleViewModelProvider).valueOrNull?.data.stopMaster;
+    if (master != null && master.isNotEmpty) _master = master;
+
+    return Scaffold(
+      backgroundColor: context.appColors.background,
+      appBar: AppBar(
+        backgroundColor: context.appColors.background,
+        foregroundColor: AppColors.primary,
+        title: const Text(
+          'バス停',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontSize: 16,
+            letterSpacing: 2,
+          ),
+        ),
+      ),
+      body: _master.isEmpty ? const _MasterUnavailable() : _buildBody(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    final candidates = _candidates;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const _SectionHeader(label: 'タブに表示する'),
+        Text(
+          '長押しで並べ替えられます。並びがそのままタブの並びになります。',
+          style: TextStyle(color: context.appColors.textTertiary, fontSize: 12),
+        ),
+        const SizedBox(height: 8),
+        _SectionCard(
+          child: ReorderableListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            onReorder: _reorder,
+            children: [
+              for (final id in _selected)
+                _SelectedStopTile(
+                  // ReorderableListView は子ごとに一意な key を要求する
+                  key: ValueKey(id),
+                  stop: _stopOf(id),
+                  id: id,
+                  // 0個になると時刻表が全く出せなくなるため最後の1つは外せない
+                  onRemove: _selected.length > 1 ? () => _remove(id) : null,
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionHeader(label: '追加する'),
+        const SizedBox(height: 8),
+        if (candidates.isEmpty)
+          Text(
+            '追加できる停留所はありません',
+            style:
+                TextStyle(color: context.appColors.textTertiary, fontSize: 12),
+          )
+        else
+          _SectionCard(
+            child: Column(
+              children: [
+                for (var i = 0; i < candidates.length; i++) ...[
+                  if (i > 0)
+                    Divider(height: 1, color: context.appColors.border),
+                  ListTile(
+                    title: Text(
+                      candidates[i].label,
+                      style: TextStyle(color: context.appColors.textPrimary),
+                    ),
+                    trailing:
+                        const Icon(Icons.add, color: AppColors.primary),
+                    onTap: () => _add(candidates[i].id),
+                  ),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// stopMaster がまだ届いていないときの表示。
+///
+/// 停留所の名前の供給元は GAS だけなので、一度も取得できていないと選べない。
+class _MasterUnavailable extends StatelessWidget {
+  const _MasterUnavailable();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Text(
+          '停留所の一覧を取得できていません。\n通信できる場所で時刻表を読み込んでから開いてください。',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: context.appColors.textTertiary),
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectedStopTile extends StatelessWidget {
+  const _SelectedStopTile({
+    super.key,
+    required this.stop,
+    required this.id,
+    required this.onRemove,
+  });
+
+  /// stopMaster に無い ID（GAS から消えた停留所）は null になる
+  final BusStop? stop;
+  final String id;
+
+  /// null なら外せない
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = stop?.label ?? id;
+    // タブでは短縮名が出るので、正式名と違うときだけ添える
+    final short = stop?.shortLabel;
+
+    return ListTile(
+      leading: Icon(Icons.drag_handle, color: context.appColors.textDisabled),
+      title: Text(
+        label,
+        style: TextStyle(color: context.appColors.textPrimary),
+      ),
+      subtitle: short == null
+          ? null
+          : Text(
+              'タブ表示: $short',
+              style: TextStyle(
+                  color: context.appColors.textTertiary, fontSize: 12),
+            ),
+      trailing: IconButton(
+        icon: const Icon(Icons.remove_circle_outline),
+        color: onRemove == null
+            ? context.appColors.textDisabled
+            : AppColors.error,
+        tooltip: onRemove == null ? '最後の1つは外せません' : '外す',
+        onPressed: onRemove,
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppColors.primary,
+          fontSize: 12,
+          letterSpacing: 2,
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: context.appColors.border),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: child,
+    );
+  }
+}

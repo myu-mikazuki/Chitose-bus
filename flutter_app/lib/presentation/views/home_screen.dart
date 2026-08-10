@@ -30,13 +30,53 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
+
+  /// [_tabController] を組んだときの停留所。**タブの構成はこれが正**で、
+  /// TabBar / TabBarView もこれを見る。選択そのものを直接描画すると、
+  /// controller の長さと食い違ったフレームが生まれて落ちる。
+  late List<String> _tabStopIds;
+
   bool _bannerDismissed = false;
   bool _favoriteApplied = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    // 選択の読み出しは非同期。解決するまでは既定の4停留所で組んでおく
+    _tabStopIds = StopSelection.initial.stopIds;
+    _tabController = TabController(length: _tabStopIds.length, vsync: this);
+  }
+
+  /// タブを [stopIds] の構成で組み直す。
+  ///
+  /// [focusStopId] を渡すとその停留所を開く（お気に入りの初回適用）。
+  /// 指定が無ければ**いま見ている停留所を追いかける**。タブ番号で覚えると、
+  /// 並べ替えや追加のたびに別の停留所へ飛んでしまう。
+  ///
+  /// 長さを変えるだけ（`_tabController.index = ...`）では足りず作り直す。
+  /// TabBarView が未生成のまま index を動かすと、初回生成時に PageView の
+  /// initialPage と TabController の内部状態がずれて SegmentedButton の高さが
+  /// 0 になる（#126）。initialIndex を持つ controller を作れば起きない。
+  ///
+  /// **build 中から呼ぶ。** この直後に組む TabBar / TabBarView が同じ build で
+  /// 新しい controller と `_tabStopIds` を読むため、setState は要らないし、
+  /// 次フレームへ遅らせると1フレームだけ両者が食い違う。
+  void _retuneTabs(List<String> stopIds, {String? focusStopId}) {
+    final viewing = _tabController.index < _tabStopIds.length
+        ? _tabStopIds[_tabController.index]
+        : null;
+    // 見ていた停留所が外されていれば先頭に戻す
+    final index = stopIds.indexOf(focusStopId ?? viewing ?? '');
+
+    final old = _tabController;
+    _tabStopIds = stopIds;
+    _tabController = TabController(
+      length: stopIds.length,
+      initialIndex: index < 0 ? 0 : index,
+      vsync: this,
+    );
+    // build 中に捨てると、まだ古い controller を参照している TabBar が落ちる
+    WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
   }
 
   @override
@@ -151,57 +191,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
     final favoriteAsync = ref.watch(favoriteTabProvider);
     final favoriteStopId = favoriteAsync.valueOrNull?.stopId;
-    final selection =
-        ref.watch(stopSelectionProvider).valueOrNull ?? StopSelection.initial;
-    final stopIds = selection.stopIds;
+    final selectionAsync = ref.watch(stopSelectionProvider);
+    final selection = selectionAsync.valueOrNull ?? StopSelection.initial;
     final dayType = ref.watch(dayTypeOverrideProvider);
     final season = ref.watch(seasonOverrideProvider);
 
-    // お気に入りタブの初回適用（アプリ起動時のみ）
-    // addPostFrameCallback で index を変更する方式だと、TabBarView が未生成の状態で
-    // index が変わり、TabBarView 初回生成時に PageView の initialPage と
-    // TabController の内部状態がずれて SegmentedButton の高さが 0 になる場合がある。
-    // initialIndex を正しく設定した新しい TabController を作り直すことで回避する。
-    // お気に入りタブの初回適用（アプリ起動時のみ）
+    // お気に入りタブの初回適用（アプリ起動時のみ）。
     //
     // 停留所の選択と favorite の両方が揃ってから適用する。ref.listen は変化時に
     // しか発火しないため、片方が先に解決した時点で適用済みにすると、あとから
     // もう片方が届いても再適用されない。build で両方を watch して判定する。
-    if (!_favoriteApplied &&
-        favoriteAsync.hasValue &&
-        ref.watch(stopSelectionProvider).hasValue) {
-      _favoriteApplied = true;
-      final index = stopIds.indexOf(favoriteStopId ?? '');
-      if (index >= 0) {
-        // addPostFrameCallback で index だけ変えると、TabBarView 初回生成時に
-        // PageView の initialPage と TabController の内部状態がずれて
-        // SegmentedButton の高さが 0 になる。initialIndex を持つ TabController を
-        // 作り直すことで回避する。
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          setState(() {
-            _tabController.dispose();
-            _tabController = TabController(
-              length: stopIds.length,
-              initialIndex: index,
-              vsync: this,
-            );
-          });
-        });
-      }
-    }
+    final applyFavorite =
+        !_favoriteApplied && favoriteAsync.hasValue && selectionAsync.hasValue;
+    if (applyFavorite) _favoriteApplied = true;
 
-    // 停留所の選択が変わるとタブの数も変わる。TabController を作り直す。
-    //
-    // TODO(#177): setState 無しで build 中に状態を書き換えている。現在のタブ位置も
-    // 失われる（停留所を1つ足しただけで先頭へ飛ぶ）。選択を key にした子へ
-    // TabController ごと追い出すのが筋。設定画面でタブ数が実際に変わるので、
-    // そのときに直す。
-    if (_tabController.length != stopIds.length) {
-      final old = _tabController;
-      _tabController = TabController(length: stopIds.length, vsync: this);
-      WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    // 設定でバス停を足す・外す・並べ替えるとここに届く
+    if (applyFavorite || !listEquals(_tabStopIds, selection.stopIds)) {
+      _retuneTabs(
+        selection.stopIds,
+        focusStopId: applyFavorite ? favoriteStopId : null,
+      );
     }
+    final stopIds = _tabStopIds;
 
     return Scaffold(
       backgroundColor: context.appColors.background,
