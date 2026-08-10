@@ -54,7 +54,6 @@ const V4_CASES = [
   ['all', null, '全停留所（stops 無し）'],
   ['default', 'chitose,minamiChitose,kenkyuto,honbuto', 'アプリの初期状態と同じ4停留所'],
   ['single', 'morimoto', '1停留所だけ'],
-  ['unknown', 'chitose,does-not-exist', '知らない ID が混ざる'],
 ];
 const V4_DATE = '2026-06-17';
 
@@ -198,6 +197,62 @@ for (const [name, stops, label] of V4_CASES) {
     `v=4 ${name} (${label})`
   );
 }
+
+/**
+ * fixture に持つほどでもない v=4 の不変条件。
+ * 「何を主張しているか」がそのまま読めるので、応答の全文を置くより意図が伝わる。
+ */
+function checkV4Invariants() {
+  if (update) return;
+
+  const same = (label, a, b) => {
+    checked++;
+    if (a === b) { console.log(`  ok   ${label}`); return; }
+    failures++;
+    console.log(`  FAIL ${label}`);
+  };
+
+  // 知らない停留所 ID は捨てるだけ。結果は知っている分だけを指定したときと等しい
+  same(
+    'v=4 知らない ID を捨てる（chitose,does-not-exist === chitose）',
+    respond(4, V4_DATE, 'chitose,does-not-exist'),
+    respond(4, V4_DATE, 'chitose')
+  );
+
+  // 全部が未知なら空の時刻表ではなく全停留所を返す
+  same(
+    'v=4 全部が未知なら全停留所（does-not-exist === stops 無し）',
+    respond(4, V4_DATE, 'does-not-exist'),
+    respond(4, V4_DATE, null)
+  );
+
+  // 素の {} をマップに使うと Object.prototype のメンバを拾ってしまう
+  same(
+    'v=4 プロトタイプのキーは停留所として扱わない（toString === stops 無し）',
+    respond(4, V4_DATE, 'toString'),
+    respond(4, V4_DATE, null)
+  );
+
+  // v=4 は絞り込みをアプリに任せるので、updatedAt 以外は日付に依存しない。
+  // ここが崩れるのは v=4 にサーバ側フィルタを足してしまったとき
+  const strip = (json) => {
+    const o = JSON.parse(json);
+    delete o.updatedAt;
+    return JSON.stringify(o);
+  };
+  same(
+    'v=4 は日付で変わらない（年末年始 === 授業期平日、updatedAt を除く）',
+    strip(respond(4, '2026-01-02', null)),
+    strip(respond(4, V4_DATE, null))
+  );
+  same(
+    'v=4 は祝日でも変わらない（山の日 === 授業期平日、updatedAt を除く）',
+    strip(respond(4, '2026-08-11', null)),
+    strip(respond(4, V4_DATE, null))
+  );
+}
+
+checkV4Invariants();
 
 if (update) {
   console.log('\nスナップショットを更新した。差分を必ず目視で確認すること。');

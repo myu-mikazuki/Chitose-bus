@@ -231,10 +231,14 @@ function requestedSchemaVersion(e) {
 function requestedStops(e) {
   if (!e || !e.parameter || !e.parameter.stops) return null;
   var raw = String(e.parameter.stops).split(',');
-  var known = {};
+
+  // Object.create(null) にすること。素の {} だと known['toString'] が
+  // Object.prototype のメンバを拾って truthy になり、実在しない停留所を
+  // 指定できてしまう（結果として全便が0停留所になり時刻表が空になる）
+  var known = Object.create(null);
   STOPS.forEach(function(s) { known[s.id] = true; });
 
-  var wanted = {};
+  var wanted = Object.create(null);
   var count = 0;
   raw.forEach(function(id) {
     id = id.trim();
@@ -809,12 +813,17 @@ var ROUTES = [
    * destination は旧形式の応答を保つため '千歳駅' のままにしてある。
    * 分岐には direction を使うこと（destination は表示用）。
    *
+   * この系統だけ千歳駅が**途中停留所**で、ここから長都方面へ乗車できる。
+   * そのため復路だが platform を持つ（大学配付物では「千歳駅前（４番）」）。
+   * 系統1・系統2 の復路は千歳駅が終点（西口降専・降車専用）なので持たない。
+   *
    * フラグ行なし → 全便が平日・土日祝ともに運行。
    * 期別フラグは立てない。両 PDF の共通停留所26時刻が一致することを確認済み（#177）。
    */
   {
     direction: 'inbound',
     routeLabel: '長都行き', destination: '千歳駅',
+    platform: { chitose: '4番' },
     stops: ['rapidus', 'honbuto', 'kenkyuto', 'domestic28', 'domestic1', 'international85', 'airCargo', 'minamiChitose', 'asahicho7', 'asahicho4', 'shiyakusho', 'koizumi', 'morimoto', 'chitose', 'aeon', 'hokuei2', 'hoyukai', 'yao', 'shinano4', 'fuji4', 'hokko6', 'hokuyo3', 'hokuyoHs', 'alice', 'isamai2', 'isamaiJhs', 'isamaiPark', 'isamai7', 'arcs', 'osatsu'],
     trips: [
       ['B', '', ['20:30', '20:32', '20:35', '20:42', '20:43', '20:44', '20:46', '20:47', '20:50', '20:51', '20:52', '20:53', '20:54', '21:00', '21:01', '21:02', '21:03', '21:04', '21:05', '21:06', '21:07', '21:08', '21:08', '21:09', '21:10', '21:10', '21:11', '21:11', '21:12', '21:22']],
@@ -865,8 +874,9 @@ function getHardcodedTimetable() {
  * v>=4 の応答を組み立てる。
  *
  * 旧形式は1便を乗車地ごとに展開するため、停留所 n 個で n(n-1)/2 組の到着時刻を
- * 持つことになり、全30停留所では約1MB に膨れる。そこで新形式では
- * **1便を1件**とし、停留所と時刻の並びをそのまま渡す（O(n)、全停留所で約60KB）。
+ * 持つことになり、全31停留所では約1MB に膨れる。そこで新形式では
+ * **1便を1件**とし、停留所と時刻の並びをそのまま渡す。O(n) になり、実測で
+ * 全停留所 約35KB / デフォルトの4停留所 約17KB（旧形式の同条件は約31KB）。
  * どの停留所から乗るかはアプリが配列を切って決める。
  *
  * wanted が null なら全停留所。指定があってもその便が通らない停留所は出さない。

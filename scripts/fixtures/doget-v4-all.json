@@ -3616,7 +3616,8 @@
      },
      {
       "id": "chitose",
-      "time": "21:00"
+      "time": "21:00",
+      "platform": "4番"
      },
      {
       "id": "aeon",
@@ -3746,7 +3747,8 @@
      },
      {
       "id": "chitose",
-      "time": "22:30"
+      "time": "22:30",
+      "platform": "4番"
      },
      {
       "id": "aeon",
