@@ -875,6 +875,36 @@ function getHardcodedTimetable() {
 }
 
 /**
+ * 便の終点。**一般に降りられる最後の停留所**の ID を返す。
+ *
+ * 並びの末尾そのものではない。系統1・2・3 の往路はラピダス前で終わるが、
+ * ここは工場敷地内で一般利用できない（`boardable: false`）ため、利用者から見た
+ * 終点は本部棟になる。
+ *
+ * **絞り込み（wanted）より前に決めること。** アプリは「→ 長都駅東口」のように
+ * 行き先の見出しに使う。便の通る停留所から導くと、選んだ停留所によって
+ * 見出しが変わってしまう（イオン千歳店前を足すと「→ イオン千歳店前」になる）。
+ */
+function terminusOf(stopIds) {
+  for (var i = stopIds.length - 1; i >= 0; i--) {
+    if (isBoardableStop(stopIds[i])) return stopIds[i];
+  }
+  return stopIds[stopIds.length - 1];
+}
+
+/** id → boardable。初回に1度だけ組む（STOPS の定義順に依存しないよう遅延で） */
+var _boardableById = null;
+
+function isBoardableStop(id) {
+  if (_boardableById === null) {
+    _boardableById = {};
+    STOPS.forEach(function(s) { _boardableById[s.id] = s.boardable !== false; });
+  }
+  // STOPS に無い ID は ROUTES 側の書き間違い。ここでは判断しない
+  return _boardableById[id] !== false;
+}
+
+/**
  * v>=4 の応答を組み立てる。
  *
  * 旧形式は1便を乗車地ごとに展開するため、停留所 n 個で n(n-1)/2 組の到着時刻を
@@ -893,6 +923,9 @@ function buildStopsResponse(wanted) {
   var trips = [];
 
   ROUTES.forEach(function(route) {
+    // 便ごとに変わらないので、trips のループの外で1回だけ求める
+    var terminus = terminusOf(route.stops);
+
     route.trips.forEach(function(tr) {
       var flag = tr[0], season = tr[1], times = tr[2];
 
@@ -910,6 +943,7 @@ function buildStopsResponse(wanted) {
       trips.push({
         destination: route.destination,
         routeLabel: route.routeLabel,
+        terminus: terminus,
         weekdayOnly: flag === 'D',
         weekendOnly: flag === 'E',
         academicOnly: season === 'A',

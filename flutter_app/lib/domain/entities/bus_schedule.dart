@@ -179,6 +179,7 @@ class BusEntry {
     required this.time,
     required this.boardingStopId,
     required this.destination,
+    this.terminusStopId,
     this.arrivals = const {},
     this.routeLabel,
     this.platformNumber,
@@ -191,6 +192,14 @@ class BusEntry {
   final String time; // "HH:MM" 乗車地を出る時刻
   final String boardingStopId;
   final String destination;
+
+  /// 終点（一般に降りられる最後の停留所）の ID。GAS が絞り込みの前に決めて返す。
+  ///
+  /// [arrivals] の末尾から導いてはいけない。arrivals は選んだ停留所だけに
+  /// 絞られているため、イオン千歳店前を足すと長都行きの終点がそこになる。
+  /// 供給元が古くて分からないときは null（#177）。
+  final String? terminusStopId;
+
   final Map<String, String> arrivals;
   final String? routeLabel;
   final String? platformNumber;
