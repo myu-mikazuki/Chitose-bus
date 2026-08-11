@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kagi_bus/core/theme/app_theme.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
@@ -26,3 +27,12 @@ String safeFutureHhmm(int minutesAhead, {DateTime? now}) {
   final capped = totalMins < 24 * 60 ? totalMins : 23 * 60 + 58;
   return '${(capped ~/ 60).toString().padLeft(2, '0')}:${(capped % 60).toString().padLeft(2, '0')}';
 }
+
+/// 表示名の供給元。ハードコードの対応表を置き換えたもの（#177）。
+/// **既定の4停留所の見え方は変えない**ため、旧対応表と同じ文字列を返す
+const kTestStopMaster = [
+  BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+  BusStop(id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳'),
+  BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
+  BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+];

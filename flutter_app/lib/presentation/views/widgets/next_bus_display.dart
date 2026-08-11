@@ -10,11 +10,16 @@ class NextBusDisplay extends ConsumerWidget {
     super.key,
     required this.timetable,
     required this.stopId,
+    required this.stopMaster,
     this.destination,
     this.showPlatform = false,
   });
 
   final BusTimetable timetable;
+
+  /// 停留所の表示名の供給元（GAS の stopMaster）。
+  /// アプリ側に対応表を持つと、停留所が増えるたびにリリースが要る（#177）
+  final List<BusStop> stopMaster;
 
   /// 乗車地
   final String stopId;
@@ -32,7 +37,12 @@ class NextBusDisplay extends ConsumerWidget {
     if (next == null) {
       return const _NoMoreBusCard();
     }
-    return _NextBusCard(entry: next, now: now, showPlatform: showPlatform);
+    return _NextBusCard(
+      stopMaster: stopMaster,
+      entry: next,
+      now: now,
+      showPlatform: showPlatform,
+    );
   }
 }
 
@@ -56,17 +66,12 @@ class _NextBusCard extends StatelessWidget {
     required this.entry,
     required this.now,
     required this.showPlatform,
+    required this.stopMaster,
   });
   final BusEntry entry;
   final DateTime now;
   final bool showPlatform;
-
-  static const _stopLabels = {
-    'kenkyuto': '研究棟',
-    'honbuto': '本部棟',
-    'minamiChitose': '南千歳',
-    'chitose': '千歳駅',
-  };
+  final List<BusStop> stopMaster;
 
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
@@ -77,7 +82,7 @@ class _NextBusCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_stopLabels[key]} 着',
+                    '${stopMaster.labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 13,

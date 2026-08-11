@@ -13,12 +13,18 @@ class ScheduleList extends ConsumerStatefulWidget {
     super.key,
     required this.timetable,
     required this.stopId,
+    required this.stopMaster,
     this.destination,
     this.dayType,
     this.season,
   });
 
   final BusTimetable timetable;
+
+  /// 停留所の表示名の供給元（GAS の stopMaster）。
+  /// アプリ側に対応表を持つと、停留所が増えるたびにリリースが要る（#177）
+  final List<BusStop> stopMaster;
+
   /// 乗車地
   final String stopId;
 
@@ -41,8 +47,8 @@ class ScheduleList extends ConsumerStatefulWidget {
 class _ScheduleListState extends ConsumerState<ScheduleList> {
   final GlobalKey _nextBusKey = GlobalKey();
   // LayoutBuilder のコールバックで設定される。
-  // true = 有界コンテキスト（_DirectionTab の Expanded 配下）→ 独立スクロール
-  // false = 非有界コンテキスト（_KenkyutoTab・来週ダイヤ BottomSheet）→ スクロールなし
+  // true = 有界コンテキスト（_StopTab の Expanded 配下）→ 独立スクロール
+  // false = 非有界コンテキスト（来週ダイヤ BottomSheet）→ スクロールなし
   bool _isBounded = false;
 
   @override
@@ -52,7 +58,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
     // - stopId / destination は各タブで固定のため変化しない
     // - timetable 更新時の再スクロールは要件外（ユーザー操作の上書きを避けるため）
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 非有界コンテキスト（KenkyutoTab・来週ダイヤ等）はスクロールしない。
+      // 非有界コンテキスト（来週ダイヤ BottomSheet 等）はスクロールしない。
       // nextBus が null の場合は _nextBusKey が付与されず currentContext が null となり
       // スクロールは発生しない（意図通り）。
       if (!_isBounded) return;
@@ -106,8 +112,8 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // maxHeight が有限 = Expanded 等で有界な高さが与えられている（_DirectionTab）。
-        // maxHeight が無限大 = SingleChildScrollView 配下（_KenkyutoTab・BottomSheet 等）。
+        // maxHeight が有限 = Expanded 等で有界な高さが与えられている（_StopTab）。
+        // maxHeight が無限大 = SingleChildScrollView 配下（来週ダイヤ BottomSheet 等）。
         _isBounded = constraints.maxHeight.isFinite;
 
         final rows = List.generate(buses.length, (index) {
@@ -118,6 +124,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
           return _ScheduleRow(
             key: isNext ? _nextBusKey : null,
             bus: bus,
+            stopMaster: widget.stopMaster,
             isPast: isPast,
             isNext: isNext,
             showBell: dayType == null,
@@ -152,12 +159,14 @@ class _ScheduleRow extends ConsumerStatefulWidget {
   const _ScheduleRow({
     super.key,
     required this.bus,
+    required this.stopMaster,
     required this.isPast,
     required this.isNext,
     this.showBell = true,
   });
 
   final BusEntry bus;
+  final List<BusStop> stopMaster;
   final bool isPast;
   final bool isNext;
 
@@ -171,13 +180,6 @@ class _ScheduleRow extends ConsumerStatefulWidget {
 
 class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   bool _expanded = false;
-
-  static const _stopLabels = {
-    'kenkyuto': '研究棟',
-    'honbuto': '本部棟',
-    'minamiChitose': '南千歳',
-    'chitose': '千歳駅',
-  };
 
   List<Widget> _buildLectureTagWidgets() {
     final showTags =
@@ -253,7 +255,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_stopLabels[key]} 着',
+                    '${widget.stopMaster.labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 12,

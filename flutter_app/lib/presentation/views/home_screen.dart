@@ -30,26 +30,59 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
+
+  /// [_tabController] を組んだときの停留所。**タブの構成はこれが正**で、
+  /// TabBar / TabBarView もこれを見る。選択そのものを直接描画すると、
+  /// controller の長さと食い違ったフレームが生まれて落ちる。
+  late List<String> _tabStopIds;
+
   bool _bannerDismissed = false;
   bool _favoriteApplied = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    // 選択の読み出しは非同期。解決するまでは既定の4停留所で組んでおく
+    _tabStopIds = StopSelection.initial.stopIds;
+    _tabController = TabController(length: _tabStopIds.length, vsync: this);
+  }
+
+  /// タブを [stopIds] の構成で組み直す。
+  ///
+  /// [focusStopId] を渡すとその停留所を開く（お気に入りの初回適用）。
+  /// 指定が無ければ**いま見ている停留所を追いかける**。タブ番号で覚えると、
+  /// 並べ替えや追加のたびに別の停留所へ飛んでしまう。
+  ///
+  /// 長さを変えるだけ（`_tabController.index = ...`）では足りず作り直す。
+  /// TabBarView が未生成のまま index を動かすと、初回生成時に PageView の
+  /// initialPage と TabController の内部状態がずれて SegmentedButton の高さが
+  /// 0 になる（#126）。initialIndex を持つ controller を作れば起きない。
+  ///
+  /// **build 中から呼ぶ。** この直後に組む TabBar / TabBarView が同じ build で
+  /// 新しい controller と `_tabStopIds` を読むため、setState は要らないし、
+  /// 次フレームへ遅らせると1フレームだけ両者が食い違う。
+  void _retuneTabs(List<String> stopIds, {String? focusStopId}) {
+    final viewing = _tabController.index < _tabStopIds.length
+        ? _tabStopIds[_tabController.index]
+        : null;
+    // 見ていた停留所が外されていれば先頭に戻す
+    final index = stopIds.indexOf(focusStopId ?? viewing ?? '');
+
+    final old = _tabController;
+    _tabStopIds = stopIds;
+    _tabController = TabController(
+      length: stopIds.length,
+      initialIndex: index < 0 ? 0 : index,
+      vsync: this,
+    );
+    // build 中に捨てると、まだ古い controller を参照している TabBar が落ちる
+    WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  /// 停留所の表示名。供給元は GAS の stopMaster のみ（Issue #177）。
-  /// まだ取得できていない場合は ID を出す（起動直後の一瞬のみ）。
-  String _stopLabelOf(List<BusStop>? master, String id) {
-    final stop = master?.where((s) => s.id == id).firstOrNull;
-    return stop?.displayLabel ?? id;
   }
 
   Tab _buildTab(String label, String stopId, String? favoriteStopId) {
@@ -112,12 +145,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             );
           }
 
-          // 縮小表示（横並びでも収まらない場合）
+          // 縮小表示（横並びでも収まらない場合）。
+          // ここは「入らないと分かっている」経路なので、Flexible + ellipsis で
+          // 必ず幅に収める。短縮名を持たない停留所（古泉循環器内科クリニック前
+          // など）を選ぶと、11px でもタブ幅を超える（#177）
           return Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(label, style: const TextStyle(fontSize: 11)),
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 11),
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
+              ),
               const SizedBox(width: 2),
               starIcon(14),
             ],
@@ -151,57 +194,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
     final favoriteAsync = ref.watch(favoriteTabProvider);
     final favoriteStopId = favoriteAsync.valueOrNull?.stopId;
-    final selection =
-        ref.watch(stopSelectionProvider).valueOrNull ?? StopSelection.initial;
-    final stopIds = selection.stopIds;
+    final selectionAsync = ref.watch(stopSelectionProvider);
+    final selection = selectionAsync.valueOrNull ?? StopSelection.initial;
     final dayType = ref.watch(dayTypeOverrideProvider);
     final season = ref.watch(seasonOverrideProvider);
 
-    // お気に入りタブの初回適用（アプリ起動時のみ）
-    // addPostFrameCallback で index を変更する方式だと、TabBarView が未生成の状態で
-    // index が変わり、TabBarView 初回生成時に PageView の initialPage と
-    // TabController の内部状態がずれて SegmentedButton の高さが 0 になる場合がある。
-    // initialIndex を正しく設定した新しい TabController を作り直すことで回避する。
-    // お気に入りタブの初回適用（アプリ起動時のみ）
+    // お気に入りタブの初回適用（アプリ起動時のみ）。
     //
     // 停留所の選択と favorite の両方が揃ってから適用する。ref.listen は変化時に
     // しか発火しないため、片方が先に解決した時点で適用済みにすると、あとから
     // もう片方が届いても再適用されない。build で両方を watch して判定する。
-    if (!_favoriteApplied &&
-        favoriteAsync.hasValue &&
-        ref.watch(stopSelectionProvider).hasValue) {
-      _favoriteApplied = true;
-      final index = stopIds.indexOf(favoriteStopId ?? '');
-      if (index >= 0) {
-        // addPostFrameCallback で index だけ変えると、TabBarView 初回生成時に
-        // PageView の initialPage と TabController の内部状態がずれて
-        // SegmentedButton の高さが 0 になる。initialIndex を持つ TabController を
-        // 作り直すことで回避する。
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          setState(() {
-            _tabController.dispose();
-            _tabController = TabController(
-              length: stopIds.length,
-              initialIndex: index,
-              vsync: this,
-            );
-          });
-        });
-      }
-    }
+    final applyFavorite =
+        !_favoriteApplied && favoriteAsync.hasValue && selectionAsync.hasValue;
+    if (applyFavorite) _favoriteApplied = true;
 
-    // 停留所の選択が変わるとタブの数も変わる。TabController を作り直す。
-    //
-    // TODO(#177): setState 無しで build 中に状態を書き換えている。現在のタブ位置も
-    // 失われる（停留所を1つ足しただけで先頭へ飛ぶ）。選択を key にした子へ
-    // TabController ごと追い出すのが筋。設定画面でタブ数が実際に変わるので、
-    // そのときに直す。
-    if (_tabController.length != stopIds.length) {
-      final old = _tabController;
-      _tabController = TabController(length: stopIds.length, vsync: this);
-      WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    // 設定でバス停を足す・外す・並べ替えるとここに届く
+    if (applyFavorite || !listEquals(_tabStopIds, selection.stopIds)) {
+      _retuneTabs(
+        selection.stopIds,
+        focusStopId: applyFavorite ? favoriteStopId : null,
+      );
     }
+    final stopIds = _tabStopIds;
 
     return Scaffold(
       backgroundColor: context.appColors.background,
@@ -255,7 +269,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     icon: const Icon(Icons.calendar_month,
                         color: AppColors.warning),
                     tooltip: '来週のダイヤ',
-                    onPressed: () => _showUpcomingSheet(context, r.data.upcoming!),
+                    onPressed: () => _showUpcomingSheet(
+                      context,
+                      r.data.upcoming!,
+                      r.data.stopMaster,
+                    ),
                   )
                 : const SizedBox.shrink(),
             orElse: () => const SizedBox.shrink(),
@@ -290,7 +308,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           tabs: [
             for (final id in stopIds)
               _buildTab(
-                _stopLabelOf(scheduleAsync.valueOrNull?.data.stopMaster, id),
+                // まだ取得できていなければ ID が出る（起動直後の一瞬のみ）
+                (scheduleAsync.valueOrNull?.data.stopMaster ?? const [])
+                    .labelOf(id),
                 id,
                 favoriteStopId,
               ),
@@ -420,7 +440,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  void _showUpcomingSheet(BuildContext context, BusTimetable upcoming) {
+  void _showUpcomingSheet(
+    BuildContext context,
+    BusTimetable upcoming,
+    List<BusStop> stopMaster,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -461,23 +485,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 16),
               const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'chitose', destination: BusDestination.campus),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'chitose',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'minamiChitose', destination: BusDestination.campus),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'minamiChitose',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.campus),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'kenkyuto',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.station),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'kenkyuto',
+                destination: BusDestination.station,
+              ),
               const SizedBox(height: 16),
               const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, stopId: 'honbuto', destination: BusDestination.station),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'honbuto',
+                destination: BusDestination.station,
+              ),
             ],
           ),
         ),
@@ -599,8 +648,7 @@ class _StopTab extends StatefulWidget {
       if (e.boardingStopId != stopId || e.destination != destination) continue;
       final last = e.arrivals.keys.lastOrNull;
       if (last == null) continue;
-      final stop = stopMaster.where((s) => s.id == last).firstOrNull;
-      return stop?.displayLabel ?? last;
+      return stopMaster.labelOf(last);
     }
     return destination;
   }
@@ -696,6 +744,7 @@ class _StopTabState extends State<_StopTab> {
                         NextBusDisplay(
                           timetable: widget.timetable,
                           stopId: widget.stopId,
+                          stopMaster: widget.stopMaster,
                           destination: d,
                           showPlatform: widget.stopId == 'chitose',
                         ),
@@ -728,6 +777,7 @@ class _StopTabState extends State<_StopTab> {
                         '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
                     timetable: widget.timetable,
                     stopId: widget.stopId,
+                    stopMaster: widget.stopMaster,
                     destination: d,
                     dayType: widget.dayType,
                     season: widget.season,

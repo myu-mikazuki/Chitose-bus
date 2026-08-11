@@ -78,6 +78,7 @@ void main() {
         ],
         child: _buildTestApp(
           child: ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: _timetableForNextHighlight,
             stopId: 'chitose',
           ),
@@ -106,6 +107,7 @@ void main() {
         ],
         child: _buildTestApp(
           child: ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: _timetableAllPast,
             stopId: 'chitose',
           ),
