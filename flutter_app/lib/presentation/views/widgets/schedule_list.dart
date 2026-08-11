@@ -170,11 +170,6 @@ class _ScheduleRow extends ConsumerStatefulWidget {
   final bool isPast;
   final bool isNext;
 
-  /// 停留所の表示名。stopMaster に無ければ ID をそのまま出す。
-  /// 対応表を持っていた頃は、既定の4停留所以外が `null 着` になっていた（#177）
-  String labelOf(String id) =>
-      stopMaster.where((s) => s.id == id).firstOrNull?.displayLabel ?? id;
-
   /// 通知ベルは当日の便に対してのみ意味を持つため、
   /// 当日以外のダイヤ表示では false を渡して非表示にする。
   final bool showBell;
@@ -260,7 +255,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${widget.labelOf(key)} 着',
+                    '${widget.stopMaster.labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 12,

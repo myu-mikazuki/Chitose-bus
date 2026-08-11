@@ -85,13 +85,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  /// 停留所の表示名。供給元は GAS の stopMaster のみ（Issue #177）。
-  /// まだ取得できていない場合は ID を出す（起動直後の一瞬のみ）。
-  String _stopLabelOf(List<BusStop>? master, String id) {
-    final stop = master?.where((s) => s.id == id).firstOrNull;
-    return stop?.displayLabel ?? id;
-  }
-
   Tab _buildTab(String label, String stopId, String? favoriteStopId) {
     return Tab(
       child: LayoutBuilder(
@@ -277,7 +270,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         color: AppColors.warning),
                     tooltip: '来週のダイヤ',
                     onPressed: () => _showUpcomingSheet(
-                        context, r.data.upcoming!, r.data.stopMaster),
+                      context,
+                      r.data.upcoming!,
+                      r.data.stopMaster,
+                    ),
                   )
                 : const SizedBox.shrink(),
             orElse: () => const SizedBox.shrink(),
@@ -312,7 +308,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           tabs: [
             for (final id in stopIds)
               _buildTab(
-                _stopLabelOf(scheduleAsync.valueOrNull?.data.stopMaster, id),
+                // まだ取得できていなければ ID が出る（起動直後の一瞬のみ）
+                (scheduleAsync.valueOrNull?.data.stopMaster ?? const [])
+                    .labelOf(id),
                 id,
                 favoriteStopId,
               ),
@@ -443,7 +441,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   void _showUpcomingSheet(
-      BuildContext context, BusTimetable upcoming, List<BusStop> stopMaster) {
+    BuildContext context,
+    BusTimetable upcoming,
+    List<BusStop> stopMaster,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -484,23 +485,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 16),
               const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'chitose', destination: BusDestination.campus),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'chitose',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'minamiChitose', destination: BusDestination.campus),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'minamiChitose',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.campus),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'kenkyuto',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'kenkyuto', destination: BusDestination.station),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'kenkyuto',
+                destination: BusDestination.station,
+              ),
               const SizedBox(height: 16),
               const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(stopMaster: stopMaster, timetable: upcoming, stopId: 'honbuto', destination: BusDestination.station),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'honbuto',
+                destination: BusDestination.station,
+              ),
             ],
           ),
         ),
@@ -622,8 +648,7 @@ class _StopTab extends StatefulWidget {
       if (e.boardingStopId != stopId || e.destination != destination) continue;
       final last = e.arrivals.keys.lastOrNull;
       if (last == null) continue;
-      final stop = stopMaster.where((s) => s.id == last).firstOrNull;
-      return stop?.displayLabel ?? last;
+      return stopMaster.labelOf(last);
     }
     return destination;
   }

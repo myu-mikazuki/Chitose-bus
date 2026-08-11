@@ -38,7 +38,11 @@ class NextBusDisplay extends ConsumerWidget {
       return const _NoMoreBusCard();
     }
     return _NextBusCard(
-      stopMaster: stopMaster,entry: next, now: now, showPlatform: showPlatform);
+      stopMaster: stopMaster,
+      entry: next,
+      now: now,
+      showPlatform: showPlatform,
+    );
   }
 }
 
@@ -69,11 +73,6 @@ class _NextBusCard extends StatelessWidget {
   final bool showPlatform;
   final List<BusStop> stopMaster;
 
-  /// 停留所の表示名。stopMaster に無ければ ID をそのまま出す。
-  /// 対応表を持っていた頃は、既定の4停留所以外が `null 着` になっていた（#177）
-  String _labelOf(String id) =>
-      stopMaster.where((s) => s.id == id).firstOrNull?.displayLabel ?? id;
-
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
     final order = entry.arrivals.keys.toList();
@@ -83,7 +82,7 @@ class _NextBusCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_labelOf(key)} 着',
+                    '${stopMaster.labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 13,

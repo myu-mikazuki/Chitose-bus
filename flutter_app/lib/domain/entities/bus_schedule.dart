@@ -343,6 +343,22 @@ class BusStop {
   final bool boardable;
 }
 
+/// `stopMaster` から停留所を引く。
+///
+/// #177 でアプリ側のハードコードされた対応表を消したため、ID からラベルを
+/// 引く必要が画面のあちこちに出てくる。同じ `where(...).firstOrNull` を
+/// 書き散らさないようここへ寄せる。
+extension BusStopLookup on List<BusStop> {
+  /// [id] の停留所。stopMaster に無ければ null（GAS から消えた停留所）
+  BusStop? byId(String id) => where((s) => s.id == id).firstOrNull;
+
+  /// [id] の表示名。**引けなければ ID をそのまま返す。**
+  ///
+  /// null を返して呼び出し側で埋めさせると、対応表を持っていた頃と同じ
+  /// `null 着` を作り込むことになる。
+  String labelOf(String id) => byId(id)?.displayLabel ?? id;
+}
+
 class ScheduleResponse {
   const ScheduleResponse({
     required this.updatedAt,

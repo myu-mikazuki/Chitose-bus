@@ -47,8 +47,6 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
     return false;
   }
 
-  BusStop? _stopOf(String id) => _master.where((s) => s.id == id).firstOrNull;
-
   /// 追加できる停留所。路線の並び（stopMaster の順）で出す。
   ///
   /// ラピダス前のように乗車地として使えない停留所は [BusStop.boardable] が
@@ -212,7 +210,7 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
                 _SelectedStopTile(
                   // ReorderableListView は子ごとに一意な key を要求する
                   key: ValueKey(id),
-                  stop: _stopOf(id),
+                  stop: _master.byId(id),
                   id: id,
                   // 0個になると時刻表が全く出せなくなるため最後の1つは外せない
                   onRemove: _selected.length > 1 ? () => _remove(id) : null,
