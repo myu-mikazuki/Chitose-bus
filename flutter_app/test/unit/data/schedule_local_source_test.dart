@@ -157,6 +157,21 @@ void main() {
       expect(loaded.current.schedules.length, 2);
     });
 
+    test('旧形式が持っている4停留所を申告する', () async {
+      // ここを取り違えると、更新した既存ユーザーが初回起動で全タブ
+      // 「取得できていません」になり、移行経路を用意した意味が消える。
+      // v=3 が返していたのはこの4つで固定。StopSelection.defaultStopIds とは
+      // たまたま一致しているだけなので、リテラルで確かめる
+      await putLegacyCache();
+
+      final loaded = await source.loadLegacy();
+      expect(loaded!.coveredStopIds,
+          ['chitose', 'minamiChitose', 'kenkyuto', 'honbuto']);
+      expect(loaded.covers('chitose'), isTrue);
+      // 移行前に選べなかった停留所は持っていない
+      expect(loaded.covers('morimoto'), isFalse);
+    });
+
     test('便の中身が引き継がれる', () async {
       await putLegacyCache();
 

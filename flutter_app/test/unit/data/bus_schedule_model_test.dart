@@ -194,7 +194,7 @@ void main() {
         ],
         current: BusTimetableModel(trips: []),
       );
-      final entity = model.toEntity();
+      final entity = model.toEntity(coveredStopIds: const []);
       expect(entity.stopMaster.length, 2);
       expect(entity.stopMaster.first.label, '千歳駅前');
     });
@@ -208,7 +208,7 @@ void main() {
         ],
         current: BusTimetableModel(trips: []),
       );
-      final stops = model.toEntity().stopMaster;
+      final stops = model.toEntity(coveredStopIds: const []).stopMaster;
       expect(stops[0].boardable, isTrue);
       expect(stops[1].boardable, isFalse);
     });
@@ -245,7 +245,7 @@ void main() {
       expect(model.stopMaster[1].boardable, isFalse);
       expect(model.current.trips.single.stops.first.platform, '5番');
 
-      final entries = model.toEntity().current.schedules;
+      final entries = model.toEntity(coveredStopIds: const []).current.schedules;
       expect(entries.single.boardingStopId, 'chitose');
       expect(entries.single.arrivals, {'honbuto': '07:45'});
     });

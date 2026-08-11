@@ -391,9 +391,16 @@ class ScheduleResponse {
   /// （#177 以前のキャッシュがこれにあたる）。
   final List<String> coveredStopIds;
 
-  /// [stopId] の時刻を持っているか
-  bool covers(String stopId) =>
-      coveredStopIds.isEmpty || coveredStopIds.contains(stopId);
   final BusTimetable current;
   final BusTimetable? upcoming;
+
+  /// [stopId] の**発車時刻**を持っているか。
+  ///
+  /// 持っているのは発車時刻までで、**到着一覧は取得時の選択のまま**。
+  /// GAS は `?stops=` で便の中の停留所配列そのものを絞る（`buildStopsResponse`）
+  /// ため、選択と食い違うキャッシュでは、covered な停留所の「◯◯ 着」から
+  /// あとで足した停留所が抜けている。発車時刻は正しいので表示はするが、
+  /// 到着一覧まで最新とは限らない。
+  bool covers(String stopId) =>
+      coveredStopIds.isEmpty || coveredStopIds.contains(stopId);
 }

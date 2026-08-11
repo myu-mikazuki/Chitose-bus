@@ -100,6 +100,58 @@ void main() {
       expect(result.isFromCache, isTrue);
     });
 
+    group('選択を変えた直後（キャッシュが今の停留所を賄えていない）', () {
+      // 自分で足した停留所が一瞬「取得できていません」になるのを避けるため、
+      // この経路だけは取得を先に試す（#177）
+      setUp(() {
+        // キャッシュは既定の4停留所ぶん。選択には morimoto を足してある
+        fakeLocalSource.preload(_responseModel);
+        SharedPreferences.setMockInitialValues({
+          'stop_selection_ids': [...StopSelection.defaultStopIds, 'morimoto'],
+        });
+      });
+
+      test('取得を先に試し、キャッシュを出さない', () async {
+        when(() => mockSource.fetchSchedule(any()))
+            .thenAnswer((_) async => _responseModel);
+
+        final container = makeContainer();
+        addTearDown(container.dispose);
+
+        final result = await container.read(scheduleViewModelProvider.future);
+        // 一瞬でもキャッシュを見せない
+        expect(result.isFromCache, isFalse);
+        verify(() => mockSource.fetchSchedule(any())).called(1);
+      });
+
+      test('取得に失敗したらキャッシュへ落ちる（オフライン）', () async {
+        when(() => mockSource.fetchSchedule(any()))
+            .thenThrow(Exception('network error'));
+
+        final container = makeContainer();
+        addTearDown(container.dispose);
+
+        final result = await container.read(scheduleViewModelProvider.future);
+        // 持っている停留所のぶんは出す。足した分は covers() が false になる
+        expect(result.isFromCache, isTrue);
+        expect(result.data.covers('chitose'), isTrue);
+        expect(result.data.covers('morimoto'), isFalse);
+      });
+    });
+
+    test('選択を賄えているキャッシュはそのまま出す（起動時）', () async {
+      // 賄えているなら待たせる理由が無い。従来どおり即出して裏で更新する
+      fakeLocalSource.preload(_responseModel);
+      when(() => mockSource.fetchSchedule(any()))
+          .thenAnswer((_) async => _responseModel);
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final result = await container.read(scheduleViewModelProvider.future);
+      expect(result.isFromCache, isTrue);
+    });
+
     test('build() silently updates to fresh data after returning cache',
         () async {
       fakeLocalSource.preload(_responseModel);

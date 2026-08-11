@@ -147,7 +147,12 @@ extension BusTimetableModelMapper on BusTimetableModel {
 extension ScheduleResponseModelMapper on ScheduleResponseModel {
   /// [coveredStopIds] は取得時の `?stops=`。応答そのものには入っていないため
   /// 外から渡す（キャッシュなら保存時の記録、取得直後なら今の選択）。
-  ScheduleResponse toEntity({List<String> coveredStopIds = const []}) =>
+  ///
+  /// **必須にしてある。** 既定値を空にすると、渡し忘れた経路が
+  /// 「全停留所を持っている」と申告してしまう（[ScheduleResponse.covers] は
+  /// 空を「分からない = 全部」と読む）。空が要るのは #177 以前のキャッシュだけで、
+  /// そちらは [ScheduleResponse] 側の既定値で足りる。
+  ScheduleResponse toEntity({required List<String> coveredStopIds}) =>
       ScheduleResponse(
         updatedAt: updatedAt,
         stopMaster: stopMaster.map((s) => s.toEntity()).toList(),
