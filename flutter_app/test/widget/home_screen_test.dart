@@ -93,6 +93,21 @@ class _DelayedScheduleViewModel extends ScheduleViewModel {
   Future<void> refresh() async {}
 }
 
+/// refresh() が本物と同じく AsyncLoading を入れる VM。
+/// 入れたきり解決しないので、更新中のままの画面を確かめられる。
+class _RefreshableViewModel extends ScheduleViewModel {
+  _RefreshableViewModel(this._result);
+  final ScheduleResult _result;
+
+  @override
+  Future<ScheduleResult> build() async => _result;
+
+  @override
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+  }
+}
+
 /// 選択を外から差し替えられる VM。設定画面での操作を再現する。
 /// 本物の select() は scheduleViewModelProvider を invalidate するため使わない。
 class _FakeStopSelectionNotifier extends StopSelectionNotifier {
@@ -251,6 +266,108 @@ void main() {
       expect(find.text('南千歳'), findsOneWidget);
       expect(find.text('研究棟'), findsOneWidget);
       expect(find.text('本部棟'), findsOneWidget);
+    });
+
+    group('停留所名が届くまでのタブ', () {
+      // 停留所名の供給元は GAS の stopMaster だけなので、初回起動では応答が
+      // 届くまで出せる名前が無い。ID をそのまま出すとタブに chitose などの
+      // 英字が並ぶ（#177）
+      testWidgets('取得前は停留所の ID を出さない', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => _LoadingViewModel()),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+
+        for (final id in StopSelection.initial.stopIds) {
+          expect(find.text(id), findsNothing, reason: '$id が英字のまま出ている');
+        }
+        // タブそのものは既定の構成で組んでおく（届いたときに数が変わらない）
+        expect(find.byType(Tab), findsNWidgets(4));
+      });
+
+      testWidgets('届いたら名前に入れ替わる', (tester) async {
+        final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => scheduleVM),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('chitose'), findsNothing);
+        expect(find.text('千歳駅'), findsNothing);
+
+        scheduleVM.complete();
+        await tester.pump();
+
+        expect(find.text('千歳駅'), findsOneWidget);
+        expect(find.text('本部棟'), findsOneWidget);
+      });
+
+      testWidgets('更新中は名前が消えない', (tester) async {
+        // refresh() は state に AsyncLoading を入れる。Riverpod は直前の値を
+        // 添えたまま持つ（AsyncLoading(value: ...)）ので、valueOrNull は残り、
+        // 場所取りに戻らない。ここが崩れると更新のたびにタブが点滅する
+        final scheduleVM = _RefreshableViewModel(_mockResponse);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => scheduleVM),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+        expect(find.text('千歳駅'), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.refresh));
+        await tester.pump();
+
+        expect(find.text('千歳駅'), findsOneWidget);
+      });
+
+      testWidgets('取得できたのに stopMaster に無い停留所は ID のまま出す', (tester) async {
+        // GAS から消えた停留所。伏せても直らないので、どれのことか分かるように
+        // ID を出す（labelOf の約束）
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(
+                () => _FakeScheduleViewModel(
+                  ScheduleResult(
+                    data: ScheduleResponse(
+                      stopMaster:
+                          _stopMaster.where((s) => s.id != 'honbuto').toList(),
+                      updatedAt: '2024-01-01',
+                      current: _emptyTimetable,
+                    ),
+                  ),
+                ),
+              ),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('honbuto'), findsOneWidget);
+        expect(find.text('千歳駅'), findsOneWidget);
+      });
     });
 
     testWidgets('data状態でupcoming非null: カレンダーアイコンが表示される', (tester) async {

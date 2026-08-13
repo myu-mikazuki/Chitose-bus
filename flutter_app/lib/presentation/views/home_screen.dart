@@ -85,7 +85,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  Tab _buildTab(String label, String stopId, String? favoriteStopId) {
+  /// タブ1つ。[label] が null なら停留所名がまだ分からない（初回起動）。
+  ///
+  /// 名前の供給元は GAS の `stopMaster` だけなので、届くまで出せる名前が無い。
+  /// ID をそのまま出すと `chitose` のような英字が並ぶため、代わりに場所だけ
+  /// 取っておく（#177）。
+  ///
+  /// 場所取りも名前と同じ幅の計算に通す。別扱いにすると、名前が届いた瞬間に
+  /// 星が横並びから右端へ跳ぶ。
+  Tab _buildTab(String? label, String stopId, String? favoriteStopId) {
     return Tab(
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -95,13 +103,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           // タブ内のラベルスタイルでテキスト幅を計測
           final textStyle = DefaultTextStyle.of(context).style;
           final textPainter = TextPainter(
-            text: TextSpan(text: label, style: textStyle),
+            text: TextSpan(text: label ?? '', style: textStyle),
             textDirection: TextDirection.ltr,
           )..layout();
-          final textWidth = textPainter.width;
+          final textWidth =
+              label == null ? _StopLabelPlaceholder.width : textPainter.width;
 
           const starSize = 20.0;
           const gap = 4.0;
+
+          Widget labelWidget() =>
+              label == null ? const _StopLabelPlaceholder() : Text(label);
 
           Widget starIcon(double size) => GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -123,7 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (stackFits) {
             return Stack(
               children: [
-                Align(alignment: Alignment.center, child: Text(label)),
+                Align(alignment: Alignment.center, child: labelWidget()),
                 Align(
                     alignment: Alignment.centerRight,
                     child: starIcon(starSize)),
@@ -138,7 +150,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(label),
+                labelWidget(),
                 const SizedBox(width: gap),
                 starIcon(starSize),
               ],
@@ -154,12 +166,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Flexible(
-                child: Text(
-                  label,
-                  style: const TextStyle(fontSize: 11),
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                ),
+                // 場所取りも Flexible の中では縮む（停留所を増やすとタブが狭まる）
+                child: label == null
+                    ? const _StopLabelPlaceholder()
+                    : Text(
+                        label,
+                        style: const TextStyle(fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: false,
+                      ),
               ),
               const SizedBox(width: 2),
               starIcon(14),
@@ -308,9 +323,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           tabs: [
             for (final id in stopIds)
               _buildTab(
-                // まだ取得できていなければ ID が出る（起動直後の一瞬のみ）
-                (scheduleAsync.valueOrNull?.data.stopMaster ?? const [])
-                    .labelOf(id),
+                // 応答そのものがまだ無ければ名前は分からない（初回起動）。
+                // 応答があって stopMaster に無い停留所は ID のまま出す
+                // （GAS から消えた停留所。ずっと直らないので伏せない）
+                scheduleAsync.valueOrNull?.data.stopMaster.labelOf(id),
                 id,
                 favoriteStopId,
               ),
@@ -614,6 +630,30 @@ class _SeasonSelector extends ConsumerWidget {
           selectedBackgroundColor: AppColors.primary,
           selectedForegroundColor: AppColors.onPrimary,
         ),
+      ),
+    );
+  }
+}
+
+/// 停留所名が届くまでタブに置くもの。
+///
+/// 幅は既定の停留所の短縮名（「南千歳」など4文字）に合わせてある。名前が
+/// 届いたときの入れ替わりが小さいほうが、読み込み中だと分かりやすい。
+class _StopLabelPlaceholder extends StatelessWidget {
+  const _StopLabelPlaceholder();
+
+  /// タブの並べ方（中央寄せ / 横並び / 縮小）を名前と同じ計算で決めるため、
+  /// 幅は外からも参照できるようにしてある
+  static const width = 44.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: 10,
+      decoration: BoxDecoration(
+        color: context.appColors.textDisabled,
+        borderRadius: BorderRadius.circular(5),
       ),
     );
   }
