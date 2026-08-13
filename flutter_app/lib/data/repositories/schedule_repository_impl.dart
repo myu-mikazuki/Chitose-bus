@@ -26,7 +26,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
     // 保存する前に解釈できることを確かめる。先に保存すると、解釈できない応答が
     // 永続化されて以降のキャッシュ読み出しが毎回失敗するようになる
-    final entity = model.toEntity();
+    final entity = model.toEntity(coveredStopIds: selection.stopIds);
     await localSource.save(model, selection.query);
     return entity;
   }
@@ -34,18 +34,20 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   /// **例外を投げてはいけない。** 呼び出し側（ScheduleViewModel.refresh）は
   /// 取得に失敗したあとの復帰手段としてこれを呼ぶため、ここで投げると
   /// refresh を突き抜けて AsyncLoading のまま固着する。
+  ///
+  /// **選択と食い違うキャッシュも返す。** オフラインで停留所を1つ足しただけで
+  /// 時刻表が全く出せなくなるのを避けるため。持っている停留所は
+  /// [ScheduleResponse.coveredStopIds] に載るので、足りない分は画面側が
+  /// その停留所だけ「取得できていない」と出す（#177）。
   @override
   Future<ScheduleResponse?> getCached() async {
-    // メソッド全体を包む。選択の読み出しを含め、どこで失敗してもミス扱いにする。
+    // メソッド全体を包む。どこで失敗してもミス扱いにする。
     // 取得経路（fetchSchedule）は従来どおり loud に失敗する
-    //
-    // TODO(#191): stopSelectionRepository.load() が投げる経路にテストが無い。
-    // StopSelectionRepository が具象クラスのため差し替えられないのが理由で、
-    // ここを触るときに interface 化して塞ぐこと。
     try {
-      final selection = await stopSelectionRepository.load();
-      final cached = await localSource.load(selection.query);
-      if (cached != null) return cached.toEntity();
+      final cached = await localSource.load();
+      if (cached != null) {
+        return cached.model.toEntity(coveredStopIds: cached.stopIds);
+      }
     } catch (_) {
       // 次の経路へ
     }

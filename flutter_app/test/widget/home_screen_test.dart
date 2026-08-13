@@ -867,6 +867,94 @@ void main() {
       });
     });
 
+    group('取得していない停留所', () {
+      // オフラインで停留所を足すと、その停留所の時刻を持たないキャッシュを
+      // 表示することになる（#177）
+      // isFromCache は付けない。バナーの分だけ縦が伸びてテスト画面（600px）に
+      // 収まらなくなるだけで、出し分けの判定には効かない
+      ScheduleResult cachedCovering(List<String> covered) => ScheduleResult(
+            data: ScheduleResponse(
+              stopMaster: _stopMaster,
+              updatedAt: '2024-01-01',
+              coveredStopIds: covered,
+              current: _emptyTimetable,
+            ),
+          );
+
+      Widget wrap(ScheduleResult result, {List<String>? stopIds}) =>
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(result)),
+              if (stopIds != null)
+                stopSelectionProvider.overrideWith(
+                  () => _FakeStopSelectionNotifier(
+                      StopSelection(stopIds: stopIds)),
+                ),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          );
+
+      testWidgets('持っている停留所は今までどおり時刻を出す', (tester) async {
+        await tester.pumpWidget(wrap(
+          cachedCovering(['kenkyuto']),
+          stopIds: ['kenkyuto', 'morimoto'],
+        ));
+        await tester.pumpAndSettle();
+
+        expect(find.text('NEXT BUS'), findsOneWidget);
+        expect(find.textContaining('このバス停の時刻はまだ取得できていません'), findsNothing);
+      });
+
+      testWidgets('持っていない停留所のタブだけ「取得できていません」を出す', (tester) async {
+        await tester.pumpWidget(wrap(
+          cachedCovering(['kenkyuto']),
+          stopIds: ['kenkyuto', 'morimoto'],
+        ));
+        await tester.pumpAndSettle();
+
+        // もりもと本店前のタブへ切り替える（stopMaster に無いので ID が出る）
+        await tester.tap(find.text('morimoto'));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('このバス停の時刻はまだ取得できていません'), findsOneWidget);
+        // 「時刻表データなし」（便が1本も無い）とは別物として出す
+        expect(find.text('時刻表データなし'), findsNothing);
+      });
+
+      testWidgets('「再試行」で取り直す', (tester) async {
+        final vm = _FakeScheduleViewModel(cachedCovering(['kenkyuto']));
+        await tester.pumpWidget(ProviderScope(
+          overrides: [
+            scheduleViewModelProvider.overrideWith(() => vm),
+            stopSelectionProvider.overrideWith(
+              () => _FakeStopSelectionNotifier(
+                  const StopSelection(stopIds: ['kenkyuto', 'morimoto'])),
+            ),
+            countdownOverride(),
+          ],
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+        ));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('morimoto'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('再試行'));
+        await tester.pump();
+
+        expect(vm.refreshCalled, isTrue);
+      });
+
+      testWidgets('coveredStopIds が空なら全部持っているとみなす', (tester) async {
+        // #177 以前のキャッシュには記録が無い
+        await tester.pumpWidget(wrap(cachedCovering(const [])));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('このバス停の時刻はまだ取得できていません'), findsNothing);
+      });
+    });
+
     group('OfflineCacheBanner', () {
       testWidgets('isFromCache: true のとき OfflineCacheBanner が表示される',
           (tester) async {

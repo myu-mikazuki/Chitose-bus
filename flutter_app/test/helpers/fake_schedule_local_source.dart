@@ -6,7 +6,7 @@ import 'package:kagi_bus/domain/entities/stop_selection.dart';
 class FakeScheduleLocalSource implements ScheduleLocalSource {
   ScheduleResponseModel? stored;
 
-  /// 保存時に渡された停留所の選択。キャッシュのキーが一致しなければミスにする
+  /// 保存時に渡された停留所の選択。読み出したキャッシュに添えて返す
   String? storedStops;
   int saveCallCount = 0;
 
@@ -20,9 +20,15 @@ class FakeScheduleLocalSource implements ScheduleLocalSource {
   }
 
   @override
-  Future<ScheduleResponseModel?> load(String stopsKey) async {
+  Future<CachedSchedule?> load() async {
     if (failOnLoad) throw const FormatException('壊れたキャッシュ');
-    return storedStops == stopsKey ? stored : null;
+    final model = stored;
+    final stops = storedStops;
+    if (model == null || stops == null) return null;
+    return CachedSchedule(
+      model: model,
+      stopIds: stops.isEmpty ? const [] : stops.split(','),
+    );
   }
 
   @override

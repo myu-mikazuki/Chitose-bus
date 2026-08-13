@@ -46,34 +46,34 @@ void main() {
 
   group('ScheduleLocalSource.load', () {
     test('returns null when nothing has been saved', () async {
-      expect(await source.load(_defaultStops), isNull);
+      expect(await source.load(), isNull);
     });
 
     test('returns saved model after save()', () async {
       await source.save(_responseModel, _defaultStops);
 
-      final loaded = await source.load(_defaultStops);
+      final loaded = await source.load();
       expect(loaded, isNotNull);
-      expect(loaded!.updatedAt, '2024-01-01');
-      expect(loaded.current.trips.length, 1);
-      expect(loaded.current.trips.first.stops.first.time, '09:30');
-      expect(loaded.upcoming, isNull);
+      expect(loaded!.model.updatedAt, '2024-01-01');
+      expect(loaded.model.current.trips.length, 1);
+      expect(loaded.model.current.trips.first.stops.first.time, '09:30');
+      expect(loaded.model.upcoming, isNull);
     });
 
     test('restores model with upcoming non-null', () async {
       await source.save(_responseModelWithUpcoming, _defaultStops);
 
-      final loaded = await source.load(_defaultStops);
-      expect(loaded!.upcoming, isNotNull);
-      expect(loaded.upcoming!.validFrom, '2024-07-01');
+      final loaded = await source.load();
+      expect(loaded!.model.upcoming, isNotNull);
+      expect(loaded.model.upcoming!.validFrom, '2024-07-01');
     });
 
     test('returns latest model when saved twice', () async {
       await source.save(_responseModel, _defaultStops);
       await source.save(_responseModelWithUpcoming, _defaultStops);
 
-      final loaded = await source.load(_defaultStops);
-      expect(loaded!.updatedAt, '2024-04-01');
+      final loaded = await source.load();
+      expect(loaded!.model.updatedAt, '2024-04-01');
     });
 
     test('returns null when JSON is corrupted', () async {
@@ -81,36 +81,41 @@ void main() {
       await prefs.setString('schedule_cache_json', 'not valid json {{{');
       await prefs.setString('schedule_cache_stops', _defaultStops);
 
-      expect(await source.load(_defaultStops), isNull);
+      expect(await source.load(), isNull);
     });
   });
 
   group('停留所の選択とキャッシュ', () {
-    test('選択が違うキャッシュはミス扱いになる', () async {
-      // 選んだ停留所によって応答が変わるため、別の選択のキャッシュは使えない
+    test('保存時の停留所を添えて返す', () async {
       await source.save(_responseModel, _defaultStops);
 
-      expect(await source.load('chitose,morimoto'), isNull);
+      expect((await source.load())!.stopIds,
+          ['chitose', 'minamiChitose', 'kenkyuto', 'honbuto']);
     });
 
-    test('選択が同じなら当たる', () async {
+    test('選択が変わってもキャッシュは捨てない', () async {
+      // オフラインで停留所を足しただけで時刻表が全く出せなくなるのを避ける。
+      // 足りない停留所は stopIds で分かるので、画面側がその分だけ出し分ける
       await source.save(_responseModel, 'chitose,morimoto');
 
-      expect(await source.load('chitose,morimoto'), isNotNull);
+      final loaded = await source.load();
+      expect(loaded, isNotNull);
+      expect(loaded!.stopIds, ['chitose', 'morimoto']);
     });
 
-    test('順序が違えばミス扱い（タブの並びが変わるため）', () async {
-      await source.save(_responseModel, 'chitose,honbuto');
+    test('順序も記録される（タブの並びが変わるため）', () async {
+      await source.save(_responseModel, 'honbuto,chitose');
 
-      expect(await source.load('honbuto,chitose'), isNull);
+      expect((await source.load())!.stopIds, ['honbuto', 'chitose']);
     });
 
     test('選択の記録が無い旧バージョンのキャッシュはミス扱い', () async {
-      // v=3 時代のキャッシュは形式そのものが違うので読ませない
+      // v=3 時代のキャッシュは形式そのものが違うので、こちらでは読ませない
+      // （loadLegacy が読む）
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('schedule_cache_json', '{"updatedAt":"2024-01-01"}');
 
-      expect(await source.load(_defaultStops), isNull);
+      expect(await source.load(), isNull);
     });
   });
 
@@ -150,6 +155,21 @@ void main() {
       expect(loaded, isNotNull);
       expect(loaded!.updatedAt, '2026-08-01');
       expect(loaded.current.schedules.length, 2);
+    });
+
+    test('旧形式が持っている4停留所を申告する', () async {
+      // ここを取り違えると、更新した既存ユーザーが初回起動で全タブ
+      // 「取得できていません」になり、移行経路を用意した意味が消える。
+      // v=3 が返していたのはこの4つで固定。StopSelection.defaultStopIds とは
+      // たまたま一致しているだけなので、リテラルで確かめる
+      await putLegacyCache();
+
+      final loaded = await source.loadLegacy();
+      expect(loaded!.coveredStopIds,
+          ['chitose', 'minamiChitose', 'kenkyuto', 'honbuto']);
+      expect(loaded.covers('chitose'), isTrue);
+      // 移行前に選べなかった停留所は持っていない
+      expect(loaded.covers('morimoto'), isFalse);
     });
 
     test('便の中身が引き継がれる', () async {
