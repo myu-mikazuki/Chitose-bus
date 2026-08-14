@@ -12,7 +12,6 @@ class NextBusDisplay extends ConsumerWidget {
     required this.stopId,
     required this.stopMaster,
     this.destination,
-    this.showPlatform = false,
   });
 
   final BusTimetable timetable;
@@ -27,7 +26,6 @@ class NextBusDisplay extends ConsumerWidget {
   /// 行き先（科技大 / 千歳駅）。指定しなければ絞らない。
   /// 途中の停留所は上下両方向のバスが通るため、画面では指定する
   final String? destination;
-  final bool showPlatform;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,36 +39,35 @@ class NextBusDisplay extends ConsumerWidget {
       stopMaster: stopMaster,
       entry: next,
       now: now,
-      showPlatform: showPlatform,
     );
   }
 }
 
-/// NEXT BUS に出す行き先の表示名。
+/// NEXT BUS に出す行き先の表示名。**終点の名前を出す。**
 ///
-/// 便の destination（科技大 / 千歳駅）をそのまま出すと、研究棟から乗る場合に
-/// 「科技大」となって現在の表示と変わる。実際に向かうのは本部棟なので、
-/// 現在は乗車地との組で決めている。
+/// 便の destination（科技大 / 千歳駅）をそのまま出すと、研究棟から乗る人に
+/// 「科技大」と出てしまう。実際に向かうのは本部棟なので噛み合わない。
 ///
-/// TODO(#177): 乗車地選択の UI を入れる際に見直す。任意の停留所では
-/// この対応表を持てないため、行き先の出し方そのものを決め直す必要がある。
-String destinationLabelOf(BusEntry entry) {
-  if (entry.boardingStopId == 'kenkyuto' && entry.destination == BusDestination.campus) {
-    return '本部棟';
-  }
-  return entry.destination;
+/// 以前は `kenkyuto` を名指しで「本部棟」に読み替えていたが、任意の停留所を
+/// 選べる今はその対応表を持てない。行き先の見出し（`_StopTab.terminusLabel`）が
+/// 同じく終点を出しているので、**同じ画面の2箇所で違う行き先が出ないよう**
+/// こちらも終点に揃える（#177）。
+///
+/// 終点が分からない供給元（未デプロイの GAS・#177 以前のキャッシュ）だけ
+/// destination をそのまま出す。
+String destinationLabelOf(BusEntry entry, List<BusStop> stopMaster) {
+  final terminus = entry.terminusStopId;
+  return terminus != null ? stopMaster.labelOf(terminus) : entry.destination;
 }
 
 class _NextBusCard extends StatelessWidget {
   const _NextBusCard({
     required this.entry,
     required this.now,
-    required this.showPlatform,
     required this.stopMaster,
   });
   final BusEntry entry;
   final DateTime now;
-  final bool showPlatform;
   final List<BusStop> stopMaster;
 
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
@@ -132,7 +129,7 @@ class _NextBusCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  destinationLabelOf(entry),
+                  destinationLabelOf(entry, stopMaster),
                   style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 14,
@@ -172,7 +169,10 @@ class _NextBusCard extends StatelessWidget {
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
-          if (showPlatform && entry.platformNumber != null) ...[
+          // のりばは v=4 で停留所ごとの属性になった（StopTimeModel.platform）。
+          // 以前は「千歳駅のときだけ出す」と乗車地を名指ししていたが、GAS が
+          // 他の停留所にのりばを足したら出す、が正しい（#177）
+          if (entry.platformNumber != null) ...[
             const SizedBox(height: 4),
             Text(
               '${entry.platformNumber}のりば',

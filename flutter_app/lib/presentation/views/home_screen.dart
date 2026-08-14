@@ -474,6 +474,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
+  /// 「来週のダイヤ」シート。
+  ///
+  /// **ここだけ4停留所のまま**。`upcoming` も `?stops=` で絞られるので、選択から
+  /// 外した停留所の節は空のまま並ぶ。
+  ///
+  /// GAS の `doGet` は `upcoming: null` を直書きしており（`getHardcodedTimetable`・
+  /// `buildStopsResponse`）、カレンダーアイコンも `upcoming != null` でしか出ない
+  /// ため、今はシート自体を開けない。実害が無いのでそのままにしてある。
+  ///
+  /// TODO(#202): `upcoming` を復活させるときに選択ベースへ直す。
+  /// 研究棟だけ行き先で2節に分かれている作りも含めて見直しになる。
   void _showUpcomingSheet(
     BuildContext context,
     BusTimetable upcoming,
@@ -642,6 +653,36 @@ class _SeasonSelector extends ConsumerWidget {
   }
 }
 
+/// この停留所を通る便が1本も無いときの表示。
+///
+/// 「取得できていません」（[_StopNotFetched]）とは別物。取得はできていて、
+/// 中身として便が無い。乗車地にならない停留所（終点だけを選んだ場合など）で起きる。
+class _StopHasNoBus extends StatelessWidget {
+  const _StopHasNoBus();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.directions_bus_filled_outlined,
+                color: context.appColors.textDisabled),
+            const SizedBox(height: 12),
+            Text(
+              'このバス停から乗れる便はありません。',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: context.appColors.textTertiary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// 停留所名が届くまでタブに置くもの。
 class _StopLabelPlaceholder extends StatelessWidget {
   const _StopLabelPlaceholder();
@@ -792,6 +833,14 @@ class _StopTabState extends State<_StopTab> {
 
   @override
   Widget build(BuildContext context) {
+    // 行き先が1つも無いと、この下の IndexedStack はどちらも children が空になり、
+    // 見出しだけが並んで下が無言の空白になる。ScheduleList 自体が作られないので
+    // その中の「時刻表データなし」にも辿り着かない。
+    //
+    // 取得はできているので「取得できていません」でもない。**この停留所を通る
+    // 便が1本も無い**という状態で、ここでだけ言える（#177）
+    if (_destinations.isEmpty) return const _StopHasNoBus();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -855,7 +904,6 @@ class _StopTabState extends State<_StopTab> {
                           stopId: widget.stopId,
                           stopMaster: widget.stopMaster,
                           destination: d,
-                          showPlatform: widget.stopId == 'chitose',
                         ),
                     ],
                   ),

@@ -897,7 +897,9 @@ var _boardableById = null;
 
 function isBoardableStop(id) {
   if (_boardableById === null) {
-    _boardableById = {};
+    // requestedStops と同じく Object.create(null) にする。ここは既定が true な
+    // ため素の {} でも結果は変わらないが、片方だけ対策してあるように読める
+    _boardableById = Object.create(null);
     STOPS.forEach(function(s) { _boardableById[s.id] = s.boardable !== false; });
   }
   // STOPS に無い ID は ROUTES 側の書き間違い。ここでは判断しない

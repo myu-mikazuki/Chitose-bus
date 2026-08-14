@@ -97,7 +97,12 @@ class ScheduleResponseModel with _$ScheduleResponseModel {
 
 extension TripModelMapper on TripModel {
   /// 便が通る各停留所について、そこから乗る場合の BusEntry を作る。
-  /// 後に停留所が無い（＝終点）ものは乗車地にならないので作らない。
+  /// 終点は乗車地にならないので作らない。
+  ///
+  /// **「後に停留所が無い」で終点を判定してはいけない。** `stops` は `?stops=`
+  /// で絞られた後なので、選んだ停留所が末尾に来ているだけかもしれない。
+  /// 停留所を1つだけ選ぶと全便が1要素になり、その判定では**全部消える**（#177）。
+  /// 終点は絞り込みの前に決まった [TripModel.terminus] で見る。
   List<BusEntry> toEntries() {
     final out = <BusEntry>[];
     for (var i = 0; i < stops.length; i++) {
@@ -106,7 +111,11 @@ extension TripModelMapper on TripModel {
       for (final s in stops.skip(i + 1)) {
         arrivals[s.id] = s.time;
       }
-      if (arrivals.isEmpty) continue;
+      // 終点なら乗れない。terminus が無い供給元（未デプロイの GAS・#177 以前の
+      // キャッシュ）では判定できないので、従来どおり末尾を終点とみなす
+      final isTerminus =
+          terminus != null ? stops[i].id == terminus : arrivals.isEmpty;
+      if (isTerminus) continue;
 
       out.add(BusEntry(
         time: stops[i].time,

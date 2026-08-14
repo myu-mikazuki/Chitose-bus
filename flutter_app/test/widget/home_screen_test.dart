@@ -170,8 +170,17 @@ final _mockResponseWithUpcoming = ScheduleResult(
 // Tests
 // ---------------------------------------------------------------------------
 
-// 行き先の選択肢はデータから導くため、研究棟から両方向の便が要る
+// 行き先の選択肢はデータから導くため、研究棟から両方向の便が要る。
+// 既定で開くのは千歳駅タブなので、そちらにも1便入れておく
+// （便が1本も無い停留所は _StopHasNoBus になり、見出しごと出なくなる）
 const _kenkyutoBothWays = [
+  BusEntry(
+    time: '08:30',
+    boardingStopId: 'chitose',
+    destination: '科技大',
+    terminusStopId: 'honbuto',
+    arrivals: {'kenkyuto': '08:54', 'honbuto': '08:55'},
+  ),
   BusEntry(
     time: '09:00',
     boardingStopId: 'kenkyuto',
@@ -1048,6 +1057,65 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('→ イオン千歳店前'), findsOneWidget);
+      });
+    });
+
+    group('便が1本も無い停留所', () {
+      // 停留所を1つだけ選ぶと、GAS は全便を stops 1要素で返す。
+      // 「後に停留所が無い＝終点」で判定していた頃は全便が消え、見出しだけが
+      // 並んで下が無言の空白になっていた（#177）
+      Widget wrapOne(List<BusEntry> schedules, List<String> stopIds) =>
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(
+                () => _FakeScheduleViewModel(ScheduleResult(
+                  data: ScheduleResponse(
+                    stopMaster: _stopMaster,
+                    updatedAt: '2024-01-01',
+                    coveredStopIds: stopIds,
+                    current: BusTimetable(
+                      validFrom: '2024-01-01',
+                      validTo: '2024-03-31',
+                      schedules: schedules,
+                    ),
+                  ),
+                )),
+              ),
+              stopSelectionProvider.overrideWith(
+                () => _FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
+              ),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          );
+
+      testWidgets('1停留所だけ選んでも発車時刻が出る', (tester) async {
+        // 到着一覧は空。持っているのは発車時刻だけだが、それが選んだもの
+        await tester.pumpWidget(wrapOne(const [
+          BusEntry(
+            time: '08:30',
+            boardingStopId: 'chitose',
+            destination: '科技大',
+            terminusStopId: 'honbuto',
+          ),
+        ], ['chitose']));
+        await tester.pumpAndSettle();
+
+        expect(find.text('NEXT BUS'), findsOneWidget);
+        expect(find.text('08:30'), findsAtLeastNWidgets(1));
+        expect(find.textContaining('乗れる便はありません'), findsNothing);
+      });
+
+      testWidgets('本当に便が無ければ、その旨を出す（無言の空白にしない）', (tester) async {
+        await tester.pumpWidget(wrapOne(const [], ['chitose']));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('乗れる便はありません'), findsOneWidget);
+        // 見出しだけが残らないこと
+        expect(find.text('NEXT BUS'), findsNothing);
+        expect(find.text("TODAY'S SCHEDULE"), findsNothing);
+        // 取得はできているので「取得できていません」とは別物
+        expect(find.textContaining('まだ取得できていません'), findsNothing);
       });
     });
 

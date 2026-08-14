@@ -101,8 +101,54 @@ void main() {
       final entries = entriesOf([osatsuBound]);
 
       // 到着地の末尾はイオン千歳店前だが、終点は長都駅東口のまま
-      expect(entries.single.arrivals.keys.last, 'aeon');
-      expect(entries.single.terminusStopId, 'osatsu');
+      expect(entries.first.arrivals.keys.last, 'aeon');
+      expect(entries.map((e) => e.terminusStopId), everyElement('osatsu'));
+    });
+
+    test('絞り込みの末尾も、終点でなければ乗車地になる', () {
+      // #177 の不具合。`stops` は ?stops= で絞られた後なので、「後に停留所が
+      // 無い」で終点を判定すると、選んだ停留所が末尾に来ているだけの便まで
+      // 消えてしまう。イオン千歳店前から長都駅東口へ行く便は実在する
+      const osatsuBound = TripModel(
+        destination: '千歳駅',
+        terminus: 'osatsu',
+        stops: [
+          StopTimeModel(id: 'chitose', time: '12:02'),
+          StopTimeModel(id: 'aeon', time: '12:08'),
+        ],
+      );
+
+      final entries = entriesOf([osatsuBound]);
+      expect(entries.map((e) => e.boardingStopId), ['chitose', 'aeon']);
+      // 途中の時刻は取得していないので到着一覧は空。発車時刻は出せる
+      expect(entries.last.arrivals, isEmpty);
+      expect(entries.last.time, '12:08');
+    });
+
+    test('停留所を1つだけ選んでも便が消えない', () {
+      // 選択が1つだと GAS は全便を stops 1要素で返す。
+      // ここで消すと、そのタブが見出しだけになって何も出なくなる
+      const trip = TripModel(
+        destination: '科技大',
+        terminus: 'honbuto',
+        stops: [StopTimeModel(id: 'morimoto', time: '07:23')],
+      );
+
+      final entries = entriesOf([trip]);
+      expect(entries.single.boardingStopId, 'morimoto');
+      expect(entries.single.time, '07:23');
+      expect(entries.single.terminusStopId, 'honbuto');
+      expect(entries.single.arrivals, isEmpty);
+    });
+
+    test('終点だけを選んだ便は消える（そこからは乗れない）', () {
+      const trip = TripModel(
+        destination: '科技大',
+        terminus: 'honbuto',
+        stops: [StopTimeModel(id: 'honbuto', time: '07:45')],
+      );
+
+      expect(entriesOf([trip]), isEmpty);
     });
 
     test('arrivals は乗車地より後の停留所を通過順に持つ', () {

@@ -150,10 +150,10 @@ function checkRouteData() {
       }
     }
   }
-  // v=4 の応答には direction が無いため、アプリ側の adapter は destination の
-  // 文字列で乗車地を決めている（bus_schedule_model.dart の _legacyBoarding）。
-  // ここを増やすとアプリが未知の行き先として落ちるので、集合を固定する。
-  // 乗車地選択の UI が入って adapter が消えたら、この検査も不要になる。
+  // アプリは destination の文字列で行き先を区別する（BusDestination.campus /
+  // .station）。行き先の切り替えの並び順もこの2値を前提にしている
+  // （home_screen.dart の _StopTab.destinations）。
+  // ROUTES に3つ目を足すとアプリ側が知らない行き先になるので、集合を固定する。
   const APP_KNOWN_DESTINATIONS = ['科技大', '千歳駅'];
   const actual = [...new Set(ROUTES.map((r) => r.destination))].sort();
   const expected = [...APP_KNOWN_DESTINATIONS].sort();

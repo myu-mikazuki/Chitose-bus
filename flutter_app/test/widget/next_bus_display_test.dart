@@ -233,7 +233,7 @@ void main() {
       expect(find.text('あと 1:30'), findsOneWidget);
     });
 
-    testWidgets('showPlatform=true かつ platformNumber が "5番" の場合: "5番のりば" と表示される',
+    testWidgets('platformNumber が "5番" の場合: "5番のりば" と表示される',
         (tester) async {
       final busTime = safeFutureHhmm(60);
       final timetable = BusTimetable(
@@ -254,7 +254,7 @@ void main() {
           stopMaster: kTestStopMaster,
           timetable: timetable,
           stopId: 'chitose',
-          showPlatform: true,
+
         )),
       );
 
