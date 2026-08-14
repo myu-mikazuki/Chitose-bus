@@ -85,23 +85,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  Tab _buildTab(String label, String stopId, String? favoriteStopId) {
+  /// タブ1つ。[label] が null なら停留所名がまだ分からない（初回起動）。
+  ///
+  /// 名前の供給元は GAS の `stopMaster` だけなので、届くまで出せる名前が無い。
+  /// ID をそのまま出すと `chitose` のような英字が並ぶため、代わりに場所だけ
+  /// 取っておく（#177）。
+  ///
+  /// 場所取りも名前と同じ幅の計算に通す。別扱いにすると、名前が届いた瞬間に
+  /// 星が横並びから右端へ跳ぶ。
+  Tab _buildTab(String? label, String stopId, String? favoriteStopId) {
     return Tab(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isFavorite = favoriteStopId == stopId;
           final tabWidth = constraints.maxWidth;
 
-          // タブ内のラベルスタイルでテキスト幅を計測
-          final textStyle = DefaultTextStyle.of(context).style;
-          final textPainter = TextPainter(
-            text: TextSpan(text: label, style: textStyle),
-            textDirection: TextDirection.ltr,
-          )..layout();
-          final textWidth = textPainter.width;
+          // 並べ方を決めるための幅。名前はタブ内のラベルスタイルで実測する
+          // （場所取りは幅が決まっているので計測しない）
+          final double textWidth;
+          if (label == null) {
+            textWidth = _StopLabelPlaceholder.width;
+          } else {
+            final textStyle = DefaultTextStyle.of(context).style;
+            textWidth = (TextPainter(
+              text: TextSpan(text: label, style: textStyle),
+              textDirection: TextDirection.ltr,
+            )..layout())
+                .width;
+          }
 
           const starSize = 20.0;
           const gap = 4.0;
+
+          /// 名前、または届くまでの場所取り。**見た目の分岐はここだけ**。
+          /// 3つの並べ方それぞれで書き分けると、片方だけ直す事故が起きる。
+          ///
+          /// ellipsis はどの並べ方でも付けてよい。収まる経路では効かず、
+          /// 縮小経路（[Flexible] の中）でだけ働く。
+          Widget labelWidget([TextStyle? style]) => label == null
+              ? const _StopLabelPlaceholder()
+              : Text(
+                  label,
+                  style: style,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                );
 
           Widget starIcon(double size) => GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -123,7 +151,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (stackFits) {
             return Stack(
               children: [
-                Align(alignment: Alignment.center, child: Text(label)),
+                Align(alignment: Alignment.center, child: labelWidget()),
                 Align(
                     alignment: Alignment.centerRight,
                     child: starIcon(starSize)),
@@ -138,7 +166,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(label),
+                labelWidget(),
                 const SizedBox(width: gap),
                 starIcon(starSize),
               ],
@@ -153,14 +181,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Flexible(
-                child: Text(
-                  label,
-                  style: const TextStyle(fontSize: 11),
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                ),
-              ),
+              // 場所取りも Flexible の中では縮む（停留所を増やすとタブが狭まる）
+              Flexible(child: labelWidget(const TextStyle(fontSize: 11))),
               const SizedBox(width: 2),
               starIcon(14),
             ],
@@ -308,9 +330,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           tabs: [
             for (final id in stopIds)
               _buildTab(
-                // まだ取得できていなければ ID が出る（起動直後の一瞬のみ）
-                (scheduleAsync.valueOrNull?.data.stopMaster ?? const [])
-                    .labelOf(id),
+                // 応答そのものがまだ無ければ名前は分からない（初回起動）。
+                // 応答があって stopMaster に無い停留所は ID のまま出す
+                // （GAS から消えた停留所。ずっと直らないので伏せない）
+                scheduleAsync.valueOrNull?.data.stopMaster.labelOf(id),
                 id,
                 favoriteStopId,
               ),
@@ -613,6 +636,36 @@ class _SeasonSelector extends ConsumerWidget {
           foregroundColor: context.appColors.textTertiary,
           selectedBackgroundColor: AppColors.primary,
           selectedForegroundColor: AppColors.onPrimary,
+        ),
+      ),
+    );
+  }
+}
+
+/// 停留所名が届くまでタブに置くもの。
+class _StopLabelPlaceholder extends StatelessWidget {
+  const _StopLabelPlaceholder();
+
+  /// 既定の停留所の短縮名（`千歳駅` `南千歳` `研究棟` `本部棟`）の実測幅。
+  /// 3文字 × タブのラベル 14sp = 42px。
+  ///
+  /// **見た目を整える値ではなく、並べ方を名前と揃えるための値。** タブは
+  /// この幅で中央寄せ / 横並び / 縮小を決めるので、名前とずらすと画面幅に
+  /// よっては名前が届いた瞬間に並べ方が切り替わり、星が跳ぶ。
+  static const width = 42.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // 画面に英字を出さないためのものなので、読み上げでも ID は読ませない。
+    // ラベルが無いと「タブ 1/4」としか読まれず、待てば出ると分からない
+    return Semantics(
+      label: '読み込み中',
+      child: Container(
+        width: width,
+        height: 10,
+        decoration: BoxDecoration(
+          color: context.appColors.textDisabled,
+          borderRadius: BorderRadius.circular(5),
         ),
       ),
     );
