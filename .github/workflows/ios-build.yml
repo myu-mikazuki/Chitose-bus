@@ -47,7 +47,7 @@ on:
         type: string
         default: 'Debug'
       flutter_version:
-        description: 'Flutter version to use (e.g., 3.24.0). Empty means latest stable.'
+        description: 'Flutter version to use (e.g., 3.24.0). Empty uses environment.flutter in flutter_app/pubspec.yaml.'
         required: false
         type: string
         default: ''
@@ -95,12 +95,20 @@ jobs:
             echo "type=native" >> $GITHUB_OUTPUT
           fi
 
+      # 版は flutter_app/pubspec.yaml の environment.flutter を読む（#198）。
+      #
+      # **flutter-version と flutter-version-file の併用はエラー**になるので、
+      # workflow_dispatch で版を渡されたときだけ file 側を空にする。
+      #
+      # 条件を反転して書いているのは、`A && '' || B` が**必ず B になる**ため。
+      # Actions の `&&` `||` は真偽値ではなく値を返し、空文字は falsy なので、
+      # 素直に書いた形は分岐にならない。真ん中は必ず非空にすること。
       - name: Setup Flutter
         if: steps.detect.outputs.type == 'flutter'
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ inputs.flutter_version || '' }}
-          channel: ${{ inputs.flutter_version && 'stable' || 'stable' }}
+          flutter-version: ${{ inputs.flutter_version }}
+          flutter-version-file: ${{ inputs.flutter_version == '' && 'flutter_app/pubspec.yaml' || '' }}
           cache: true
 
       - name: Create .dart_define

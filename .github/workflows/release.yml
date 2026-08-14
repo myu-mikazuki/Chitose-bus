@@ -16,9 +16,11 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      # 版は flutter_app/pubspec.yaml の environment.flutter を読む。
+      # ここに直接書かない理由と固定した経緯は #198。
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version-file: flutter_app/pubspec.yaml
           cache: true
 
       - name: Disable Swift Package Manager
@@ -160,9 +162,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 版は flutter_app/pubspec.yaml の environment.flutter を読む。
+      # ここに直接書かない理由と固定した経緯は #198。
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version-file: flutter_app/pubspec.yaml
           cache: true
 
       - name: Disable Swift Package Manager
@@ -274,6 +278,8 @@ jobs:
   release:
     needs: [build-ios, build-android]
     runs-on: ubuntu-latest
+    # 他のジョブと揃えて上限を入れる（#198）
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
