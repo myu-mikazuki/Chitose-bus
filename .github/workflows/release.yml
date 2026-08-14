@@ -16,9 +16,16 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      # 版は flutter_app/pubspec.yaml の environment.flutter を読む。
+      # `channel: stable` だけだと、新しい Dart を持つ stable が出た日に
+      # pubspec.lock が固定している analyzer と食い違い、build_runner が例外を
+      # 投げたまま終了せずジョブが終わらなくなる（#198）。
+      #
+      # ワークフローに直接書かないのは、5箇所に散って片方だけ古くなるのを
+      # 避けるため。**flutter-version との併用はエラーになる。**
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version-file: flutter_app/pubspec.yaml
           cache: true
 
       - name: Disable Swift Package Manager
@@ -160,9 +167,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 版は flutter_app/pubspec.yaml の environment.flutter を読む。
+      # `channel: stable` だけだと、新しい Dart を持つ stable が出た日に
+      # pubspec.lock が固定している analyzer と食い違い、build_runner が例外を
+      # 投げたまま終了せずジョブが終わらなくなる（#198）。
+      #
+      # ワークフローに直接書かないのは、5箇所に散って片方だけ古くなるのを
+      # 避けるため。**flutter-version との併用はエラーになる。**
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version-file: flutter_app/pubspec.yaml
           cache: true
 
       - name: Disable Swift Package Manager
