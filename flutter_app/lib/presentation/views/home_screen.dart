@@ -100,20 +100,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           final isFavorite = favoriteStopId == stopId;
           final tabWidth = constraints.maxWidth;
 
-          // タブ内のラベルスタイルでテキスト幅を計測
-          final textStyle = DefaultTextStyle.of(context).style;
-          final textPainter = TextPainter(
-            text: TextSpan(text: label ?? '', style: textStyle),
-            textDirection: TextDirection.ltr,
-          )..layout();
-          final textWidth =
-              label == null ? _StopLabelPlaceholder.width : textPainter.width;
+          // 並べ方を決めるための幅。名前はタブ内のラベルスタイルで実測する
+          // （場所取りは幅が決まっているので計測しない）
+          final double textWidth;
+          if (label == null) {
+            textWidth = _StopLabelPlaceholder.width;
+          } else {
+            final textStyle = DefaultTextStyle.of(context).style;
+            textWidth = (TextPainter(
+              text: TextSpan(text: label, style: textStyle),
+              textDirection: TextDirection.ltr,
+            )..layout())
+                .width;
+          }
 
           const starSize = 20.0;
           const gap = 4.0;
 
-          Widget labelWidget() =>
-              label == null ? const _StopLabelPlaceholder() : Text(label);
+          /// 名前、または届くまでの場所取り。**見た目の分岐はここだけ**。
+          /// 3つの並べ方それぞれで書き分けると、片方だけ直す事故が起きる。
+          ///
+          /// ellipsis はどの並べ方でも付けてよい。収まる経路では効かず、
+          /// 縮小経路（[Flexible] の中）でだけ働く。
+          Widget labelWidget([TextStyle? style]) => label == null
+              ? const _StopLabelPlaceholder()
+              : Text(
+                  label,
+                  style: style,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                );
 
           Widget starIcon(double size) => GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -165,17 +181,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Flexible(
-                // 場所取りも Flexible の中では縮む（停留所を増やすとタブが狭まる）
-                child: label == null
-                    ? const _StopLabelPlaceholder()
-                    : Text(
-                        label,
-                        style: const TextStyle(fontSize: 11),
-                        overflow: TextOverflow.ellipsis,
-                        softWrap: false,
-                      ),
-              ),
+              // 場所取りも Flexible の中では縮む（停留所を増やすとタブが狭まる）
+              Flexible(child: labelWidget(const TextStyle(fontSize: 11))),
               const SizedBox(width: 2),
               starIcon(14),
             ],
@@ -636,24 +643,30 @@ class _SeasonSelector extends ConsumerWidget {
 }
 
 /// 停留所名が届くまでタブに置くもの。
-///
-/// 幅は既定の停留所の短縮名（「南千歳」など4文字）に合わせてある。名前が
-/// 届いたときの入れ替わりが小さいほうが、読み込み中だと分かりやすい。
 class _StopLabelPlaceholder extends StatelessWidget {
   const _StopLabelPlaceholder();
 
-  /// タブの並べ方（中央寄せ / 横並び / 縮小）を名前と同じ計算で決めるため、
-  /// 幅は外からも参照できるようにしてある
-  static const width = 44.0;
+  /// 既定の停留所の短縮名（`千歳駅` `南千歳` `研究棟` `本部棟`）の実測幅。
+  /// 3文字 × タブのラベル 14sp = 42px。
+  ///
+  /// **見た目を整える値ではなく、並べ方を名前と揃えるための値。** タブは
+  /// この幅で中央寄せ / 横並び / 縮小を決めるので、名前とずらすと画面幅に
+  /// よっては名前が届いた瞬間に並べ方が切り替わり、星が跳ぶ。
+  static const width = 42.0;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: 10,
-      decoration: BoxDecoration(
-        color: context.appColors.textDisabled,
-        borderRadius: BorderRadius.circular(5),
+    // 画面に英字を出さないためのものなので、読み上げでも ID は読ませない。
+    // ラベルが無いと「タブ 1/4」としか読まれず、待てば出ると分からない
+    return Semantics(
+      label: '読み込み中',
+      child: Container(
+        width: width,
+        height: 10,
+        decoration: BoxDecoration(
+          color: context.appColors.textDisabled,
+          borderRadius: BorderRadius.circular(5),
+        ),
       ),
     );
   }

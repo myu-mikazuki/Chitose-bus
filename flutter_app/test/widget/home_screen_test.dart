@@ -106,6 +106,8 @@ class _RefreshableViewModel extends ScheduleViewModel {
   Future<void> refresh() async {
     state = const AsyncLoading();
   }
+
+  void fail() => state = AsyncError(Exception('test error'), StackTrace.empty);
 }
 
 /// 選択を外から差し替えられる VM。設定画面での操作を再現する。
@@ -336,6 +338,71 @@ void main() {
         await tester.tap(find.byIcon(Icons.refresh));
         await tester.pump();
 
+        expect(find.text('千歳駅'), findsOneWidget);
+      });
+
+      // 場所取りの幅（_StopLabelPlaceholder.width）を選んだ理由がこれ。
+      // タブは幅で並べ方（中央寄せ / 横並び / 縮小）を決めるので、場所取りが
+      // 名前と違う幅だと、画面幅によっては名前が届いた瞬間に並べ方が切り替わり、
+      // 星が跳ぶ。
+      //
+      // **画面幅を指定して確かめる。** 既定の 800px ではタブが広すぎて、幅が
+      // どうであれ中央寄せに入り、星は右端に固定されて差が出ない。
+      // 492px は中央寄せ ⇄ 横並びの境目で、幅を数 px 変えるだけで割れる
+      for (final logicalWidth in [360.0, 375.0, 412.0, 492.0]) {
+        testWidgets('名前に入れ替わっても星が動かない（幅 $logicalWidth）', (tester) async {
+          tester.view.physicalSize = Size(logicalWidth * 2, 1334);
+          tester.view.devicePixelRatio = 2.0;
+          addTearDown(tester.view.reset);
+
+          final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                scheduleViewModelProvider.overrideWith(() => scheduleVM),
+                countdownOverride(),
+              ],
+              child: MaterialApp(
+                  theme: buildTestTheme(), home: const HomeScreen()),
+            ),
+          );
+          await tester.pump();
+
+          final before =
+              tester.getTopLeft(find.byIcon(Icons.star_border).first).dx;
+
+          scheduleVM.complete();
+          await tester.pump();
+
+          final after =
+              tester.getTopLeft(find.byIcon(Icons.star_border).first).dx;
+          // 縮小経路では名前が 11px に縮むぶんだけずれる。見張っているのは
+          // 並べ方で、そちらが切り替わると星は 10px 以上動く
+          expect(after, closeTo(before, 6));
+        });
+      }
+
+      testWidgets('更新に失敗しても名前は残る（バーに戻るのは初回起動だけ）', (tester) async {
+        // AsyncError も直前の値を添えたまま持つ（AsyncLoading と同じ）。
+        // 一度でも取得できていれば、失敗しても停留所名は分かっている
+        final scheduleVM = _RefreshableViewModel(_mockResponse);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => scheduleVM),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        scheduleVM.fail();
+        await tester.pump();
+
+        // 本文はエラー画面でも、タブは名前のまま
+        expect(find.textContaining('エラー:'), findsOneWidget);
         expect(find.text('千歳駅'), findsOneWidget);
       });
 
