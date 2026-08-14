@@ -21,13 +21,18 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # 通常2分。#198 では build_runner が例外を投げたまま居座り、上限が無い
+    # せいで3時間走り続けた。生成器側の挙動なので固定を外せば再発しうる
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
 
+      # 版は flutter_app/pubspec.yaml の environment.flutter を読む。
+      # ここに直接書かない理由と固定した経緯は #198。
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version-file: flutter_app/pubspec.yaml
           cache: true
 
       - name: Install dependencies

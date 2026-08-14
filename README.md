@@ -116,8 +116,21 @@ iOS ビルド時に `--dart-define` でエンドポイント URL を渡すため
 
 #### 前提条件
 
-- Flutter SDK（stable チャンネル）
+- **Flutter SDK 3.41.3**（`flutter_app/pubspec.yaml` の `environment.flutter`）
 - Dart SDK（Flutter に同梱）
+
+> [!IMPORTANT]
+> Flutter は**完全一致で固定**しています。別の版だと `flutter pub get` の時点で
+> 止まります。`flutter upgrade` したあとに動かなくなったらこれが原因です。
+>
+> ```bash
+> flutter downgrade 3.41.3   # または fvm use 3.41.3
+> ```
+>
+> 固定している理由は [#198](https://github.com/myu-mikazuki/Chitose-bus/issues/198)。
+> 版を上げるときは `pubspec.yaml` の `environment.flutter` と、この節の版を
+> 一緒に直してください。CI は `pubspec.yaml` を読むので、ワークフロー側の
+> 変更は要りません。
 
 #### セットアップ手順
 
