@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-08-15
+最終更新: 2026-08-16
 
 ---
 
@@ -15,13 +15,14 @@
 | — | [#198](https://github.com/myu-mikazuki/Chitose-bus/issues/198) | CI の Flutter を `pubspec.yaml` で固定（PR #199） | ✅ 完了（develop） |
 | — | [#177](https://github.com/myu-mikazuki/Chitose-bus/issues/177) | 任意のバス停を乗車地として選べるようにする | ✅ 完了（develop）・**v1.3.0 で出す** |
 | — | [#204](https://github.com/myu-mikazuki/Chitose-bus/issues/204) | 乗車地に選べる停留所数の上限（**5件**） | ✅ 完了（develop・PR #206）・**v1.3.0 で出す** |
-| 1 | [#201](https://github.com/myu-mikazuki/Chitose-bus/issues/201) | 旧形式でキャッシュが空に上書きされる | **v1.3.0 に入れる** |
-| 2 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
-| 3 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 4 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
-| 5 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| — | [#201](https://github.com/myu-mikazuki/Chitose-bus/issues/201) | 旧形式でキャッシュが空に上書きされる | ✅ 完了（develop・PR #210）・**v1.3.0 で出す** |
+| 1 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
+| 2 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
+| 3 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
+| 4 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
 
-#177 は develop まで入った（PR #200）。#146（臨時便）は応答に便を追加するため、
+**v1.3.0 に入れるものは3件とも develop に入った。**残るはリリース作業のみ
+（次節「リリース時にやること」）。#146（臨時便）は応答に便を追加するため、
 旧アプリへの影響を確認する必要がある。
 
 ## v1.3.0
@@ -39,7 +40,9 @@
 - **#201** — v1.3.0 は `v=4` を使う最初のリリースで、**GAS のデプロイ順序に依存するのが初めて**。
   順序を誤るかデプロイをロールバックすると、空のキャッシュが保存されて `_keyStops` が入り、
   `loadLegacy()` も塞がって**再インストールするまで復旧しない**。#168 が未解決で
-  デプロイが手作業である以上、保険を入れておく
+  デプロイが手作業である以上、保険を入れておく。
+  **旧形式は保存せず、解釈して出す**方に倒した（PR #210）。捨てると新規インストール直後に
+  何も出せないため。ロールバック中は既定の4停留所ぶんに落ちるのを承知で受け入れている
 - **#204** — 停留所を選べるのは v1.3.0 から。上限が無いと 30 タブまで増やせて実用にならない。
   **上限は 5**。375px の端末で実測すると、6タブではラベルに残るのが 14.5px しかなく、
   最も短い短縮名でも `…` だけになる（5タブなら 27.0px で `研…` まで出る）。
