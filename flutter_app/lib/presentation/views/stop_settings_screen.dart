@@ -55,9 +55,16 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
       .where((s) => s.boardable && !_selected.contains(s.id))
       .toList(growable: false);
 
+  /// 上限に達しているか。達したら「追加する」の一覧を出さない（#204）
+  bool get _full => _selected.length >= StopSelection.maxStops;
+
   void _edit(List<String> next) => setState(() => _draft = next);
 
-  void _add(String id) => _edit([..._selected, id]);
+  void _add(String id) {
+    // 一覧を出さないので通常は押せないが、判定はここにも置く
+    if (_full) return;
+    _edit([..._selected, id]);
+  }
 
   void _remove(String id) =>
       _edit(_selected.where((e) => e != id).toList(growable: false));
@@ -194,7 +201,12 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
           const _PendingNotice(),
           const SizedBox(height: 16),
         ],
-        const _SectionHeader(label: 'タブに表示する'),
+        // 上限は先に見せる。押せなくなってから知らせると、なぜ足せないのか
+        // 分からないまま「追加する」を探すことになる
+        _SectionHeader(
+          label:
+              'タブに表示する（${_selected.length} / ${StopSelection.maxStops}）',
+        ),
         Text(
           '長押しで並べ替えられます。並びがそのままタブの並びになります。',
           style: TextStyle(color: context.appColors.textTertiary, fontSize: 12),
@@ -221,9 +233,18 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
         const SizedBox(height: 24),
         const _SectionHeader(label: '追加する'),
         const SizedBox(height: 8),
+        // 候補が無いことを先に見る。上限と同時に成り立つとき「外せば足せる」は
+        // 嘘になる（足す先がもう無い）
         if (candidates.isEmpty)
           Text(
             '追加できる停留所はありません',
+            style:
+                TextStyle(color: context.appColors.textTertiary, fontSize: 12),
+          )
+        else if (_full)
+          Text(
+            'タブは ${StopSelection.maxStops} 件までです。'
+            '別の停留所にするには、上のどれかを外してください。',
             style:
                 TextStyle(color: context.appColors.textTertiary, fontSize: 12),
           )

@@ -316,4 +316,105 @@ void main() {
       expect(find.byType(StopSettingsScreen), findsNothing);
     });
   });
+
+  // 上限が無いと乗車可能な30停留所すべてをタブにでき、1タブ約 12.5px になって
+  // 名前も星も判別できない（#204）
+  group('StopSettingsScreen 選択数の上限', () {
+    // 上限まで選んでもまだ余る数のマスタ。
+    // 上限を変えても意味が変わらないよう、選択も候補もここから組み立てる
+    const master = [
+      BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+      BusStop(id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳'),
+      BusStop(id: 'morimoto', label: 'もりもと本店前'),
+      BusStop(id: 'shiyakusho', label: '市役所前'),
+      BusStop(id: 'aeon', label: 'イオン千歳店前'),
+      BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
+      BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+    ];
+
+    /// 上限ちょうどの選択
+    final full = master
+        .where((s) => s.boardable)
+        .take(StopSelection.maxStops)
+        .map((s) => s.id)
+        .toList(growable: false);
+
+    /// 上限まで選んでも余る停留所。候補が出る / 出ないの確認に使う
+    final spare = master.firstWhere((s) => !full.contains(s.id));
+
+    setUp(() {
+      // マスタが上限より多い、という前提が崩れると「候補が消える」を
+      // 上限のせいだと言えなくなる（単に足す先が無いだけになる）
+      expect(full.length, StopSelection.maxStops);
+      expect(master.length, greaterThan(StopSelection.maxStops));
+    });
+
+    /// 上限まで並べると既定の 600px に収まらず、タップ対象が画面外になる
+    Future<void> open(
+      WidgetTester tester,
+      _FakeStopSelectionNotifier selection,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await _open(tester, selection: selection, master: master);
+    }
+
+    testWidgets('見出しに 選択数 / 上限 が出る', (tester) async {
+      // 押せなくなってから知らせるのでは遅いので、達する前から見せる
+      await open(tester, _sel(['chitose', 'honbuto']));
+
+      expect(find.text('タブに表示する（2 / ${StopSelection.maxStops}）'),
+          findsOneWidget);
+    });
+
+    testWidgets('上限未満なら「追加する」に候補が出る', (tester) async {
+      await open(tester, _sel(full.take(StopSelection.maxStops - 1).toList()));
+
+      expect(find.text(spare.label), findsOneWidget);
+      expect(find.textContaining('件までです'), findsNothing);
+    });
+
+    testWidgets('上限に達すると候補が消え、入れ替えるよう促す', (tester) async {
+      await open(tester, _sel(full));
+
+      expect(
+          find.text(
+              'タブに表示する（${StopSelection.maxStops} / ${StopSelection.maxStops}）'),
+          findsOneWidget);
+      expect(find.textContaining('${StopSelection.maxStops} 件までです'),
+          findsOneWidget);
+      // 未選択だが候補として出さない
+      expect(find.text(spare.label), findsNothing);
+      // 足す先はまだあるので「追加できる停留所はありません」ではない
+      expect(find.text('追加できる停留所はありません'), findsNothing);
+    });
+
+    testWidgets('上限で1つ外すと再び追加できる', (tester) async {
+      final selection = _sel(full);
+      await open(tester, selection);
+
+      await tester.tap(find.byIcon(Icons.remove_circle_outline).first);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('件までです'), findsNothing);
+      expect(find.text(spare.label), findsOneWidget);
+
+      await tester.tap(find.text(spare.label));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('適用'));
+      await tester.pumpAndSettle();
+
+      expect(selection.selected.single.stopIds.length, StopSelection.maxStops);
+      expect(selection.selected.single.stopIds, contains(spare.id));
+    });
+
+    testWidgets('選べる停留所を使い切ったら、上限ではなく候補が無いことを言う', (tester) async {
+      // 上限と同時に成り立つとき「外せば足せる」は嘘になる。
+      // 実マスタは30件あるので起きないが、条件の優先順を固定しておく
+      await open(tester, _sel(master.map((s) => s.id).toList()));
+
+      expect(find.text('追加できる停留所はありません'), findsOneWidget);
+      expect(find.textContaining('件までです'), findsNothing);
+    });
+  });
 }
