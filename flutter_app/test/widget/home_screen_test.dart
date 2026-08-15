@@ -1061,9 +1061,9 @@ void main() {
     });
 
     group('便が1本も無い停留所', () {
-      // 停留所を1つだけ選ぶと、GAS は全便を stops 1要素で返す。
-      // 「後に停留所が無い＝終点」で判定していた頃は全便が消え、見出しだけが
-      // 並んで下が無言の空白になっていた（#177）
+      // 停留所を1つだけ選ぶと、GAS は全便を stops 1要素で返す。降り先が
+      // 無くなるので便は1本も引けない。以前は見出しだけが並んで下が無言の
+      // 空白になっていた（#177）
       Widget wrapOne(List<BusEntry> schedules, List<String> stopIds) =>
           ProviderScope(
             overrides: [
@@ -1089,33 +1089,33 @@ void main() {
             child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           );
 
-      testWidgets('1停留所だけ選んでも発車時刻が出る', (tester) async {
-        // 到着一覧は空。持っているのは発車時刻だけだが、それが選んだもの
+      testWidgets('引ける便が無ければ、次にどうするかを出す（無言の空白にしない）',
+          (tester) async {
+        await tester.pumpWidget(wrapOne(const [], ['chitose']));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('もう1つ選んでください'), findsOneWidget);
+        // 見出しだけが残らないこと
+        expect(find.text('NEXT BUS'), findsNothing);
+        expect(find.text("TODAY'S SCHEDULE"), findsNothing);
+        // 取得はできているので「取得できていません」とは別物
+        expect(find.textContaining('まだ取得できていません'), findsNothing);
+      });
+
+      testWidgets('降り先があれば今までどおり出る', (tester) async {
         await tester.pumpWidget(wrapOne(const [
           BusEntry(
             time: '08:30',
             boardingStopId: 'chitose',
             destination: '科技大',
             terminusStopId: 'honbuto',
+            arrivals: {'honbuto': '08:55'},
           ),
-        ], ['chitose']));
+        ], ['chitose', 'honbuto']));
         await tester.pumpAndSettle();
 
         expect(find.text('NEXT BUS'), findsOneWidget);
-        expect(find.text('08:30'), findsAtLeastNWidgets(1));
-        expect(find.textContaining('乗れる便はありません'), findsNothing);
-      });
-
-      testWidgets('本当に便が無ければ、その旨を出す（無言の空白にしない）', (tester) async {
-        await tester.pumpWidget(wrapOne(const [], ['chitose']));
-        await tester.pumpAndSettle();
-
-        expect(find.textContaining('乗れる便はありません'), findsOneWidget);
-        // 見出しだけが残らないこと
-        expect(find.text('NEXT BUS'), findsNothing);
-        expect(find.text("TODAY'S SCHEDULE"), findsNothing);
-        // 取得はできているので「取得できていません」とは別物
-        expect(find.textContaining('まだ取得できていません'), findsNothing);
+        expect(find.textContaining('もう1つ選んでください'), findsNothing);
       });
     });
 

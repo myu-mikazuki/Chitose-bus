@@ -653,10 +653,13 @@ class _SeasonSelector extends ConsumerWidget {
   }
 }
 
-/// この停留所を通る便が1本も無いときの表示。
+/// この停留所から引ける便が1本も無いときの表示。
 ///
-/// 「取得できていません」（[_StopNotFetched]）とは別物。取得はできていて、
-/// 中身として便が無い。乗車地にならない停留所（終点だけを選んだ場合など）で起きる。
+/// 「取得できていません」（[_StopNotFetched]）とは別物。取得はできている。
+///
+/// **バスが走っていないわけではない。** 便は「どこへ何時に着くか」の組で持つので、
+/// 選んだ停留所の中に降り先が無いと引けない。停留所を1つだけ選ぶとこうなるので、
+/// 次にどうすればよいかが分かる言い方にする。
 class _StopHasNoBus extends StatelessWidget {
   const _StopHasNoBus();
 
@@ -672,7 +675,7 @@ class _StopHasNoBus extends StatelessWidget {
                 color: context.appColors.textDisabled),
             const SizedBox(height: 12),
             Text(
-              'このバス停から乗れる便はありません。',
+              '到着地にする停留所をもう1つ選んでください。',
               textAlign: TextAlign.center,
               style: TextStyle(color: context.appColors.textTertiary),
             ),
