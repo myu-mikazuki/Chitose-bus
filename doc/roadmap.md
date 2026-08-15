@@ -14,12 +14,12 @@
 | — | [#165](https://github.com/myu-mikazuki/Chitose-bus/issues/165) | Google Play へのアップロードを自動化 | ✅ 完了（次回リリースで初回検証） |
 | — | [#198](https://github.com/myu-mikazuki/Chitose-bus/issues/198) | CI の Flutter を `pubspec.yaml` で固定（PR #199） | ✅ 完了（develop） |
 | — | [#177](https://github.com/myu-mikazuki/Chitose-bus/issues/177) | 任意のバス停を乗車地として選べるようにする | ✅ 完了（develop）・**v1.3.0 で出す** |
+| — | [#204](https://github.com/myu-mikazuki/Chitose-bus/issues/204) | 乗車地に選べる停留所数の上限（**5件**） | ✅ 完了（develop・PR #206）・**v1.3.0 で出す** |
 | 1 | [#201](https://github.com/myu-mikazuki/Chitose-bus/issues/201) | 旧形式でキャッシュが空に上書きされる | **v1.3.0 に入れる** |
-| 2 | [#204](https://github.com/myu-mikazuki/Chitose-bus/issues/204) | 乗車地に選べる停留所数の上限（6件） | **v1.3.0 に入れる** |
-| 3 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
-| 4 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 5 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
-| 6 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| 2 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
+| 3 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
+| 4 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
+| 5 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
 
 #177 は develop まで入った（PR #200）。#146（臨時便）は応答に便を追加するため、
 旧アプリへの影響を確認する必要がある。
@@ -32,7 +32,7 @@
 |-------|------|
 | [#177](https://github.com/myu-mikazuki/Chitose-bus/issues/177) | 任意のバス停を乗車地として選べるようにする（`?v=4`） |
 | [#201](https://github.com/myu-mikazuki/Chitose-bus/issues/201) | 旧形式でキャッシュが空に上書きされるのを防ぐ |
-| [#204](https://github.com/myu-mikazuki/Chitose-bus/issues/204) | 乗車地に選べる停留所数の上限を 6 にする |
+| [#204](https://github.com/myu-mikazuki/Chitose-bus/issues/204) | 乗車地に選べる停留所数の上限を 5 にする |
 
 **#201 と #204 を入れる理由**は、どちらも #177 が作った状況で初めて表に出るため。
 
@@ -40,7 +40,10 @@
   順序を誤るかデプロイをロールバックすると、空のキャッシュが保存されて `_keyStops` が入り、
   `loadLegacy()` も塞がって**再インストールするまで復旧しない**。#168 が未解決で
   デプロイが手作業である以上、保険を入れておく
-- **#204** — 停留所を選べるのは v1.3.0 から。上限が無いと 30 タブまで増やせて実用にならない
+- **#204** — 停留所を選べるのは v1.3.0 から。上限が無いと 30 タブまで増やせて実用にならない。
+  **上限は 5**。375px の端末で実測すると、6タブではラベルに残るのが 14.5px しかなく、
+  最も短い短縮名でも `…` だけになる（5タブなら 27.0px で `研…` まで出る）。
+  レビューで上限内の可読性を問われ、当初の 6 から下げた（PR #206）
 
 ### リリース時にやること
 
@@ -75,6 +78,8 @@
 | [#192](https://github.com/myu-mikazuki/Chitose-bus/issues/192) | HomeScreen の golden が無い | 開発側の投資。利用者への影響は無い |
 | [#195](https://github.com/myu-mikazuki/Chitose-bus/issues/195) | `dart format` を CI に入れる | 同上 |
 | [#202](https://github.com/myu-mikazuki/Chitose-bus/issues/202) | 「来週のダイヤ」シートが4停留所固定 | `upcoming` が常に null で、シート自体を開けない |
+| [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける | #204 の派生。31件中4件しか無く、新しく選べる停留所ほど名前が長い。GAS のみの変更で済む見込み |
+| [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に停留所名を出す | #204 の派生。タブの幅は上限をどう選んでも足りないため、識別を本文にも持たせる |
 | #124 / #83 / #73 / #56 / #2 / #22 / #108 | | 未定 |
 
 ---
