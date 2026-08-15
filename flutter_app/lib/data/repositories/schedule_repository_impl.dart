@@ -22,13 +22,25 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   @override
   Future<ScheduleResponse> fetchSchedule() async {
     final selection = await stopSelectionRepository.load();
-    final model = await remoteSource.fetchSchedule(selection);
 
-    // 保存する前に解釈できることを確かめる。先に保存すると、解釈できない応答が
-    // 永続化されて以降のキャッシュ読み出しが毎回失敗するようになる
-    final entity = model.toEntity(coveredStopIds: selection.stopIds);
-    await localSource.save(model, selection.query);
-    return entity;
+    switch (await remoteSource.fetchSchedule(selection)) {
+      case RemoteScheduleV4(:final model):
+        // 保存する前に解釈できることを確かめる。先に保存すると、解釈できない応答が
+        // 永続化されて以降のキャッシュ読み出しが毎回失敗するようになる
+        final entity = model.toEntity(coveredStopIds: selection.stopIds);
+        await localSource.save(model, selection.query);
+        return entity;
+
+      // 旧形式（GAS が未デプロイ、またはデプロイをロールバックした場合）。
+      // **保存せずに返す。** 保存すると「便が0本」のキャッシュが読めていた
+      // キャッシュを上書きし、移行経路も塞いで復旧しなくなる（#201）。
+      //
+      // 取得できた分は捨てずに出す。既定の4停留所ぶんの時刻は正しく、
+      // 足した停留所は coveredStopIds に入らないので画面側が
+      // 「取得できていない」として出す
+      case RemoteScheduleLegacy(:final entity):
+        return entity;
+    }
   }
 
   /// **例外を投げてはいけない。** 呼び出し側（ScheduleViewModel.refresh）は

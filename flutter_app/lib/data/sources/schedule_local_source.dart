@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../models/bus_schedule_model.dart';
+import '../models/legacy_schedule_parser.dart';
 
 /// 保存されているキャッシュと、それが時刻を持っている停留所。
 class CachedSchedule {
@@ -70,55 +71,12 @@ class ScheduleLocalSource {
     if (json == null) return null;
 
     try {
-      final root = jsonDecode(json) as Map<String, dynamic>;
-      final current = root['current'] as Map<String, dynamic>?;
-      final schedules = current?['schedules'] as List<dynamic>?;
-      // 新形式（trips を持つ）はここでは扱わない
-      if (schedules == null) return null;
-
-      return ScheduleResponse(
-        updatedAt: root['updatedAt'] as String? ?? '',
-        // 旧形式が持っているのはこの4停留所だけ。停留所を足していれば、
-        // その分は「取得できていない」として出る
-        coveredStopIds: const [
-          'chitose',
-          'minamiChitose',
-          'kenkyuto',
-          'honbuto',
-        ],
-        current: BusTimetable(
-          validFrom: current?['validFrom'] as String? ?? '',
-          validTo: current?['validTo'] as String? ?? '',
-          schedules: schedules
-              .map((e) => _legacyEntry(e as Map<String, dynamic>))
-              .toList(),
-        ),
-      );
+      return LegacyScheduleParser.parse(
+          jsonDecode(json) as Map<String, dynamic>);
     } catch (_) {
       return null;
     }
   }
-
-  BusEntry _legacyEntry(Map<String, dynamic> json) => BusEntry(
-        time: json['time'] as String,
-        // 旧形式の direction は「乗車地 × 行き先」の組。乗車地だけを取り出す
-        boardingStopId: switch (json['direction'] as String?) {
-          'from_minami_chitose' => 'minamiChitose',
-          'from_kenkyuto_to_honbuto' => 'kenkyuto',
-          'from_kenkyuto_to_station' => 'kenkyuto',
-          'from_honbuto' => 'honbuto',
-          _ => 'chitose',
-        },
-        destination: json['destination'] as String? ?? '',
-        arrivals: (json['arrivals'] as Map<String, dynamic>? ?? {})
-            .map((k, v) => MapEntry(k, v as String)),
-        routeLabel: json['routeLabel'] as String?,
-        platformNumber: json['platformNumber'] as String?,
-        weekdayOnly: json['weekdayOnly'] as bool? ?? false,
-        weekendOnly: json['weekendOnly'] as bool? ?? false,
-        academicOnly: json['academicOnly'] as bool? ?? false,
-        vacationOnly: json['vacationOnly'] as bool? ?? false,
-      );
 
   // TODO(#71): 「最終更新: X分前」などの UI 表示に使用する予定
   Future<DateTime?> loadCachedAt() async {

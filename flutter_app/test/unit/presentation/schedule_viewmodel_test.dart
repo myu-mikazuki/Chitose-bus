@@ -63,7 +63,7 @@ void main() {
   group('ScheduleViewModel', () {
     test('build() returns data on success (no cache)', () async {
       when(() => mockSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       final container = makeContainer();
       addTearDown(container.dispose);
@@ -91,7 +91,7 @@ void main() {
     test('build() returns cached data immediately when cache exists', () async {
       fakeLocalSource.preload(_responseModel);
       when(() => mockSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       final container = makeContainer();
       addTearDown(container.dispose);
@@ -113,7 +113,7 @@ void main() {
 
       test('取得を先に試し、キャッシュを出さない', () async {
         when(() => mockSource.fetchSchedule(any()))
-            .thenAnswer((_) async => _responseModel);
+            .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
         final container = makeContainer();
         addTearDown(container.dispose);
@@ -143,7 +143,7 @@ void main() {
       // 賄えているなら待たせる理由が無い。従来どおり即出して裏で更新する
       fakeLocalSource.preload(_responseModel);
       when(() => mockSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       final container = makeContainer();
       addTearDown(container.dispose);
@@ -156,7 +156,7 @@ void main() {
         () async {
       fakeLocalSource.preload(_responseModel);
       when(() => mockSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       final container = makeContainer();
       addTearDown(container.dispose);
@@ -189,7 +189,7 @@ void main() {
 
     test('refresh() transitions through AsyncLoading then AsyncData', () async {
       when(() => mockSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       final container = makeContainer();
       addTearDown(container.dispose);
@@ -210,7 +210,7 @@ void main() {
 
     test('refresh() falls back to cache when fetch fails', () async {
       when(() => mockSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       final container = makeContainer();
       addTearDown(container.dispose);
