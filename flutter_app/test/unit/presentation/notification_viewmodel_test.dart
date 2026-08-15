@@ -169,13 +169,9 @@ BusTimetable mixedDirectionTimetable() {
     validTo: '2026-12-31',
     schedules: [
       BusEntry(
-          time: fmt(future1),
-          boardingStopId: 'chitose',
-          destination: '科技大'),
+          time: fmt(future1), boardingStopId: 'chitose', destination: '科技大'),
       BusEntry(
-          time: fmt(future2),
-          boardingStopId: 'honbuto',
-          destination: '千歳駅'),
+          time: fmt(future2), boardingStopId: 'honbuto', destination: '千歳駅'),
     ],
   );
 }
@@ -210,7 +206,8 @@ void main() {
         expect(service.scheduledCalls, isEmpty);
       });
 
-      test('enabled=true, scheduledBusKeys 空: cancelAll・scheduleNotification は呼ばれない',
+      test(
+          'enabled=true, scheduledBusKeys 空: cancelAll・scheduleNotification は呼ばれない',
           () async {
         final service = FakeNotificationService();
         final container = makeContainer(service: service);
@@ -364,8 +361,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        final current =
-            container.read(notificationSettingsProvider).value!;
+        final current = container.read(notificationSettingsProvider).value!;
         await container
             .read(notificationSettingsProvider.notifier)
             .enableNotifications(current);
@@ -383,8 +379,7 @@ void main() {
         addTearDown(container.dispose);
         await awaitProviders(container);
 
-        final current =
-            container.read(notificationSettingsProvider).value!;
+        final current = container.read(notificationSettingsProvider).value!;
         await container
             .read(notificationSettingsProvider.notifier)
             .enableNotifications(current);
@@ -407,12 +402,14 @@ void main() {
         );
       }
 
-      test('OFF→ON: scheduleNotification が呼ばれ scheduledBusKeys にキーが追加される', () async {
+      test('OFF→ON: scheduleNotification が呼ばれ scheduledBusKeys にキーが追加される',
+          () async {
         final service = FakeNotificationService();
         final bus = futureBusEntry();
         final container = makeContainer(
           service: service,
-          initialSettings: NotificationSettings(enabled: true, minutesBefore: 10),
+          initialSettings:
+              NotificationSettings(enabled: true, minutesBefore: 10),
         );
         addTearDown(container.dispose);
         await awaitProviders(container);
@@ -425,7 +422,8 @@ void main() {
             reason: 'scheduleNotification が1回呼ばれるべき');
         expect(service.scheduledCalls.first.bus, equals(bus));
         final saved = container.read(notificationSettingsProvider).value!;
-        expect(saved.scheduledBusKeys, contains(NotificationSettingsNotifier.busKey(bus)));
+        expect(saved.scheduledBusKeys,
+            contains(NotificationSettingsNotifier.busKey(bus)));
       });
 
       test('ON→OFF: cancel(id) が呼ばれ scheduledBusKeys からキーが削除される', () async {
@@ -469,7 +467,8 @@ void main() {
         );
         final container = makeContainer(
           service: service,
-          initialSettings: NotificationSettings(enabled: true, minutesBefore: 10),
+          initialSettings:
+              NotificationSettings(enabled: true, minutesBefore: 10),
         );
         addTearDown(container.dispose);
         await awaitProviders(container);
@@ -481,7 +480,8 @@ void main() {
         expect(service.scheduledCalls, isEmpty,
             reason: '過去の便は scheduleNotification が呼ばれるべきでない');
         final saved = container.read(notificationSettingsProvider).value!;
-        expect(saved.scheduledBusKeys, contains(NotificationSettingsNotifier.busKey(pastBus)),
+        expect(saved.scheduledBusKeys,
+            contains(NotificationSettingsNotifier.busKey(pastBus)),
             reason: 'キーは追加されるべき');
       });
 
@@ -502,7 +502,8 @@ void main() {
         expect(service.scheduledCalls, isEmpty,
             reason: 'enabled=false では scheduleNotification は呼ばれるべきでない');
         final saved = container.read(notificationSettingsProvider).value!;
-        expect(saved.scheduledBusKeys, contains(NotificationSettingsNotifier.busKey(bus)),
+        expect(saved.scheduledBusKeys,
+            contains(NotificationSettingsNotifier.busKey(bus)),
             reason: 'キーは追加されるべき');
       });
 
@@ -541,11 +542,11 @@ void main() {
             .saveSettings(current.copyWith(minutesBefore: 5));
 
         final trackedCalls = service.scheduledCalls
-            .where((c) => c.bus.time == futureBus.time &&
-                          c.bus.boardingStopId == futureBus.boardingStopId)
+            .where((c) =>
+                c.bus.time == futureBus.time &&
+                c.bus.boardingStopId == futureBus.boardingStopId)
             .toList();
-        expect(trackedCalls, isNotEmpty,
-            reason: '選択済み便が再スケジュールされるべき');
+        expect(trackedCalls, isNotEmpty, reason: '選択済み便が再スケジュールされるべき');
         expect(trackedCalls.first.settings.minutesBefore, equals(5));
       });
     });

@@ -32,8 +32,8 @@ class NotificationSettingsScreen extends ConsumerWidget {
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (e, _) => Center(
-          child: Text('エラー: $e',
-              style: const TextStyle(color: AppColors.error)),
+          child:
+              Text('エラー: $e', style: const TextStyle(color: AppColors.error)),
         ),
         data: (settings) => _SettingsBody(settings: settings),
       ),
@@ -58,11 +58,13 @@ class _SettingsBody extends ConsumerWidget {
           child: SwitchListTile(
             title: Text(
               '出発通知を有効にする',
-              style: TextStyle(color: context.appColors.textPrimary, letterSpacing: 1),
+              style: TextStyle(
+                  color: context.appColors.textPrimary, letterSpacing: 1),
             ),
             subtitle: Text(
               '次のバスが出発する前に通知を受け取ります',
-              style: TextStyle(color: context.appColors.textTertiary, fontSize: 12),
+              style: TextStyle(
+                  color: context.appColors.textTertiary, fontSize: 12),
             ),
             value: settings.enabled,
             activeThumbColor: AppColors.primary,
@@ -83,9 +85,7 @@ class _SettingsBody extends ConsumerWidget {
                 const Text(
                   '通知タイミング',
                   style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 12,
-                      letterSpacing: 2),
+                      color: AppColors.primary, fontSize: 12, letterSpacing: 2),
                 ),
                 const SizedBox(height: 12),
                 DropdownButton<int>(

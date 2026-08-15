@@ -18,7 +18,8 @@ class ContactRemoteSource {
     try {
       final request = http.Request('POST', Uri.parse(endpointUrl))
         ..headers['Content-Type'] = 'application/json'
-        ..body = jsonEncode({'category': category, 'description': description, 'steps': steps})
+        ..body = jsonEncode(
+            {'category': category, 'description': description, 'steps': steps})
         ..followRedirects = false;
 
       final streamed =

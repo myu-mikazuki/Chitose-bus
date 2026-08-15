@@ -204,9 +204,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // （平日に土日祝ダイヤを確認する、が主なユースケースのため）
     final now = DateTime.now();
     final today = DayType.fromDate(now);
-    dayNotifier.state = today == DayType.weekday
-        ? DayType.weekendHoliday
-        : DayType.weekday;
+    dayNotifier.state =
+        today == DayType.weekday ? DayType.weekendHoliday : DayType.weekday;
     // 期別は当日のものを初期値とする（主目的は曜日ダイヤの確認のため）
     seasonNotifier.state = SeasonType.fromDate(now);
   }
@@ -436,13 +435,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, 'reset'),
-              child: const Text('リセット',
-                  style: TextStyle(color: AppColors.error)),
+              child:
+                  const Text('リセット', style: TextStyle(color: AppColors.error)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, 'change'),
-              child: const Text('変更',
-                  style: TextStyle(color: AppColors.warning)),
+              child:
+                  const Text('変更', style: TextStyle(color: AppColors.warning)),
             ),
           ],
         ),
@@ -528,7 +527,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('千歳駅発',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -537,7 +540,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 destination: BusDestination.campus,
               ),
               const SizedBox(height: 16),
-              const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('南千歳発',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -546,7 +553,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 destination: BusDestination.campus,
               ),
               const SizedBox(height: 16),
-              const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('研究棟発 → 本部棟',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -555,7 +566,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 destination: BusDestination.campus,
               ),
               const SizedBox(height: 16),
-              const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('研究棟発 → 千歳駅',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -564,7 +579,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 destination: BusDestination.station,
               ),
               const SizedBox(height: 16),
-              const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('本部棟発',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -743,8 +762,8 @@ class _StopNotFetched extends StatelessWidget {
             const SizedBox(height: 16),
             TextButton(
               onPressed: onRetry,
-              child: const Text('再試行',
-                  style: TextStyle(color: AppColors.primary)),
+              child:
+                  const Text('再試行', style: TextStyle(color: AppColors.primary)),
             ),
           ],
         ),
@@ -889,7 +908,11 @@ class _StopTabState extends State<_StopTab> {
             children: [
               // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
               if (widget.dayType == null) ...[
-                Text('NEXT BUS', style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
+                Text('NEXT BUS',
+                    style: TextStyle(
+                        color: context.appColors.textTertiary,
+                        fontSize: 12,
+                        letterSpacing: 3)),
                 const SizedBox(height: 8),
                 // IndexedStack で両方向の NextBusDisplay を常時保持し、
                 // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
@@ -913,7 +936,11 @@ class _StopTabState extends State<_StopTab> {
                 ),
                 const SizedBox(height: 24),
               ],
-              Text(widget.dayType == null ? "TODAY'S SCHEDULE" : 'SCHEDULE', style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
+              Text(widget.dayType == null ? "TODAY'S SCHEDULE" : 'SCHEDULE',
+                  style: TextStyle(
+                      color: context.appColors.textTertiary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
             ],
           ),
@@ -950,14 +977,14 @@ class _StopTabState extends State<_StopTab> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Text(
             '更新: ${widget.updatedAt}',
-            style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
+            style:
+                TextStyle(color: context.appColors.textDisabled, fontSize: 11),
           ),
         ),
       ],
     );
   }
 }
-
 
 class _BannerAdWidget extends StatefulWidget {
   const _BannerAdWidget({required this.onDismissed});

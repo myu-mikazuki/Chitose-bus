@@ -73,12 +73,13 @@ void main() {
       ProviderScope(
         overrides: [
           countdownProvider.overrideWith(
-            (ref) => CountdownNotifier(ref)..state = DateTime(2024, 6, 17, 9, 0),
+            (ref) =>
+                CountdownNotifier(ref)..state = DateTime(2024, 6, 17, 9, 0),
           ),
         ],
         child: _buildTestApp(
           child: ScheduleList(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: _timetableForNextHighlight,
             stopId: 'chitose',
           ),
@@ -107,7 +108,7 @@ void main() {
         ],
         child: _buildTestApp(
           child: ScheduleList(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: _timetableAllPast,
             stopId: 'chitose',
           ),

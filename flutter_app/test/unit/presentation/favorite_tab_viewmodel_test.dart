@@ -45,7 +45,8 @@ void main() {
 
   group('FavoriteTabNotifier', () {
     test('build: リポジトリから読み込んだ値を返す', () async {
-      final container = makeContainer(const FavoriteTab(stopId: 'minamiChitose'));
+      final container =
+          makeContainer(const FavoriteTab(stopId: 'minamiChitose'));
       addTearDown(container.dispose);
 
       final result = await container.read(favoriteTabProvider.future);
@@ -65,7 +66,9 @@ void main() {
       addTearDown(container.dispose);
       await container.read(favoriteTabProvider.future);
 
-      await container.read(favoriteTabProvider.notifier).toggleFavorite('kenkyuto');
+      await container
+          .read(favoriteTabProvider.notifier)
+          .toggleFavorite('kenkyuto');
 
       final result = container.read(favoriteTabProvider).value!;
       expect(result.stopId, equals('kenkyuto'));
@@ -76,20 +79,29 @@ void main() {
       addTearDown(container.dispose);
       await container.read(favoriteTabProvider.future);
 
-      await container.read(favoriteTabProvider.notifier).toggleFavorite('kenkyuto');
-      await container.read(favoriteTabProvider.notifier).toggleFavorite('kenkyuto');
+      await container
+          .read(favoriteTabProvider.notifier)
+          .toggleFavorite('kenkyuto');
+      await container
+          .read(favoriteTabProvider.notifier)
+          .toggleFavorite('kenkyuto');
 
       final result = container.read(favoriteTabProvider).value!;
       expect(result.stopId, isNull);
     });
 
-    test('toggleFavorite(minamiChitose) → toggleFavorite(kenkyuto): 別タブで上書き登録', () async {
+    test('toggleFavorite(minamiChitose) → toggleFavorite(kenkyuto): 別タブで上書き登録',
+        () async {
       final container = makeContainer();
       addTearDown(container.dispose);
       await container.read(favoriteTabProvider.future);
 
-      await container.read(favoriteTabProvider.notifier).toggleFavorite('minamiChitose');
-      await container.read(favoriteTabProvider.notifier).toggleFavorite('kenkyuto');
+      await container
+          .read(favoriteTabProvider.notifier)
+          .toggleFavorite('minamiChitose');
+      await container
+          .read(favoriteTabProvider.notifier)
+          .toggleFavorite('kenkyuto');
 
       final result = container.read(favoriteTabProvider).value!;
       expect(result.stopId, equals('kenkyuto'));
@@ -105,7 +117,9 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await container.read(favoriteTabProvider.notifier).toggleFavorite('honbuto');
+      await container
+          .read(favoriteTabProvider.notifier)
+          .toggleFavorite('honbuto');
 
       final state = container.read(favoriteTabProvider);
       expect(state, isA<AsyncLoading>());

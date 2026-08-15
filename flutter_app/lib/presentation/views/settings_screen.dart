@@ -74,8 +74,7 @@ class SettingsScreen extends ConsumerWidget {
                   color: context.appColors.textDisabled),
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const StopSettingsScreen()),
+                MaterialPageRoute(builder: (_) => const StopSettingsScreen()),
               ),
             ),
           ),
@@ -87,11 +86,10 @@ class SettingsScreen extends ConsumerWidget {
             // 画面全体（アプリ情報セクション等）の再ビルドを抑制する。
             child: Consumer(
               builder: (context, ref, _) {
-                final settings =
-                    ref.watch(displaySettingsProvider).valueOrNull;
+                final settings = ref.watch(displaySettingsProvider).valueOrNull;
                 return SwitchListTile(
-                  secondary: const Icon(Icons.label_outline,
-                      color: AppColors.primary),
+                  secondary:
+                      const Icon(Icons.label_outline, color: AppColors.primary),
                   title: Text(
                     '講時タグを表示',
                     style: TextStyle(color: context.appColors.textPrimary),
@@ -107,8 +105,7 @@ class SettingsScreen extends ConsumerWidget {
                       ? null
                       : (v) => ref
                           .read(displaySettingsProvider.notifier)
-                          .saveSettings(
-                              settings.copyWith(showLectureTags: v)),
+                          .saveSettings(settings.copyWith(showLectureTags: v)),
                 );
               },
             ),
@@ -129,8 +126,7 @@ class SettingsScreen extends ConsumerWidget {
                       color: context.appColors.textDisabled),
                   onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const ContactScreen()),
+                    MaterialPageRoute(builder: (_) => const ContactScreen()),
                   ),
                 ),
                 Divider(height: 1, color: context.appColors.border),
@@ -147,8 +143,8 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 Divider(height: 1, color: context.appColors.border),
                 ListTile(
-                  leading: const Icon(Icons.info_outline,
-                      color: AppColors.primary),
+                  leading:
+                      const Icon(Icons.info_outline, color: AppColors.primary),
                   title: Text(
                     'バージョン',
                     style: TextStyle(color: context.appColors.textPrimary),
@@ -156,8 +152,8 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: ref.watch(packageInfoProvider).when(
                         data: (info) => Text(
                           '${info.version}+${info.buildNumber}',
-                          style: TextStyle(
-                              color: context.appColors.textDisabled),
+                          style:
+                              TextStyle(color: context.appColors.textDisabled),
                         ),
                         loading: () => const SizedBox.shrink(),
                         error: (_, __) => const SizedBox.shrink(),

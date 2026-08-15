@@ -13,8 +13,7 @@ Widget _wrap(Widget child) => ProviderScope(
 
 void main() {
   group('NextBusDisplay', () {
-    testWidgets('次のバスがある場合: バス時刻・カウントダウンラベル・行き先テキストが表示される',
-        (tester) async {
+    testWidgets('次のバスがある場合: バス時刻・カウントダウンラベル・行き先テキストが表示される', (tester) async {
       final busTime = safeFutureHhmm(60);
       final timetable = BusTimetable(
         validFrom: '2024-01-01',
@@ -30,8 +29,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       // Departure time text (HH:MM format)
@@ -71,8 +71,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       // minutesFromNow() ≤ 5 → label is 'あと N 分' or '発車中', color is red.
@@ -90,8 +91,7 @@ void main() {
     // (i.e. 0–59 seconds remaining in the current minute).
     // Reliably triggering this boundary requires DateTime injection into BusEntry.
     // Once bus_schedule.dart gains a `now` parameter, add a deterministic test here.
-    testWidgets('発車中ラベル: 5分以内の赤色表示は「発車中」にも適用される（color確認）',
-        (tester) async {
+    testWidgets('発車中ラベル: 5分以内の赤色表示は「発車中」にも適用される（color確認）', (tester) async {
       // safeFutureHhmm(1) gives a bus 1 minute from now.
       // Depending on the seconds within the current minute, minutesFromNow() is 0 or 1.
       // Either way, it is ≤ 5, so the label color must be red (0xFFFF4444).
@@ -110,8 +110,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       // Label is either '発車中' (minutes == 0) or 'あと 1 分' (minutes == 1).
@@ -134,8 +135,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       expect(find.text('本日の運行は終了しました'), findsOneWidget);
@@ -157,8 +159,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       expect(find.text('本日の運行は終了しました'), findsOneWidget);
@@ -180,8 +183,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       expect(find.text('あと 59 分'), findsOneWidget);
@@ -203,8 +207,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       expect(find.text('あと 1:00'), findsOneWidget);
@@ -226,15 +231,15 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       expect(find.text('あと 1:30'), findsOneWidget);
     });
 
-    testWidgets('platformNumber が "5番" の場合: "5番のりば" と表示される',
-        (tester) async {
+    testWidgets('platformNumber が "5番" の場合: "5番のりば" と表示される', (tester) async {
       final busTime = safeFutureHhmm(60);
       final timetable = BusTimetable(
         validFrom: '2024-01-01',
@@ -254,7 +259,6 @@ void main() {
           stopMaster: kTestStopMaster,
           timetable: timetable,
           stopId: 'chitose',
-
         )),
       );
 
@@ -280,8 +284,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(NextBusDisplay(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       expect(find.text('研究棟 着'), findsOneWidget);

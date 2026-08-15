@@ -73,7 +73,8 @@ class _NextBusCard extends StatelessWidget {
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
     final order = entry.arrivals.keys.toList();
-    return order.map((key) => Padding(
+    return order
+        .map((key) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

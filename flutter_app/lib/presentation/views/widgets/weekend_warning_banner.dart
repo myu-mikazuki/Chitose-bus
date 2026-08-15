@@ -14,8 +14,8 @@ class WeekendWarningBanner extends ConsumerWidget {
     if (!_enabled) return const SizedBox.shrink();
 
     final now = ref.watch(countdownProvider);
-    final isWeekend = now.weekday == DateTime.saturday ||
-        now.weekday == DateTime.sunday;
+    final isWeekend =
+        now.weekday == DateTime.saturday || now.weekday == DateTime.sunday;
 
     if (!isWeekend) return const SizedBox.shrink();
 
@@ -25,8 +25,7 @@ class WeekendWarningBanner extends ConsumerWidget {
       color: AppColors.warningBackground,
       child: const Row(
         children: [
-          Icon(Icons.warning_amber_rounded,
-              color: AppColors.warning, size: 16),
+          Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 16),
           SizedBox(width: 8),
           Expanded(
             child: Text(

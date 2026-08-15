@@ -57,12 +57,13 @@ void main() {
       ProviderScope(
         overrides: [
           countdownProvider.overrideWith(
-            (ref) => CountdownNotifier(ref)..state = DateTime(2024, 6, 17, 9, 0),
+            (ref) =>
+                CountdownNotifier(ref)..state = DateTime(2024, 6, 17, 9, 0),
           ),
         ],
         child: _buildTestApp(
           child: NextBusDisplay(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: _timetableWithNextBus,
             stopId: 'chitose',
           ),
@@ -85,12 +86,13 @@ void main() {
       ProviderScope(
         overrides: [
           countdownProvider.overrideWith(
-            (ref) => CountdownNotifier(ref)..state = DateTime(2024, 6, 17, 23, 59),
+            (ref) =>
+                CountdownNotifier(ref)..state = DateTime(2024, 6, 17, 23, 59),
           ),
         ],
         child: _buildTestApp(
           child: NextBusDisplay(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: _timetableNoMoreBus,
             stopId: 'chitose',
           ),

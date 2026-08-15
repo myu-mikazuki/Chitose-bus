@@ -7,8 +7,8 @@ enum DayType {
   /// ただし [JapaneseHoliday.runsOnWeekdaySchedule] に該当する5日は
   /// 祝日でも平日ダイヤで運行する。
   static DayType fromDate(DateTime date) {
-    final isWeekend = date.weekday == DateTime.saturday ||
-        date.weekday == DateTime.sunday;
+    final isWeekend =
+        date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
     if (isWeekend) return DayType.weekendHoliday;
     if (JapaneseHoliday.runsOnWeekdaySchedule(date)) return DayType.weekday;
     if (JapaneseHoliday.is_(date)) return DayType.weekendHoliday;
@@ -124,8 +124,10 @@ enum SeasonType {
     }
 
     // 夏季: 8月第1月曜日 〜 9月第4金曜日
-    final summerFrom = _nthWeekday(day.year, DateTime.august, DateTime.monday, 1);
-    final summerTo = _nthWeekday(day.year, DateTime.september, DateTime.friday, 4);
+    final summerFrom =
+        _nthWeekday(day.year, DateTime.august, DateTime.monday, 1);
+    final summerTo =
+        _nthWeekday(day.year, DateTime.september, DateTime.friday, 4);
     if (!day.isBefore(summerFrom) && !day.isAfter(summerTo)) {
       return SeasonType.vacation;
     }
