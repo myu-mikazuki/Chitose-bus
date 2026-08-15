@@ -68,7 +68,7 @@ void main() {
   group('ScheduleRepositoryImpl.fetchSchedule', () {
     test('maps remoteSource result to ScheduleResponse entity', () async {
       when(() => mockRemoteSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       final result = await repository.fetchSchedule();
 
@@ -80,7 +80,7 @@ void main() {
 
     test('saves to local cache on success', () async {
       when(() => mockRemoteSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       await repository.fetchSchedule();
 
@@ -96,8 +96,8 @@ void main() {
     });
 
     test('maps upcoming timetable when non-null', () async {
-      when(() => mockRemoteSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModelWithUpcoming);
+      when(() => mockRemoteSource.fetchSchedule(any())).thenAnswer(
+          (_) async => const RemoteScheduleV4(_responseModelWithUpcoming));
 
       final result = await repository.fetchSchedule();
 
@@ -136,7 +136,7 @@ void main() {
         'stop_selection_ids': ['chitose', 'morimoto'],
       });
       when(() => mockRemoteSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       await repository.fetchSchedule();
 
@@ -148,7 +148,7 @@ void main() {
 
     test('選択が未設定なら既定の4停留所で取得する', () async {
       when(() => mockRemoteSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       await repository.fetchSchedule();
 
@@ -178,7 +178,7 @@ void main() {
         'stop_selection_ids': ['chitose', 'morimoto'],
       });
       when(() => mockRemoteSource.fetchSchedule(any()))
-          .thenAnswer((_) async => _responseModel);
+          .thenAnswer((_) async => const RemoteScheduleV4(_responseModel));
 
       final fresh = await repository.fetchSchedule();
       expect(fresh.coveredStopIds, ['chitose', 'morimoto']);
@@ -222,6 +222,87 @@ void main() {
 
     test('どちらも無ければ null', () async {
       expect(await repository.getCached(), isNull);
+    });
+  });
+
+  group('GAS が旧形式を返してもキャッシュを壊さない（#201）', () {
+    final legacyResponse = ScheduleResponse(
+      updatedAt: '2026-08-01',
+      coveredStopIds: StopSelection.initial.stopIds,
+      current: BusTimetable(
+        validFrom: '',
+        validTo: '',
+        schedules: [
+          BusEntry(
+            time: '07:20',
+            boardingStopId: 'chitose',
+            destination: '科技大',
+            arrivals: const {'honbuto': '07:45'},
+          ),
+        ],
+      ),
+    );
+
+    setUp(() {
+      when(() => mockRemoteSource.fetchSchedule(any()))
+          .thenAnswer((_) async => RemoteScheduleLegacy(legacyResponse));
+    });
+
+    test('旧形式の応答は保存しない', () async {
+      // 保存すると「便が0本」のキャッシュになり、_keyStops が入って
+      // loadLegacy も塞がる。再インストールするまで復旧しない
+      await repository.fetchSchedule();
+
+      expect(fakeLocalSource.saveCallCount, 0);
+    });
+
+    test('読めていたキャッシュを上書きしない', () async {
+      fakeLocalSource.preload(_responseModel);
+
+      await repository.fetchSchedule();
+
+      expect(fakeLocalSource.stored, _responseModel);
+      expect((await repository.getCached())!.current.schedules.length, 1);
+    });
+
+    test('旧形式でも読めた分は返す', () async {
+      // 新規インストール直後に GAS が未デプロイでも、既定の4停留所は出せる
+      final result = await repository.fetchSchedule();
+
+      expect(result.updatedAt, '2026-08-01');
+      expect(result.current.schedules.single.time, '07:20');
+    });
+
+    test('停留所名はキャッシュの stopMaster を引き継ぐ', () async {
+      // 旧形式は stopMaster を持たない。引き継がないとタブも到着行も
+      // ID のまま出る（停留所を足していない利用者にも見える）
+      fakeLocalSource.preload(_responseModel.copyWith(
+        stopMaster: const [StopModel(id: 'chitose', label: '千歳駅前')],
+      ));
+
+      final result = await repository.fetchSchedule();
+
+      expect(result.stopMaster.labelOf('chitose'), '千歳駅前');
+    });
+
+    test('キャッシュが無ければ stopMaster は空のまま（新規インストール直後）', () async {
+      // 供給元がどこにも無いので ID のまま出るのは避けられない。
+      // labelOf は引けなければ ID を返す
+      final result = await repository.fetchSchedule();
+
+      expect(result.stopMaster, isEmpty);
+      expect(result.stopMaster.labelOf('chitose'), 'chitose');
+    });
+
+    test('旧形式が賄えていない停留所は「取得できていない」ままにする', () async {
+      SharedPreferences.setMockInitialValues({
+        'stop_selection_ids': ['chitose', 'morimoto'],
+      });
+
+      final result = await repository.fetchSchedule();
+
+      expect(result.covers('chitose'), isTrue);
+      expect(result.covers('morimoto'), isFalse);
     });
   });
 

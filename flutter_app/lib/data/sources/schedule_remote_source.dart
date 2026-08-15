@@ -1,7 +1,38 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/bus_schedule_model.dart';
+import '../models/legacy_schedule_parser.dart';
+import '../../domain/entities/bus_schedule.dart';
 import '../../domain/entities/stop_selection.dart';
+
+/// GAS から返ってきた応答。**形式は2通りある。**
+///
+/// `?v=4` を送っても、本番 GAS が未デプロイだったりデプロイをロールバック
+/// されていれば旧形式（`current.schedules`）が返る。呼び出し側に
+/// switch を書かせて、どちらの形式かを取り違えられないようにする（#201）。
+sealed class RemoteSchedule {
+  const RemoteSchedule();
+}
+
+/// `?v=4` の応答。そのまま保存してよい
+final class RemoteScheduleV4 extends RemoteSchedule {
+  const RemoteScheduleV4(this.model);
+
+  final ScheduleResponseModel model;
+}
+
+/// 旧形式（`v<=3`）の応答。**保存してはいけない。**
+///
+/// [ScheduleResponseModel] としても解釈できてしまうが、`trips` が既定値の
+/// 空配列になるため「便が0本」のキャッシュになる。保存すると
+/// `schedule_cache_stops` が入って [ScheduleLocalSource.loadLegacy] も塞がり、
+/// 再インストールするまで復旧しない（#201）。
+final class RemoteScheduleLegacy extends RemoteSchedule {
+  const RemoteScheduleLegacy(this.entity);
+
+  /// 旧形式のまま解釈した結果。持っているのは既定の4停留所だけ
+  final ScheduleResponse entity;
+}
 
 class ScheduleRemoteSource {
   ScheduleRemoteSource({required this.endpointUrl, http.Client? client})
@@ -27,7 +58,7 @@ class ScheduleRemoteSource {
 
   /// [selection] で選んだ停留所だけを取得する。
   /// 全停留所を返させると応答が数倍になるため、必ず絞る。
-  Future<ScheduleResponseModel> fetchSchedule(StopSelection selection) async {
+  Future<RemoteSchedule> fetchSchedule(StopSelection selection) async {
     final base = Uri.parse(endpointUrl);
     final uri = base.replace(queryParameters: {
       ...base.queryParameters,
@@ -45,6 +76,21 @@ class ScheduleRemoteSource {
       throw Exception('Server error: ${json['error']}');
     }
 
-    return ScheduleResponseModel.fromJson(json);
+    // 旧形式かどうかは `trips` の有無では決まらない。当日の便が0本という
+    // 応答も `trips: []` になるため、旧形式の目印である `current.schedules`
+    // そのものを見る（#201）
+    if (LegacyScheduleParser.isLegacyShape(json)) {
+      final legacy = LegacyScheduleParser.parse(json);
+      // 旧形式の形をしているのに読めない。**新形式として扱ってはいけない。**
+      // fromJson は `schedules` を無視して通ってしまうため、そのまま進むと
+      // 「便が0本」のキャッシュが保存されて #201 が再発する。
+      // ここは取得経路なので、投げれば呼び出し側がキャッシュに退避する
+      if (legacy == null) {
+        throw Exception('Legacy response could not be parsed');
+      }
+      return RemoteScheduleLegacy(legacy);
+    }
+
+    return RemoteScheduleV4(ScheduleResponseModel.fromJson(json));
   }
 }
