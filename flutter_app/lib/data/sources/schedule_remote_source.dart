@@ -15,7 +15,7 @@ sealed class RemoteSchedule {
 }
 
 /// `?v=4` の応答。そのまま保存してよい
-class RemoteScheduleV4 extends RemoteSchedule {
+final class RemoteScheduleV4 extends RemoteSchedule {
   const RemoteScheduleV4(this.model);
 
   final ScheduleResponseModel model;
@@ -27,7 +27,7 @@ class RemoteScheduleV4 extends RemoteSchedule {
 /// 空配列になるため「便が0本」のキャッシュになる。保存すると
 /// `schedule_cache_stops` が入って [ScheduleLocalSource.loadLegacy] も塞がり、
 /// 再インストールするまで復旧しない（#201）。
-class RemoteScheduleLegacy extends RemoteSchedule {
+final class RemoteScheduleLegacy extends RemoteSchedule {
   const RemoteScheduleLegacy(this.entity);
 
   /// 旧形式のまま解釈した結果。持っているのは既定の4停留所だけ

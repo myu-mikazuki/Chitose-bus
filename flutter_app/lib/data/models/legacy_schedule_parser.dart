@@ -12,6 +12,15 @@ import '../../domain/entities/bus_schedule.dart';
 ///
 /// 新形式（`trips` を持つ）は扱わない。`current.schedules` が無ければ null。
 ///
+/// **組み立てるのは `current` だけ。** 旧形式も `upcoming` を持ちうるが、
+/// 今の GAS は `getHardcodedTimetable()` が `upcoming: null` 固定なので
+/// 実際には返らない。落ちても「来週のダイヤ」が出ないだけで、そのシートは
+/// [#202](https://github.com/myu-mikazuki/Chitose-bus/issues/202) の通り
+/// 現状どのみち開けない。
+///
+/// **`stopMaster` も作らない。** 旧形式の応答には入っていないため、
+/// 表示名はキャッシュに残っているものを `ScheduleRepositoryImpl` が引き継ぐ。
+///
 /// TODO(#186): **v1.4.0 で削除する。** 削除後、旧形式の応答は解釈せず
 /// 例外にする（黙って空のキャッシュを書くよりは取得失敗のほうがましなため）。
 abstract final class LegacyScheduleParser {
@@ -55,6 +64,10 @@ abstract final class LegacyScheduleParser {
   /// 旧形式が時刻を持っている停留所。**今の選択で置き換えてはいけない。**
   /// 置き換えると、足したばかりの停留所が「取得できていない」ではなく
   /// 「便が1本も無い」として出る。
+  ///
+  /// GAS 側の `LEGACY_STOPS`（`gas/Code.gs`）と同じ4件。**片方だけ動かさないこと。**
+  /// 増やせば持っていない停留所を「取得済み」と申告し、減らせば持っている
+  /// 停留所が「取得できていません」になる
   static const coveredStopIds = [
     'chitose',
     'minamiChitose',

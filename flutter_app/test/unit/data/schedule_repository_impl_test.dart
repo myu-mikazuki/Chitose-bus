@@ -273,6 +273,27 @@ void main() {
       expect(result.current.schedules.single.time, '07:20');
     });
 
+    test('停留所名はキャッシュの stopMaster を引き継ぐ', () async {
+      // 旧形式は stopMaster を持たない。引き継がないとタブも到着行も
+      // ID のまま出る（停留所を足していない利用者にも見える）
+      fakeLocalSource.preload(_responseModel.copyWith(
+        stopMaster: const [StopModel(id: 'chitose', label: '千歳駅前')],
+      ));
+
+      final result = await repository.fetchSchedule();
+
+      expect(result.stopMaster.labelOf('chitose'), '千歳駅前');
+    });
+
+    test('キャッシュが無ければ stopMaster は空のまま（新規インストール直後）', () async {
+      // 供給元がどこにも無いので ID のまま出るのは避けられない。
+      // labelOf は引けなければ ID を返す
+      final result = await repository.fetchSchedule();
+
+      expect(result.stopMaster, isEmpty);
+      expect(result.stopMaster.labelOf('chitose'), 'chitose');
+    });
+
     test('旧形式が賄えていない停留所は「取得できていない」ままにする', () async {
       SharedPreferences.setMockInitialValues({
         'stop_selection_ids': ['chitose', 'morimoto'],

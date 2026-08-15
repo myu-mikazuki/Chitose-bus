@@ -403,4 +403,19 @@ class ScheduleResponse {
   /// 到着一覧まで最新とは限らない。
   bool covers(String stopId) =>
       coveredStopIds.isEmpty || coveredStopIds.contains(stopId);
+
+  /// 表示名の供給元だけを差し替える。
+  ///
+  /// 旧形式の応答は `stopMaster` を持たないため、キャッシュに残っているものを
+  /// 引き継ぐのに使う（#201）。[stopMaster] が空なら何もしない
+  ScheduleResponse withStopMaster(List<BusStop> stopMaster) =>
+      stopMaster.isEmpty
+          ? this
+          : ScheduleResponse(
+              updatedAt: updatedAt,
+              stopMaster: stopMaster,
+              coveredStopIds: coveredStopIds,
+              current: current,
+              upcoming: upcoming,
+            );
 }

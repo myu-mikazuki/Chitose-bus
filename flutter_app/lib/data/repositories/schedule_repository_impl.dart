@@ -39,7 +39,25 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       // 足した停留所は coveredStopIds に入らないので画面側が
       // 「取得できていない」として出す
       case RemoteScheduleLegacy(:final entity):
-        return entity;
+        return entity.withStopMaster(await _cachedStopMaster());
+    }
+  }
+
+  /// キャッシュに残っている stopMaster（無ければ空）。
+  ///
+  /// 旧形式の応答は stopMaster を持たないため、そのまま出すとタブも到着行も
+  /// `chitose` / `honbuto 着` のように ID が並ぶ。**停留所を足していない
+  /// 利用者にも見える**ので、供給元がキャッシュに残っていれば引き継ぐ。
+  ///
+  /// 名前を引くだけなので、失敗しても取得そのものは続ける。新規インストール
+  /// 直後は供給元が無く、ID のまま出るのは避けられない
+  Future<List<BusStop>> _cachedStopMaster() async {
+    try {
+      final cached = await localSource.load();
+      return cached?.model.stopMaster.map((s) => s.toEntity()).toList() ??
+          const [];
+    } catch (_) {
+      return const [];
     }
   }
 
