@@ -233,16 +233,18 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
         const SizedBox(height: 24),
         const _SectionHeader(label: '追加する'),
         const SizedBox(height: 8),
-        if (_full)
+        // 候補が無いことを先に見る。上限と同時に成り立つとき「外せば足せる」は
+        // 嘘になる（足す先がもう無い）
+        if (candidates.isEmpty)
           Text(
-            'タブは ${StopSelection.maxStops} 件までです。'
-            '追加するには、上のどれかを外してください。',
+            '追加できる停留所はありません',
             style:
                 TextStyle(color: context.appColors.textTertiary, fontSize: 12),
           )
-        else if (candidates.isEmpty)
+        else if (_full)
           Text(
-            '追加できる停留所はありません',
+            'タブは ${StopSelection.maxStops} 件までです。'
+            '別の停留所にするには、上のどれかを外してください。',
             style:
                 TextStyle(color: context.appColors.textTertiary, fontSize: 12),
           )

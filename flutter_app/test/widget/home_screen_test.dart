@@ -391,6 +391,75 @@ void main() {
         });
       }
 
+      // 上限（StopSelection.maxStops）そのものの妥当性を、数字ではなく描画で
+      // 押さえる。375px で実測すると、ラベルに残るのは 5タブで 27.0px、
+      // 6タブで 14.5px。6 では「…」だけになり、**どのタブかを名前では選べない**。
+      // 上限を上げるとここが落ちる（#204 / PR #206 のレビュー指摘）
+      testWidgets('上限まで選んでも、375px でタブの名前が1文字は残る', (tester) async {
+        const extendedMaster = [
+          ..._stopMaster,
+          BusStop(id: 'morimoto', label: 'もりもと本店前'),
+          BusStop(id: 'aeon', label: 'イオン千歳店前'),
+        ];
+        // 上限に足りるだけのマスタが要る。足りなければ上限を検算できていない
+        expect(extendedMaster.length,
+            greaterThanOrEqualTo(StopSelection.maxStops));
+
+        tester.view.physicalSize = const Size(750, 1334); // 375px
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(
+                () => _FakeScheduleViewModel(ScheduleResult(
+                  data: ScheduleResponse(
+                    stopMaster: extendedMaster,
+                    updatedAt: '2024-01-01',
+                    current: _emptyTimetable,
+                  ),
+                )),
+              ),
+              stopSelectionProvider.overrideWith(
+                () => _FakeStopSelectionNotifier(StopSelection(
+                  stopIds: extendedMaster
+                      .take(StopSelection.maxStops)
+                      .map((s) => s.id)
+                      .toList(),
+                )),
+              ),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // 短縮名を持つ停留所のうち最も短いもので測る。これが読めないなら、
+        // 短縮名を持たない「古泉循環器内科クリニック前」はもっと読めない
+        final label = find.descendant(
+          of: find.byType(TabBar),
+          matching: find.text('研究棟'),
+        );
+        final labelWidth = tester.getSize(label).width;
+        final fontSize = tester.widget<Text>(label).style?.fontSize ?? 14;
+
+        // 「1文字＋…」が入るか。入らなければ ellipsis だけが残る
+        final oneChar = TextPainter(
+          text: TextSpan(text: '研…', style: TextStyle(fontSize: fontSize)),
+          textDirection: TextDirection.ltr,
+        )..layout();
+
+        expect(
+          labelWidth,
+          greaterThanOrEqualTo(oneChar.width),
+          reason: 'ラベルに残るのが $labelWidth px では、'
+              '${StopSelection.maxStops} タブで名前が「…」だけになる',
+        );
+      });
+
       testWidgets('更新に失敗しても名前は残る（バーに戻るのは初回起動だけ）', (tester) async {
         // AsyncError も直前の値を添えたまま持つ（AsyncLoading と同じ）。
         // 一度でも取得できていれば、失敗しても停留所名は分かっている
