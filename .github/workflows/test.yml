@@ -35,6 +35,13 @@ jobs:
           flutter-version-file: flutter_app/pubspec.yaml
           cache: true
 
+      # build_runner より前に置く。後ろだと生成物（*.g.dart / *.freezed.dart）まで
+      # 検査対象に入り、生成器の版が変わっただけで落ちうる。手で書いたコードだけを見る。
+      # 依存パッケージも要らないので、pub get の前で最も早く落ちる。
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+        working-directory: flutter_app
+
       - name: Install dependencies
         run: flutter pub get
         working-directory: flutter_app
