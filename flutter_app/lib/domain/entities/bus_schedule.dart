@@ -1,11 +1,3 @@
-enum BusDirection {
-  fromChitose,
-  fromMinamiChitose,
-  fromKenkyutoToHonbuto,
-  fromKenkyutoToStation,
-  fromHonbuto,
-}
-
 /// ダイヤ種別（平日 / 土日祝日）
 enum DayType {
   weekday,
@@ -165,11 +157,29 @@ abstract final class ServiceCalendar {
       (date.month == DateTime.january && date.day <= 3);
 }
 
+/// 便の行き先。GAS の `destination` がこの2つだけであることは
+/// scripts/check_gas_response.js が検査している。
+///
+/// 表記が変わると、これで絞っている画面が**黙って空になる**。
+/// リテラルを散らさず、変更箇所を1つに保つためここに置く。
+abstract final class BusDestination {
+  /// 科技大（研究棟・本部棟）方面
+  static const campus = '科技大';
+
+  /// 千歳駅方面
+  static const station = '千歳駅';
+}
+
+/// ある停留所から乗る場合の1便。
+///
+/// 便そのものではなく「どこから乗るか」を決めたあとの見え方を表す。
+/// 同じ便でも乗車地が違えば別の BusEntry になる（時刻も到着地も変わる）。
 class BusEntry {
   const BusEntry({
     required this.time,
-    required this.direction,
+    required this.boardingStopId,
     required this.destination,
+    this.terminusStopId,
     this.arrivals = const {},
     this.routeLabel,
     this.platformNumber,
@@ -179,9 +189,17 @@ class BusEntry {
     this.vacationOnly = false,
   });
 
-  final String time; // "HH:MM"
-  final BusDirection direction;
+  final String time; // "HH:MM" 乗車地を出る時刻
+  final String boardingStopId;
   final String destination;
+
+  /// 終点（一般に降りられる最後の停留所）の ID。GAS が絞り込みの前に決めて返す。
+  ///
+  /// [arrivals] の末尾から導いてはいけない。arrivals は選んだ停留所だけに
+  /// 絞られているため、イオン千歳店前を足すと長都行きの終点がそこになる。
+  /// 供給元が古くて分からないときは null（#177）。
+  final String? terminusStopId;
+
   final Map<String, String> arrivals;
   final String? routeLabel;
   final String? platformNumber;
@@ -193,6 +211,29 @@ class BusEntry {
 
   /// 学休期のみ運行（授業期は運休）
   final bool vacationOnly;
+
+  /// 通知の識別に使うキー。**形式を変えないこと。**
+  ///
+  /// SharedPreferences に保存され、OS に予約した通知の ID の元にもなる。
+  /// 変えると既存の予約が引き当てられなくなり、キャンセルできない通知が残る。
+  ///
+  /// #177 以前は `BusDirection` の名前を使っていたため、その5通りは同じ文字列に
+  /// なるようにしてある。新しい停留所は該当が無いので `<乗車地>_<行き先>` を使う。
+  ///
+  /// TODO(#190): 系統が入っておらず同時刻の便で衝突する。形式を統一する際に
+  /// 保存済みキーの移行も要る。
+  String get notificationKey {
+    final legacy = switch ((boardingStopId, destination)) {
+      // 旧 BusDirection の enum 名（.name）。JSON の文字列ではない
+      ('chitose', BusDestination.campus) => 'fromChitose',
+      ('minamiChitose', BusDestination.campus) => 'fromMinamiChitose',
+      ('kenkyuto', BusDestination.campus) => 'fromKenkyutoToHonbuto',
+      ('kenkyuto', BusDestination.station) => 'fromKenkyutoToStation',
+      ('honbuto', BusDestination.station) => 'fromHonbuto',
+      _ => null,
+    };
+    return '${legacy ?? '${boardingStopId}_$destination'}_$time';
+  }
 
   bool runsOn(DayType dayType, SeasonType season) {
     if (dayType == DayType.weekendHoliday && weekdayOnly) return false;
@@ -238,11 +279,12 @@ class BusTimetable {
   final List<BusEntry> schedules;
   final String pdfUrl;
 
-  BusEntry? nextBus(BusDirection direction, {DateTime? now}) {
+  BusEntry? nextBus(String stopId, {String? destination, DateTime? now}) {
     final current = now ?? DateTime.now();
     final candidates = schedules
         .where((e) =>
-            e.direction == direction &&
+            e.boardingStopId == stopId &&
+            (destination == null || e.destination == destination) &&
             e.isRunningToday(current) &&
             e.toDateTimeToday(now: current).isAfter(current))
         .toList()
@@ -250,37 +292,115 @@ class BusTimetable {
     return candidates.firstOrNull;
   }
 
-  List<BusEntry> todayBuses(BusDirection direction, {DateTime? now}) {
+  List<BusEntry> todayBuses(String stopId,
+      {String? destination, DateTime? now}) {
     final current = now ?? DateTime.now();
     if (ServiceCalendar.isSuspended(current)) return const [];
     return busesFor(
-      direction,
+      stopId,
       DayType.fromDate(current),
       SeasonType.fromDate(current),
+      destination: destination,
     );
   }
 
+  /// [stopId] から乗る便。
+  ///
+  /// [destination] を指定すると行き先で絞る。途中の停留所は上下両方向のバスが
+  /// 通るため、画面に出すときは指定しないと逆方向の便が混ざる。
   List<BusEntry> busesFor(
-    BusDirection direction,
+    String stopId,
     DayType dayType,
-    SeasonType season,
-  ) {
+    SeasonType season, {
+    String? destination,
+  }) {
     final filtered = schedules
-        .where((e) => e.direction == direction && e.runsOn(dayType, season))
+        .where((e) =>
+            e.boardingStopId == stopId &&
+            (destination == null || e.destination == destination) &&
+            e.runsOn(dayType, season))
         .toList();
     filtered.sort((a, b) => a.time.compareTo(b.time));
     return filtered;
   }
 }
 
+/// 路線上の停留所。表示名の供給元は GAS の `stopMaster` のみ（Issue #177）。
+///
+/// アプリ側に名前の対応表を持つと、停留所が増えるたびにリリースが必要になる。
+class BusStop {
+  const BusStop({
+    required this.id,
+    required this.label,
+    this.shortLabel,
+    this.boardable = true,
+  });
+
+  final String id;
+
+  /// 正式名（バス停の表記）
+  final String label;
+
+  /// タブなど幅の狭い場所で使う短縮名。正式名と同じなら GAS は返さない
+  final String? shortLabel;
+
+  /// 表示に使う名前
+  String get displayLabel => shortLabel ?? label;
+
+  /// 乗車地として選べるか。
+  /// ラピダス前は工場敷地内で一般利用できないため false。
+  final bool boardable;
+}
+
+/// `stopMaster` から停留所を引く。
+///
+/// #177 でアプリ側のハードコードされた対応表を消したため、ID からラベルを
+/// 引く必要が画面のあちこちに出てくる。同じ `where(...).firstOrNull` を
+/// 書き散らさないようここへ寄せる。
+extension BusStopLookup on List<BusStop> {
+  /// [id] の停留所。stopMaster に無ければ null（GAS から消えた停留所）
+  BusStop? byId(String id) => where((s) => s.id == id).firstOrNull;
+
+  /// [id] の表示名。**引けなければ ID をそのまま返す。**
+  ///
+  /// null を返して呼び出し側で埋めさせると、対応表を持っていた頃と同じ
+  /// `null 着` を作り込むことになる。
+  String labelOf(String id) => byId(id)?.displayLabel ?? id;
+}
+
 class ScheduleResponse {
   const ScheduleResponse({
     required this.updatedAt,
     required this.current,
+    this.stopMaster = const [],
+    this.coveredStopIds = const [],
     this.upcoming,
   });
 
   final String updatedAt;
+  final List<BusStop> stopMaster;
+
+  /// この応答が時刻を持っている停留所。取得時の `?stops=` そのもの。
+  ///
+  /// キャッシュを選択と食い違ったまま使うため必要になる（#177）。オフラインで
+  /// 停留所を足すと、足した分だけ時刻が無いキャッシュを表示することになる。
+  /// 「便が1本も無い停留所」と「そもそも取得していない停留所」は画面での
+  /// 出し方が違うので、[current] から導かず記録したものを使う。
+  ///
+  /// 空なら「分からない」。判定する側は全停留所を取得済みとみなすこと
+  /// （#177 以前のキャッシュがこれにあたる）。
+  final List<String> coveredStopIds;
+
   final BusTimetable current;
   final BusTimetable? upcoming;
+
+  /// [stopId] の**発車時刻**を持っているか。
+  ///
+  /// 持っているのは発車時刻までで、**到着一覧は取得時の選択のまま**。
+  /// GAS は `?stops=` で便の中の停留所配列そのものを絞る（`buildStopsResponse`）
+  /// ため、選択と食い違うキャッシュでは、covered な停留所の「◯◯ 着」から
+  /// あとで足した停留所が抜けている。発車時刻は正しいので表示はするが、
+  /// 到着一覧まで最新とは限らない。
+  bool covers(String stopId) =>
+      coveredStopIds.isEmpty || coveredStopIds.contains(stopId);
 }

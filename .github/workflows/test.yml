@@ -51,3 +51,8 @@ jobs:
       # （v=1 と v=2 で結果が食い違うため）。片方だけ変更されるのを防ぐ。
       - name: Check GAS season logic
         run: node scripts/check_gas_season.js
+
+      # 旧アプリはストア更新をしない限り永久に残るため、`stops` を指定しない
+      # 従来のリクエスト（v=1/2/3）の応答は1バイトも変えてはいけない。
+      - name: Check GAS response snapshots
+        run: node scripts/check_gas_response.js

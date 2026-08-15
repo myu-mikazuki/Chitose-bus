@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:kagi_bus/domain/entities/favorite_tab.dart';
+import 'package:kagi_bus/domain/entities/stop_selection.dart';
 import 'package:kagi_bus/presentation/viewmodels/favorite_tab_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
+import 'package:kagi_bus/presentation/viewmodels/stop_selection_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
 import 'package:kagi_bus/presentation/views/widgets/offline_cache_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,7 +54,7 @@ class _ErrorViewModel extends ScheduleViewModel {
 
 class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
   final FavoriteTab _initial;
-  int? lastToggleIndex;
+  String? lastToggleStopId;
 
   _FakeFavoriteTabNotifier(this._initial);
 
@@ -60,13 +62,13 @@ class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
   Future<FavoriteTab> build() async => _initial;
 
   @override
-  Future<void> toggleFavorite(int tabIndex) async {
-    lastToggleIndex = tabIndex;
+  Future<void> toggleFavorite(String stopId) async {
+    lastToggleStopId = stopId;
     final current = state.value!;
     state = AsyncData(
-      current.tabIndex == tabIndex
+      current.stopId == stopId
           ? const FavoriteTab()
-          : FavoriteTab(tabIndex: tabIndex),
+          : FavoriteTab(stopId: stopId),
     );
   }
 }
@@ -91,6 +93,35 @@ class _DelayedScheduleViewModel extends ScheduleViewModel {
   Future<void> refresh() async {}
 }
 
+/// refresh() が本物と同じく AsyncLoading を入れる VM。
+/// 入れたきり解決しないので、更新中のままの画面を確かめられる。
+class _RefreshableViewModel extends ScheduleViewModel {
+  _RefreshableViewModel(this._result);
+  final ScheduleResult _result;
+
+  @override
+  Future<ScheduleResult> build() async => _result;
+
+  @override
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+  }
+
+  void fail() => state = AsyncError(Exception('test error'), StackTrace.empty);
+}
+
+/// 選択を外から差し替えられる VM。設定画面での操作を再現する。
+/// 本物の select() は scheduleViewModelProvider を invalidate するため使わない。
+class _FakeStopSelectionNotifier extends StopSelectionNotifier {
+  _FakeStopSelectionNotifier(this._initial);
+  final StopSelection _initial;
+
+  @override
+  Future<StopSelection> build() async => _initial;
+
+  void set(StopSelection selection) => state = AsyncData(selection);
+}
+
 /// Error VM that also tracks refresh() calls.
 class _TrackingErrorViewModel extends ScheduleViewModel {
   bool refreshCalled = false;
@@ -111,11 +142,12 @@ class _TrackingErrorViewModel extends ScheduleViewModel {
 final _emptyTimetable = BusTimetable(
   validFrom: '2024-01-01',
   validTo: '2024-03-31',
-  schedules: const [],
+  schedules: _kenkyutoBothWays,
 );
 
 final _mockResponse = ScheduleResult(
   data: ScheduleResponse(
+    stopMaster: _stopMaster,
     updatedAt: '2024-01-01',
     current: _emptyTimetable,
   ),
@@ -123,6 +155,7 @@ final _mockResponse = ScheduleResult(
 
 final _mockResponseWithUpcoming = ScheduleResult(
   data: ScheduleResponse(
+    stopMaster: _stopMaster,
     updatedAt: '2024-01-01',
     current: _emptyTimetable,
     upcoming: BusTimetable(
@@ -136,6 +169,38 @@ final _mockResponseWithUpcoming = ScheduleResult(
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+// 行き先の選択肢はデータから導くため、研究棟から両方向の便が要る。
+// 既定で開くのは千歳駅タブなので、そちらにも1便入れておく
+// （便が1本も無い停留所は _StopHasNoBus になり、見出しごと出なくなる）
+const _kenkyutoBothWays = [
+  BusEntry(
+    time: '08:30',
+    boardingStopId: 'chitose',
+    destination: '科技大',
+    terminusStopId: 'honbuto',
+    arrivals: {'kenkyuto': '08:54', 'honbuto': '08:55'},
+  ),
+  BusEntry(
+    time: '09:00',
+    boardingStopId: 'kenkyuto',
+    destination: '科技大',
+    arrivals: {'honbuto': '09:03'},
+  ),
+  BusEntry(
+    time: '09:10',
+    boardingStopId: 'kenkyuto',
+    destination: '千歳駅',
+    arrivals: {'chitose': '09:30'},
+  ),
+];
+
+const _stopMaster = [
+  BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+  BusStop(id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳'),
+  BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
+  BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+];
 
 void main() {
   setUp(() {
@@ -212,6 +277,173 @@ void main() {
       expect(find.text('南千歳'), findsOneWidget);
       expect(find.text('研究棟'), findsOneWidget);
       expect(find.text('本部棟'), findsOneWidget);
+    });
+
+    group('停留所名が届くまでのタブ', () {
+      // 停留所名の供給元は GAS の stopMaster だけなので、初回起動では応答が
+      // 届くまで出せる名前が無い。ID をそのまま出すとタブに chitose などの
+      // 英字が並ぶ（#177）
+      testWidgets('取得前は停留所の ID を出さない', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => _LoadingViewModel()),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+
+        for (final id in StopSelection.initial.stopIds) {
+          expect(find.text(id), findsNothing, reason: '$id が英字のまま出ている');
+        }
+        // タブそのものは既定の構成で組んでおく（届いたときに数が変わらない）
+        expect(find.byType(Tab), findsNWidgets(4));
+      });
+
+      testWidgets('届いたら名前に入れ替わる', (tester) async {
+        final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => scheduleVM),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('chitose'), findsNothing);
+        expect(find.text('千歳駅'), findsNothing);
+
+        scheduleVM.complete();
+        await tester.pump();
+
+        expect(find.text('千歳駅'), findsOneWidget);
+        expect(find.text('本部棟'), findsOneWidget);
+      });
+
+      testWidgets('更新中は名前が消えない', (tester) async {
+        // refresh() は state に AsyncLoading を入れる。Riverpod は直前の値を
+        // 添えたまま持つ（AsyncLoading(value: ...)）ので、valueOrNull は残り、
+        // 場所取りに戻らない。ここが崩れると更新のたびにタブが点滅する
+        final scheduleVM = _RefreshableViewModel(_mockResponse);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => scheduleVM),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+        expect(find.text('千歳駅'), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.refresh));
+        await tester.pump();
+
+        expect(find.text('千歳駅'), findsOneWidget);
+      });
+
+      // 場所取りの幅（_StopLabelPlaceholder.width）を選んだ理由がこれ。
+      // タブは幅で並べ方（中央寄せ / 横並び / 縮小）を決めるので、場所取りが
+      // 名前と違う幅だと、画面幅によっては名前が届いた瞬間に並べ方が切り替わり、
+      // 星が跳ぶ。
+      //
+      // **画面幅を指定して確かめる。** 既定の 800px ではタブが広すぎて、幅が
+      // どうであれ中央寄せに入り、星は右端に固定されて差が出ない。
+      // 492px は中央寄せ ⇄ 横並びの境目で、幅を数 px 変えるだけで割れる
+      for (final logicalWidth in [360.0, 375.0, 412.0, 492.0]) {
+        testWidgets('名前に入れ替わっても星が動かない（幅 $logicalWidth）', (tester) async {
+          tester.view.physicalSize = Size(logicalWidth * 2, 1334);
+          tester.view.devicePixelRatio = 2.0;
+          addTearDown(tester.view.reset);
+
+          final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                scheduleViewModelProvider.overrideWith(() => scheduleVM),
+                countdownOverride(),
+              ],
+              child: MaterialApp(
+                  theme: buildTestTheme(), home: const HomeScreen()),
+            ),
+          );
+          await tester.pump();
+
+          final before =
+              tester.getTopLeft(find.byIcon(Icons.star_border).first).dx;
+
+          scheduleVM.complete();
+          await tester.pump();
+
+          final after =
+              tester.getTopLeft(find.byIcon(Icons.star_border).first).dx;
+          // 縮小経路では名前が 11px に縮むぶんだけずれる。見張っているのは
+          // 並べ方で、そちらが切り替わると星は 10px 以上動く
+          expect(after, closeTo(before, 6));
+        });
+      }
+
+      testWidgets('更新に失敗しても名前は残る（バーに戻るのは初回起動だけ）', (tester) async {
+        // AsyncError も直前の値を添えたまま持つ（AsyncLoading と同じ）。
+        // 一度でも取得できていれば、失敗しても停留所名は分かっている
+        final scheduleVM = _RefreshableViewModel(_mockResponse);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(() => scheduleVM),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        scheduleVM.fail();
+        await tester.pump();
+
+        // 本文はエラー画面でも、タブは名前のまま
+        expect(find.textContaining('エラー:'), findsOneWidget);
+        expect(find.text('千歳駅'), findsOneWidget);
+      });
+
+      testWidgets('取得できたのに stopMaster に無い停留所は ID のまま出す', (tester) async {
+        // GAS から消えた停留所。伏せても直らないので、どれのことか分かるように
+        // ID を出す（labelOf の約束）
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(
+                () => _FakeScheduleViewModel(
+                  ScheduleResult(
+                    data: ScheduleResponse(
+                      stopMaster:
+                          _stopMaster.where((s) => s.id != 'honbuto').toList(),
+                      updatedAt: '2024-01-01',
+                      current: _emptyTimetable,
+                    ),
+                  ),
+                ),
+              ),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('honbuto'), findsOneWidget);
+        expect(find.text('千歳駅'), findsOneWidget);
+      });
     });
 
     testWidgets('data状態でupcoming非null: カレンダーアイコンが表示される', (tester) async {
@@ -383,6 +615,7 @@ void main() {
         // 平日限定・土日祝限定の便を含むタイムテーブル
         final result = ScheduleResult(
           data: ScheduleResponse(
+            stopMaster: _stopMaster,
             updatedAt: '2024-01-01',
             current: BusTimetable(
               validFrom: '2024-01-01',
@@ -390,14 +623,14 @@ void main() {
               schedules: const [
                 BusEntry(
                   time: '09:00',
-                  direction: BusDirection.fromChitose,
-                  destination: '千歳科技大',
+                  boardingStopId: 'chitose',
+                  destination: '科技大',
                   weekdayOnly: true,
                 ),
                 BusEntry(
                   time: '10:00',
-                  direction: BusDirection.fromChitose,
-                  destination: '千歳科技大',
+                  boardingStopId: 'chitose',
+                  destination: '科技大',
                   weekendOnly: true,
                 ),
               ],
@@ -479,7 +712,7 @@ void main() {
 
       testWidgets('タブ0がお気に入り: star 1個 + star_border 3個が表示される', (tester) async {
         final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 0));
+            _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'chitose'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -497,7 +730,7 @@ void main() {
         expect(find.byIcon(Icons.star_border), findsNWidgets(3));
       });
 
-      testWidgets('タブ0のスタータップ: toggleFavorite(0) が呼ばれる', (tester) async {
+      testWidgets('タブ0のスタータップ: toggleFavorite(chitose) が呼ばれる', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
@@ -516,10 +749,10 @@ void main() {
         await tester.tap(find.byIcon(Icons.star_border).first);
         await tester.pump();
 
-        expect(favNotifier.lastToggleIndex, equals(0));
+        expect(favNotifier.lastToggleStopId, equals('chitose'));
       });
 
-      testWidgets('タブ2のスタータップ: toggleFavorite(2) が呼ばれる', (tester) async {
+      testWidgets('タブ2のスタータップ: toggleFavorite(kenkyuto) が呼ばれる', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
@@ -538,7 +771,7 @@ void main() {
         await tester.tap(find.byIcon(Icons.star_border).at(2));
         await tester.pump();
 
-        expect(favNotifier.lastToggleIndex, equals(2));
+        expect(favNotifier.lastToggleStopId, equals('kenkyuto'));
       });
 
       testWidgets('タブ2がお気に入り未設定でタブ2に切り替え: → 本部棟・→ 千歳駅の選択肢が見える',
@@ -568,7 +801,7 @@ void main() {
       testWidgets('タブ2がお気に入りで起動: 研究棟タブが表示され → 本部棟・→ 千歳駅の選択肢が見える',
           (tester) async {
         final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+            _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -589,7 +822,7 @@ void main() {
       testWidgets('タブ2がお気に入り: star 1個 + star_border 3個が表示される',
           (tester) async {
         final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+            _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -622,7 +855,7 @@ void main() {
             overrides: [
               scheduleViewModelProvider.overrideWith(() => scheduleVM),
               favoriteTabProvider.overrideWith(
-                () => _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2)),
+                () => _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto')),
               ),
               countdownOverride(),
             ],
@@ -640,7 +873,7 @@ void main() {
         scheduleVM.complete();
         await tester.pump();
 
-        final segmentedFinder = find.byType(SegmentedButton<BusDirection>);
+        final segmentedFinder = find.byType(SegmentedButton<String>);
         expect(segmentedFinder, findsOneWidget);
 
         // バグが再現すると高さが 0 になる
@@ -651,7 +884,7 @@ void main() {
       testWidgets('タブ2がお気に入りで起動後: 千歳駅タブをタップするとタブ切り替えできる',
           (tester) async {
         final favNotifier =
-            _FakeFavoriteTabNotifier(const FavoriteTab(tabIndex: 2));
+            _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -677,11 +910,309 @@ void main() {
       });
     });
 
+    group('停留所の選択', () {
+      testWidgets('選択に沿ったタブが、選択の順で出る', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              stopSelectionProvider.overrideWith(
+                () => _FakeStopSelectionNotifier(
+                    const StopSelection(stopIds: ['honbuto', 'chitose'])),
+              ),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Tab), findsNWidgets(2));
+        expect(find.text('研究棟'), findsNothing);
+        // タブの並びは選択の並び
+        final tabs = tester.widgetList<Tab>(find.byType(Tab)).toList();
+        expect(tester.getTopLeft(find.byWidget(tabs[0])).dx,
+            lessThan(tester.getTopLeft(find.byWidget(tabs[1])).dx));
+        expect(find.text('本部棟'), findsOneWidget);
+        expect(find.text('千歳駅'), findsOneWidget);
+      });
+
+      testWidgets('停留所を足すとタブが増え、見ていた停留所のまま残る', (tester) async {
+        final selection = _FakeStopSelectionNotifier(StopSelection.initial);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              stopSelectionProvider.overrideWith(() => selection),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // 研究棟（index 2）を開いておく
+        await tester.tap(find.text('研究棟'));
+        await tester.pumpAndSettle();
+        expect(find.text('→ 本部棟'), findsOneWidget);
+
+        // 設定で先頭に停留所を足す = index がずれる
+        selection.set(const StopSelection(
+            stopIds: ['morimoto', 'chitose', 'minamiChitose', 'kenkyuto', 'honbuto']));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Tab), findsNWidgets(5));
+        // 番号ではなく停留所で追いかけるので、研究棟のままでいる
+        expect(find.text('→ 本部棟'), findsOneWidget);
+      });
+
+      testWidgets('見ていた停留所が外されたら先頭のタブに戻る', (tester) async {
+        final selection = _FakeStopSelectionNotifier(StopSelection.initial);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+              stopSelectionProvider.overrideWith(() => selection),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('研究棟'));
+        await tester.pumpAndSettle();
+        expect(find.text('→ 本部棟'), findsOneWidget);
+
+        selection.set(const StopSelection(stopIds: ['chitose', 'honbuto']));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Tab), findsNWidgets(2));
+        expect(find.text('→ 本部棟'), findsNothing);
+      });
+    });
+
+    group('行き先の見出し', () {
+      // 千歳駅は長都行き（系統3 復路）の途中停留所。イオン千歳店前を足しても
+      // 見出しは終点のままでなければならない
+      const master = [
+        BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+        BusStop(id: 'aeon', label: 'イオン千歳店前'),
+        BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+        BusStop(id: 'osatsu', label: '長都駅東口'),
+      ];
+
+      ScheduleResult resultWith({required String? terminus}) => ScheduleResult(
+            data: ScheduleResponse(
+              stopMaster: master,
+              updatedAt: '2024-01-01',
+              current: BusTimetable(
+                validFrom: '2024-01-01',
+                validTo: '2024-12-31',
+                schedules: [
+                  const BusEntry(
+                    time: '09:00',
+                    boardingStopId: 'chitose',
+                    destination: '科技大',
+                    terminusStopId: 'honbuto',
+                    arrivals: {'honbuto': '09:30'},
+                  ),
+                  BusEntry(
+                    time: '09:10',
+                    boardingStopId: 'chitose',
+                    destination: '千歳駅',
+                    terminusStopId: terminus,
+                    // 選んだ停留所だけに絞られた到着地
+                    arrivals: const {'aeon': '09:16'},
+                  ),
+                ],
+              ),
+            ),
+          );
+
+      Widget wrap(ScheduleResult result) => ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(result)),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          );
+
+      testWidgets('終点を出す。途中で足した停留所には引きずられない', (tester) async {
+        await tester.pumpWidget(wrap(resultWith(terminus: 'osatsu')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('→ 長都駅東口'), findsOneWidget);
+        expect(find.text('→ イオン千歳店前'), findsNothing);
+        expect(find.text('→ 本部棟'), findsOneWidget);
+      });
+
+      testWidgets('終点が分からない供給元では到着地の末尾に頼る', (tester) async {
+        // 未デプロイの GAS・#177 以前のキャッシュ
+        await tester.pumpWidget(wrap(resultWith(terminus: null)));
+        await tester.pumpAndSettle();
+
+        expect(find.text('→ イオン千歳店前'), findsOneWidget);
+      });
+    });
+
+    group('便が1本も無い停留所', () {
+      // 停留所を1つだけ選ぶと、GAS は全便を stops 1要素で返す。降り先が
+      // 無くなるので便は1本も引けない。以前は見出しだけが並んで下が無言の
+      // 空白になっていた（#177）
+      Widget wrapOne(List<BusEntry> schedules, List<String> stopIds) =>
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider.overrideWith(
+                () => _FakeScheduleViewModel(ScheduleResult(
+                  data: ScheduleResponse(
+                    stopMaster: _stopMaster,
+                    updatedAt: '2024-01-01',
+                    coveredStopIds: stopIds,
+                    current: BusTimetable(
+                      validFrom: '2024-01-01',
+                      validTo: '2024-03-31',
+                      schedules: schedules,
+                    ),
+                  ),
+                )),
+              ),
+              stopSelectionProvider.overrideWith(
+                () => _FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
+              ),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          );
+
+      testWidgets('引ける便が無ければ、次にどうするかを出す（無言の空白にしない）',
+          (tester) async {
+        await tester.pumpWidget(wrapOne(const [], ['chitose']));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('もう1つ選んでください'), findsOneWidget);
+        // 見出しだけが残らないこと
+        expect(find.text('NEXT BUS'), findsNothing);
+        expect(find.text("TODAY'S SCHEDULE"), findsNothing);
+        // 取得はできているので「取得できていません」とは別物
+        expect(find.textContaining('まだ取得できていません'), findsNothing);
+      });
+
+      testWidgets('降り先があれば今までどおり出る', (tester) async {
+        await tester.pumpWidget(wrapOne(const [
+          BusEntry(
+            time: '08:30',
+            boardingStopId: 'chitose',
+            destination: '科技大',
+            terminusStopId: 'honbuto',
+            arrivals: {'honbuto': '08:55'},
+          ),
+        ], ['chitose', 'honbuto']));
+        await tester.pumpAndSettle();
+
+        expect(find.text('NEXT BUS'), findsOneWidget);
+        expect(find.textContaining('もう1つ選んでください'), findsNothing);
+      });
+    });
+
+    group('取得していない停留所', () {
+      // オフラインで停留所を足すと、その停留所の時刻を持たないキャッシュを
+      // 表示することになる（#177）
+      // isFromCache は付けない。バナーの分だけ縦が伸びてテスト画面（600px）に
+      // 収まらなくなるだけで、出し分けの判定には効かない
+      ScheduleResult cachedCovering(List<String> covered) => ScheduleResult(
+            data: ScheduleResponse(
+              stopMaster: _stopMaster,
+              updatedAt: '2024-01-01',
+              coveredStopIds: covered,
+              current: _emptyTimetable,
+            ),
+          );
+
+      Widget wrap(ScheduleResult result, {List<String>? stopIds}) =>
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => _FakeScheduleViewModel(result)),
+              if (stopIds != null)
+                stopSelectionProvider.overrideWith(
+                  () => _FakeStopSelectionNotifier(
+                      StopSelection(stopIds: stopIds)),
+                ),
+              countdownOverride(),
+            ],
+            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          );
+
+      testWidgets('持っている停留所は今までどおり時刻を出す', (tester) async {
+        await tester.pumpWidget(wrap(
+          cachedCovering(['kenkyuto']),
+          stopIds: ['kenkyuto', 'morimoto'],
+        ));
+        await tester.pumpAndSettle();
+
+        expect(find.text('NEXT BUS'), findsOneWidget);
+        expect(find.textContaining('このバス停の時刻はまだ取得できていません'), findsNothing);
+      });
+
+      testWidgets('持っていない停留所のタブだけ「取得できていません」を出す', (tester) async {
+        await tester.pumpWidget(wrap(
+          cachedCovering(['kenkyuto']),
+          stopIds: ['kenkyuto', 'morimoto'],
+        ));
+        await tester.pumpAndSettle();
+
+        // もりもと本店前のタブへ切り替える（stopMaster に無いので ID が出る）
+        await tester.tap(find.text('morimoto'));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('このバス停の時刻はまだ取得できていません'), findsOneWidget);
+        // 「時刻表データなし」（便が1本も無い）とは別物として出す
+        expect(find.text('時刻表データなし'), findsNothing);
+      });
+
+      testWidgets('「再試行」で取り直す', (tester) async {
+        final vm = _FakeScheduleViewModel(cachedCovering(['kenkyuto']));
+        await tester.pumpWidget(ProviderScope(
+          overrides: [
+            scheduleViewModelProvider.overrideWith(() => vm),
+            stopSelectionProvider.overrideWith(
+              () => _FakeStopSelectionNotifier(
+                  const StopSelection(stopIds: ['kenkyuto', 'morimoto'])),
+            ),
+            countdownOverride(),
+          ],
+          child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+        ));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('morimoto'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('再試行'));
+        await tester.pump();
+
+        expect(vm.refreshCalled, isTrue);
+      });
+
+      testWidgets('coveredStopIds が空なら全部持っているとみなす', (tester) async {
+        // #177 以前のキャッシュには記録が無い
+        await tester.pumpWidget(wrap(cachedCovering(const [])));
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('このバス停の時刻はまだ取得できていません'), findsNothing);
+      });
+    });
+
     group('OfflineCacheBanner', () {
       testWidgets('isFromCache: true のとき OfflineCacheBanner が表示される',
           (tester) async {
         final cachedResult = ScheduleResult(
           data: ScheduleResponse(
+            stopMaster: _stopMaster,
             updatedAt: '2024-01-01',
             current: _emptyTimetable,
           ),

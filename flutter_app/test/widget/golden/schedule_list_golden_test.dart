@@ -16,12 +16,12 @@ final _timetableForNextHighlight = BusTimetable(
   schedules: [
     BusEntry(
       time: '00:01',
-      direction: BusDirection.fromChitose,
+      boardingStopId: 'chitose',
       destination: '千歳科技大',
     ),
     BusEntry(
       time: '23:59',
-      direction: BusDirection.fromChitose,
+      boardingStopId: 'chitose',
       destination: '千歳科技大',
     ),
   ],
@@ -34,17 +34,17 @@ final _timetableAllPast = BusTimetable(
   schedules: [
     BusEntry(
       time: '00:01',
-      direction: BusDirection.fromChitose,
+      boardingStopId: 'chitose',
       destination: '千歳科技大',
     ),
     BusEntry(
       time: '00:02',
-      direction: BusDirection.fromChitose,
+      boardingStopId: 'chitose',
       destination: '千歳科技大',
     ),
     BusEntry(
       time: '00:03',
-      direction: BusDirection.fromChitose,
+      boardingStopId: 'chitose',
       destination: '千歳科技大',
     ),
   ],
@@ -78,8 +78,9 @@ void main() {
         ],
         child: _buildTestApp(
           child: ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: _timetableForNextHighlight,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
           ),
         ),
       ),
@@ -106,8 +107,9 @@ void main() {
         ],
         child: _buildTestApp(
           child: ScheduleList(
+          stopMaster: kTestStopMaster,
             timetable: _timetableAllPast,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
           ),
         ),
       ),

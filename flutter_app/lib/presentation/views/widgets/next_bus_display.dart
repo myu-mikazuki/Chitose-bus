@@ -9,75 +9,77 @@ class NextBusDisplay extends ConsumerWidget {
   const NextBusDisplay({
     super.key,
     required this.timetable,
-    required this.direction,
-    this.showPlatform = false,
+    required this.stopId,
+    required this.stopMaster,
+    this.destination,
   });
 
   final BusTimetable timetable;
-  final BusDirection direction;
-  final bool showPlatform;
+
+  /// 停留所の表示名の供給元（GAS の stopMaster）。
+  /// アプリ側に対応表を持つと、停留所が増えるたびにリリースが要る（#177）
+  final List<BusStop> stopMaster;
+
+  /// 乗車地
+  final String stopId;
+
+  /// 行き先（科技大 / 千歳駅）。指定しなければ絞らない。
+  /// 途中の停留所は上下両方向のバスが通るため、画面では指定する
+  final String? destination;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = ref.watch(countdownProvider);
 
-    final next = timetable.nextBus(direction, now: now);
+    final next = timetable.nextBus(stopId, destination: destination, now: now);
     if (next == null) {
       return const _NoMoreBusCard();
     }
-    return _NextBusCard(entry: next, now: now, showPlatform: showPlatform);
+    return _NextBusCard(
+      stopMaster: stopMaster,
+      entry: next,
+      now: now,
+    );
   }
+}
+
+/// NEXT BUS に出す行き先の表示名。**終点の名前を出す。**
+///
+/// 便の destination（科技大 / 千歳駅）をそのまま出すと、研究棟から乗る人に
+/// 「科技大」と出てしまう。実際に向かうのは本部棟なので噛み合わない。
+///
+/// 以前は `kenkyuto` を名指しで「本部棟」に読み替えていたが、任意の停留所を
+/// 選べる今はその対応表を持てない。行き先の見出し（`_StopTab.terminusLabel`）が
+/// 同じく終点を出しているので、**同じ画面の2箇所で違う行き先が出ないよう**
+/// こちらも終点に揃える（#177）。
+///
+/// 終点が分からない供給元（未デプロイの GAS・#177 以前のキャッシュ）だけ
+/// destination をそのまま出す。
+String destinationLabelOf(BusEntry entry, List<BusStop> stopMaster) {
+  final terminus = entry.terminusStopId;
+  return terminus != null ? stopMaster.labelOf(terminus) : entry.destination;
 }
 
 class _NextBusCard extends StatelessWidget {
   const _NextBusCard({
     required this.entry,
     required this.now,
-    required this.showPlatform,
+    required this.stopMaster,
   });
   final BusEntry entry;
   final DateTime now;
-  final bool showPlatform;
-
-  static const _stopLabels = {
-    'kenkyuto': '研究棟',
-    'honbuto': '本部棟',
-    'minamiChitose': '南千歳',
-    'chitose': '千歳駅',
-  };
-
-  List<String> _getArrivalOrder(BusEntry entry) {
-    final isRoute2 = entry.routeLabel == '直通';
-    switch (entry.direction) {
-      case BusDirection.fromChitose:
-        return isRoute2
-            ? ['kenkyuto', 'honbuto']
-            : ['minamiChitose', 'kenkyuto', 'honbuto'];
-      case BusDirection.fromMinamiChitose:
-        return ['kenkyuto', 'honbuto'];
-      case BusDirection.fromKenkyutoToHonbuto:
-        return ['honbuto'];
-      case BusDirection.fromKenkyutoToStation:
-        return isRoute2 ? ['chitose'] : ['minamiChitose', 'chitose'];
-      case BusDirection.fromHonbuto:
-        return isRoute2
-            ? ['kenkyuto', 'chitose']
-            : ['kenkyuto', 'minamiChitose', 'chitose'];
-    }
-  }
+  final List<BusStop> stopMaster;
 
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
-    final order = _getArrivalOrder(entry);
-    return order
-        .where((key) => entry.arrivals.containsKey(key))
-        .map((key) => Padding(
+    final order = entry.arrivals.keys.toList();
+    return order.map((key) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_stopLabels[key]} 着',
+                    '${stopMaster.labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 13,
@@ -127,13 +129,7 @@ class _NextBusCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  switch (entry.direction) {
-                    BusDirection.fromChitose => '科技大',
-                    BusDirection.fromMinamiChitose => '科技大',
-                    BusDirection.fromKenkyutoToHonbuto => '本部棟',
-                    BusDirection.fromKenkyutoToStation => '千歳駅',
-                    BusDirection.fromHonbuto => '千歳駅',
-                  },
+                  destinationLabelOf(entry, stopMaster),
                   style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 14,
@@ -173,7 +169,10 @@ class _NextBusCard extends StatelessWidget {
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
-          if (showPlatform && entry.platformNumber != null) ...[
+          // のりばは v=4 で停留所ごとの属性になった（StopTimeModel.platform）。
+          // 以前は「千歳駅のときだけ出す」と乗車地を名指ししていたが、GAS が
+          // 他の停留所にのりばを足したら出す、が正しい（#177）
+          if (entry.platformNumber != null) ...[
             const SizedBox(height: 4),
             Text(
               '${entry.platformNumber}のりば',

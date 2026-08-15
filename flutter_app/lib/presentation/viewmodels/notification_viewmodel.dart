@@ -46,7 +46,7 @@ class NotificationSettingsNotifier
     await saveSettings(current.copyWith(enabled: granted));
   }
 
-  static String busKey(BusEntry bus) => '${bus.direction.name}_${bus.time}';
+  static String busKey(BusEntry bus) => bus.notificationKey;
 
   Future<void> toggleBusNotification(BusEntry bus) async {
     final settingsState = state;
