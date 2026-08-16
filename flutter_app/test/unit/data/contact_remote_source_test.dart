@@ -14,7 +14,8 @@ void main() {
   const endpointUrl = 'http://example.com/contact';
 
   setUpAll(() {
-    registerFallbackValue(http.Request('POST', Uri.parse('http://example.com')));
+    registerFallbackValue(
+        http.Request('POST', Uri.parse('http://example.com')));
     registerFallbackValue(Uri.parse('http://example.com'));
   });
 
@@ -46,7 +47,8 @@ void main() {
     test('throws Exception when success is false', () async {
       when(() => mockClient.send(any())).thenAnswer(
         (_) async => http.StreamedResponse(
-          Stream.value(utf8.encode(jsonEncode({'success': false, 'error': 'bad request'}))),
+          Stream.value(utf8
+              .encode(jsonEncode({'success': false, 'error': 'bad request'}))),
           200,
         ),
       );

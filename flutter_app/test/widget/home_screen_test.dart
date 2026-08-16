@@ -227,8 +227,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            scheduleViewModelProvider.overrideWith(
-                () => _ErrorViewModel(Exception('test error'))),
+            scheduleViewModelProvider
+                .overrideWith(() => _ErrorViewModel(Exception('test error'))),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -639,7 +639,8 @@ void main() {
                   .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -656,7 +657,8 @@ void main() {
                   .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -713,7 +715,8 @@ void main() {
                   .overrideWith(() => _FakeScheduleViewModel(result)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -742,7 +745,8 @@ void main() {
                   .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -759,8 +763,7 @@ void main() {
     });
 
     group('お気に入りタブ', () {
-      testWidgets('お気に入り未設定: タブ4つ全てに star_border アイコンが表示される',
-          (tester) async {
+      testWidgets('お気に入り未設定: タブ4つ全てに star_border アイコンが表示される', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
@@ -770,7 +773,8 @@ void main() {
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -790,7 +794,8 @@ void main() {
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -809,7 +814,8 @@ void main() {
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -831,7 +837,8 @@ void main() {
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -843,8 +850,7 @@ void main() {
         expect(favNotifier.lastToggleStopId, equals('kenkyuto'));
       });
 
-      testWidgets('タブ2がお気に入り未設定でタブ2に切り替え: → 本部棟・→ 千歳駅の選択肢が見える',
-          (tester) async {
+      testWidgets('タブ2がお気に入り未設定でタブ2に切り替え: → 本部棟・→ 千歳駅の選択肢が見える', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
@@ -854,7 +860,8 @@ void main() {
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -879,7 +886,8 @@ void main() {
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -888,8 +896,7 @@ void main() {
         expect(find.text('→ 千歳駅'), findsOneWidget);
       });
 
-      testWidgets('タブ2がお気に入り: star 1個 + star_border 3個が表示される',
-          (tester) async {
+      testWidgets('タブ2がお気に入り: star 1個 + star_border 3個が表示される', (tester) async {
         final favNotifier =
             _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
@@ -900,7 +907,8 @@ void main() {
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -914,8 +922,7 @@ void main() {
       // scheduleAsync が遅れて解決して TabBarView が初めて作られるシナリオ。
       // find.text() はツリー存在のみ確認するため、サイズ 0 のバグを見逃す。
       // tester.getSize() で実際にレンダリングされた高さを検証する。
-      testWidgets(
-          'SegmentedButton のサイズが 0 でない（build より前に index が変更される再現）',
+      testWidgets('SegmentedButton のサイズが 0 でない（build より前に index が変更される再現）',
           (tester) async {
         final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
 
@@ -924,7 +931,8 @@ void main() {
             overrides: [
               scheduleViewModelProvider.overrideWith(() => scheduleVM),
               favoriteTabProvider.overrideWith(
-                () => _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto')),
+                () => _FakeFavoriteTabNotifier(
+                    const FavoriteTab(stopId: 'kenkyuto')),
               ),
               countdownOverride(),
             ],
@@ -950,8 +958,7 @@ void main() {
         expect(size.height, greaterThan(0));
       });
 
-      testWidgets('タブ2がお気に入りで起動後: 千歳駅タブをタップするとタブ切り替えできる',
-          (tester) async {
+      testWidgets('タブ2がお気に入りで起動後: 千歳駅タブをタップするとタブ切り替えできる', (tester) async {
         final favNotifier =
             _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
@@ -962,7 +969,8 @@ void main() {
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -992,7 +1000,8 @@ void main() {
               ),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -1017,7 +1026,8 @@ void main() {
               stopSelectionProvider.overrideWith(() => selection),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -1028,8 +1038,13 @@ void main() {
         expect(find.text('→ 本部棟'), findsOneWidget);
 
         // 設定で先頭に停留所を足す = index がずれる
-        selection.set(const StopSelection(
-            stopIds: ['morimoto', 'chitose', 'minamiChitose', 'kenkyuto', 'honbuto']));
+        selection.set(const StopSelection(stopIds: [
+          'morimoto',
+          'chitose',
+          'minamiChitose',
+          'kenkyuto',
+          'honbuto'
+        ]));
         await tester.pumpAndSettle();
 
         expect(find.byType(Tab), findsNWidgets(5));
@@ -1047,7 +1062,8 @@ void main() {
               stopSelectionProvider.overrideWith(() => selection),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -1108,7 +1124,8 @@ void main() {
                   .overrideWith(() => _FakeScheduleViewModel(result)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           );
 
       testWidgets('終点を出す。途中で足した停留所には引きずられない', (tester) async {
@@ -1151,15 +1168,16 @@ void main() {
                 )),
               ),
               stopSelectionProvider.overrideWith(
-                () => _FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
+                () =>
+                    _FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
               ),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           );
 
-      testWidgets('引ける便が無ければ、次にどうするかを出す（無言の空白にしない）',
-          (tester) async {
+      testWidgets('引ける便が無ければ、次にどうするかを出す（無言の空白にしない）', (tester) async {
         await tester.pumpWidget(wrapOne(const [], ['chitose']));
         await tester.pumpAndSettle();
 
@@ -1180,7 +1198,10 @@ void main() {
             terminusStopId: 'honbuto',
             arrivals: {'honbuto': '08:55'},
           ),
-        ], ['chitose', 'honbuto']));
+        ], [
+          'chitose',
+          'honbuto'
+        ]));
         await tester.pumpAndSettle();
 
         expect(find.text('NEXT BUS'), findsOneWidget);
@@ -1214,7 +1235,8 @@ void main() {
                 ),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           );
 
       testWidgets('持っている停留所は今までどおり時刻を出す', (tester) async {
@@ -1294,7 +1316,8 @@ void main() {
                   .overrideWith(() => _FakeScheduleViewModel(cachedResult)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -1312,7 +1335,8 @@ void main() {
                   .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();

@@ -16,7 +16,8 @@ void main() {
     testWidgets('土曜日: バナーが表示されない（現在無効化中）', (tester) async {
       // 2024-01-06 = Saturday
       final saturday = DateTime(2024, 1, 6, 9, 0);
-      await tester.pumpWidget(_wrap(const WeekendWarningBanner(), now: saturday));
+      await tester
+          .pumpWidget(_wrap(const WeekendWarningBanner(), now: saturday));
 
       expect(
         find.text('土日祝日はバスが運行していない場合があります'),

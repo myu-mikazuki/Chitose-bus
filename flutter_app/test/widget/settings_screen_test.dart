@@ -77,10 +77,12 @@ void main() {
       await tester.pump();
 
       final sw = tester.widget<Switch>(
-        find.byWidgetPredicate(
-          (w) => w is Switch,
-          description: 'Switch for lecture tags',
-        ).last,
+        find
+            .byWidgetPredicate(
+              (w) => w is Switch,
+              description: 'Switch for lecture tags',
+            )
+            .last,
       );
       expect(sw.value, isTrue);
     });
@@ -91,18 +93,19 @@ void main() {
       await tester.pump();
 
       final sw = tester.widget<Switch>(
-        find.byWidgetPredicate(
-          (w) => w is Switch,
-          description: 'Switch for lecture tags',
-        ).last,
+        find
+            .byWidgetPredicate(
+              (w) => w is Switch,
+              description: 'Switch for lecture tags',
+            )
+            .last,
       );
       expect(sw.value, isFalse);
     });
 
-    testWidgets('スイッチをタップ → saveSettings が呼ばれ state が更新される',
-        (tester) async {
-      final displayNotifier =
-          _FakeDisplaySettingsNotifier(const DisplaySettings(showLectureTags: true));
+    testWidgets('スイッチをタップ → saveSettings が呼ばれ state が更新される', (tester) async {
+      final displayNotifier = _FakeDisplaySettingsNotifier(
+          const DisplaySettings(showLectureTags: true));
 
       await tester.pumpWidget(ProviderScope(
         overrides: [

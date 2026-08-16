@@ -32,7 +32,8 @@ void main() {
           weekdayOnly: true,
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isTrue);
-        expect(entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isFalse);
+        expect(
+            entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isFalse);
       });
 
       test('weekendOnly=true: 土日祝ダイヤでは運行、平日ダイヤでは運休', () {
@@ -43,7 +44,8 @@ void main() {
           weekendOnly: true,
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isFalse);
-        expect(entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isTrue);
+        expect(
+            entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isTrue);
       });
 
       test('フラグなし: どちらのダイヤでも運行', () {
@@ -53,7 +55,8 @@ void main() {
           destination: '科技大',
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isTrue);
-        expect(entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isTrue);
+        expect(
+            entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isTrue);
       });
     });
 

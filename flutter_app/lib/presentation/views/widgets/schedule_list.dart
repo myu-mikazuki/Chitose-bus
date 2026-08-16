@@ -82,7 +82,8 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
     final dayType = widget.dayType;
     final buses = dayType == null
-        ? widget.timetable.todayBuses(widget.stopId, destination: widget.destination, now: now)
+        ? widget.timetable.todayBuses(widget.stopId,
+            destination: widget.destination, now: now)
         : widget.timetable.busesFor(
             widget.stopId,
             dayType,
@@ -91,12 +92,12 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
           );
     // 当日以外の表示では NEXT の概念がないため null とする
     final nextBus = dayType == null
-        ? widget.timetable.nextBus(widget.stopId, destination: widget.destination, now: now)
+        ? widget.timetable
+            .nextBus(widget.stopId, destination: widget.destination, now: now)
         : null;
 
     if (buses.isEmpty) {
-      final isSuspended =
-          dayType == null && ServiceCalendar.isSuspended(now);
+      final isSuspended = dayType == null && ServiceCalendar.isSuspended(now);
       return Center(
         child: Text(
           isSuspended ? '年末年始のため全便運休です' : '時刻表データなし',
@@ -118,8 +119,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
         final rows = List.generate(buses.length, (index) {
           final bus = buses[index];
-          final isPast =
-              dayType == null && bus.minutesFromNow(now: now) < 0;
+          final isPast = dayType == null && bus.minutesFromNow(now: now) < 0;
           final isNext = index == nextBusIndex;
           return _ScheduleRow(
             key: isNext ? _nextBusKey : null,
@@ -249,7 +249,8 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   List<Widget> _buildArrivalRows() {
     final colors = context.appColors;
     final order = widget.bus.arrivals.keys.toList();
-    return order.map((key) => Padding(
+    return order
+        .map((key) => Padding(
               padding: const EdgeInsets.only(top: 4, left: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -96,8 +96,8 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-          _wrap(['koizumi', 'arcadia', 'hoyukai', 'chitose']));
+      await tester
+          .pumpWidget(_wrap(['koizumi', 'arcadia', 'hoyukai', 'chitose']));
       await tester.pumpAndSettle();
     });
 
@@ -117,8 +117,7 @@ void main() {
       expect(find.text('千歳豊友会病院前 着'), findsWidgets);
     });
 
-    testWidgets('短縮名があればそちらを出す（既定の4停留所の見え方は不変）',
-        (tester) async {
+    testWidgets('短縮名があればそちらを出す（既定の4停留所の見え方は不変）', (tester) async {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();
 

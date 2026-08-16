@@ -24,8 +24,7 @@ final notificationSettingsProvider =
   NotificationSettingsNotifier.new,
 );
 
-class NotificationSettingsNotifier
-    extends AsyncNotifier<NotificationSettings> {
+class NotificationSettingsNotifier extends AsyncNotifier<NotificationSettings> {
   @override
   Future<NotificationSettings> build() async {
     final repo = ref.watch(notificationSettingsRepositoryProvider);
@@ -69,8 +68,7 @@ class NotificationSettingsNotifier
       await repo.save(newSettings);
       state = AsyncData(newSettings);
       final now = ref.read(clockProvider)();
-      if (newSettings.enabled &&
-          bus.toDateTimeToday(now: now).isAfter(now)) {
+      if (newSettings.enabled && bus.toDateTimeToday(now: now).isAfter(now)) {
         await service.scheduleNotification(bus, newSettings);
       }
     }
@@ -95,5 +93,4 @@ class NotificationSettingsNotifier
       }
     }
   }
-
 }

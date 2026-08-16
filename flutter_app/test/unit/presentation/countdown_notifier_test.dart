@@ -17,7 +17,8 @@ void main() {
         notifier.state.isAfter(before.subtract(const Duration(seconds: 1))),
         isTrue,
       );
-      expect(notifier.state.isBefore(after.add(const Duration(seconds: 1))), isTrue);
+      expect(notifier.state.isBefore(after.add(const Duration(seconds: 1))),
+          isTrue);
     });
 
     test('state updates after countdownRefreshInterval elapses', () {

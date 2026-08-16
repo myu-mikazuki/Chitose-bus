@@ -7,7 +7,8 @@ import 'package:kagi_bus/presentation/views/widgets/season_notice_banner.dart';
 
 import '../helpers/test_theme.dart';
 
-Widget _wrap({required DateTime now, DayType? dayTypeOverride}) => ProviderScope(
+Widget _wrap({required DateTime now, DayType? dayTypeOverride}) =>
+    ProviderScope(
       overrides: [
         countdownOverride(now: now),
         if (dayTypeOverride != null)

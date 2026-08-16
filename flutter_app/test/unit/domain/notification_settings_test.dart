@@ -42,7 +42,8 @@ void main() {
 
       test('copyWith: scheduledBusKeys を設定', () {
         final s = NotificationSettings();
-        final s2 = s.copyWith(scheduledBusKeys: {'fromChitose_08:30', 'toChitose_09:00'});
+        final s2 = s.copyWith(
+            scheduledBusKeys: {'fromChitose_08:30', 'toChitose_09:00'});
         expect(s2.scheduledBusKeys, {'fromChitose_08:30', 'toChitose_09:00'});
         expect(s2.enabled, isFalse);
         expect(s2.minutesBefore, 10);
@@ -69,7 +70,8 @@ void main() {
 
       test('scheduledBusKeys は immutable（外部からの変更が例外を投げる）', () {
         final s = NotificationSettings(scheduledBusKeys: {'fromChitose_08:30'});
-        expect(() => s.scheduledBusKeys.add('toChitose_09:00'), throwsUnsupportedError);
+        expect(() => s.scheduledBusKeys.add('toChitose_09:00'),
+            throwsUnsupportedError);
       });
     });
   });

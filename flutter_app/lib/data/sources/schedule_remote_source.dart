@@ -65,7 +65,8 @@ class ScheduleRemoteSource {
       'v': '$schemaVersion',
       'stops': selection.query,
     });
-    final response = await _client.get(uri).timeout(const Duration(seconds: 30));
+    final response =
+        await _client.get(uri).timeout(const Duration(seconds: 30));
 
     if (response.statusCode != 200) {
       throw Exception('GAS API error: ${response.statusCode}');

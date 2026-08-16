@@ -363,8 +363,8 @@ void main() {
       // 押せなくなってから知らせるのでは遅いので、達する前から見せる
       await open(tester, _sel(['chitose', 'honbuto']));
 
-      expect(find.text('タブに表示する（2 / ${StopSelection.maxStops}）'),
-          findsOneWidget);
+      expect(
+          find.text('タブに表示する（2 / ${StopSelection.maxStops}）'), findsOneWidget);
     });
 
     testWidgets('上限未満なら「追加する」に候補が出る', (tester) async {

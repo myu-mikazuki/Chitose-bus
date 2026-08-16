@@ -51,9 +51,8 @@ abstract final class LegacyScheduleParser {
         current: BusTimetable(
           validFrom: current?['validFrom'] as String? ?? '',
           validTo: current?['validTo'] as String? ?? '',
-          schedules: schedules
-              .map((e) => _entry(e as Map<String, dynamic>))
-              .toList(),
+          schedules:
+              schedules.map((e) => _entry(e as Map<String, dynamic>)).toList(),
         ),
       );
     } catch (_) {
