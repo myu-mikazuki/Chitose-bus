@@ -20,6 +20,19 @@ import 'widgets/schedule_list.dart';
 import 'widgets/season_notice_banner.dart';
 import 'widgets/weekend_warning_banner.dart';
 
+/// 画面下端のバナー広告を組み立てる。**テストで差し替えるための継ぎ目**（#192）。
+///
+/// 既定は実物の [_BannerAdWidget]。`initState` で `BannerAd.load()` を呼ぶため、
+/// テスト環境では実装が無く `MissingPluginException` になる。google_mobile_ads は
+/// 独自のメッセージコーデックを使っていてメソッドチャネルの差し替えが効かないので、
+/// ウィジェットごと差し替えられるようにしてある。
+///
+/// HomeScreen 全体を widget テスト・golden で扱うには、この経路を塞ぐ必要がある。
+final bannerAdBuilderProvider =
+    Provider<Widget Function(VoidCallback onDismissed)>(
+  (ref) => (onDismissed) => _BannerAdWidget(onDismissed: onDismissed),
+);
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -410,8 +423,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               bottom: 0,
               left: 0,
               right: 0,
-              child: _BannerAdWidget(
-                onDismissed: () => setState(() => _bannerDismissed = true),
+              child: ref.watch(bannerAdBuilderProvider)(
+                () => setState(() => _bannerDismissed = true),
               ),
             ),
         ],
