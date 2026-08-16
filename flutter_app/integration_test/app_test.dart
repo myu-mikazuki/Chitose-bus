@@ -169,8 +169,7 @@ void main() {
   });
 
   testWidgets('APIエラー時→エラーテキストと再試行ボタンが表示される', (tester) async {
-    when(() => mockRepo.fetchSchedule())
-        .thenThrow(Exception('Network error'));
+    when(() => mockRepo.fetchSchedule()).thenThrow(Exception('Network error'));
 
     await tester.pumpWidget(_buildApp(mockRepo));
     await tester.pumpAndSettle();
