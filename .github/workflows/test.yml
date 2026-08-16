@@ -47,8 +47,10 @@ jobs:
       #   `analysis_options.yaml` も読めず警告が出る
       # - build_runner より後だと生成物（*.g.dart / *.freezed.dart）まで検査対象に
       #   入り、生成器の版が変わっただけで落ちうる
+      # 対象は flutter_app 配下の Dart 全部。integration_test は CI で実行しないが、
+      # 検査から外すとここだけ整形がドリフトする。
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed lib test
+        run: dart format --output=none --set-exit-if-changed lib test integration_test
         working-directory: flutter_app
 
       - name: Generate code (build_runner)
