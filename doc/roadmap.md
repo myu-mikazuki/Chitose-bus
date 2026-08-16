@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-08-16
+最終更新: 2026-08-17
 
 ---
 
@@ -12,18 +12,42 @@
 |----|-------|------|------|
 | — | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（タブに出す） | **v1.3.1 で出す** |
 | — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **v1.3.1 で出す** |
-| — | [#168](https://github.com/myu-mikazuki/Chitose-bus/issues/168) | `appsscript.json` に `webapp` 設定が無い | PR #213 レビュー中 |
-| — | [#192](https://github.com/myu-mikazuki/Chitose-bus/issues/192) | HomeScreen の golden が無い | PR #215 レビュー中 |
-| — | [#195](https://github.com/myu-mikazuki/Chitose-bus/issues/195) | `dart format` を CI に入れる | PR #216 → #217 レビュー中 |
 | 1 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
 | 2 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 3 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
+| 3 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
 | 4 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
 
 **v1.3.0 はリリース済み**（2026-08-16・審査提出済み）。次は **v1.3.1** で、
 #177 が作った「タブの名前が読みにくい」問題を潰す2件を出す。**タブに短縮名、
 NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 #146（臨時便）は応答に便を追加するため、旧アプリへの影響を確認する必要がある。
+
+**着手中のものは無い**（2026-08-17 時点でオープンな PR は無し）。次に触るのは #207 / #208。
+
+---
+
+## develop にマージ済み（次のリリースで main へ）
+
+**issue はまだ開いている。**閉じるのは main へマージするとき。
+1件ずつは小さいが、v1.3.1 のリリースノートにはここも載る。
+
+| Issue | 内容 | PR |
+|-------|------|-----|
+| [#168](https://github.com/myu-mikazuki/Chitose-bus/issues/168) | `appsscript.json` に `webapp` 設定を足す | #213 |
+| [#192](https://github.com/myu-mikazuki/Chitose-bus/issues/192) | HomeScreen の golden を足す | #215 |
+| [#195](https://github.com/myu-mikazuki/Chitose-bus/issues/195) | `dart format` を CI に入れる | #216（整形）→ #221（CI） |
+| [#214](https://github.com/myu-mikazuki/Chitose-bus/issues/214) | Play アップロードの `track` → `tracks` | #226 → #227 |
+| [#219](https://github.com/myu-mikazuki/Chitose-bus/issues/219) | Fake ViewModel を `test/helpers` へ寄せる | #222 |
+| [#220](https://github.com/myu-mikazuki/Chitose-bus/issues/220) | タブの残り2状態（便が無い / 未取得）に golden を足す | #224 |
+| [#223](https://github.com/myu-mikazuki/Chitose-bus/issues/223) | 残っていたスタブを helpers へ寄せる | #225 |
+
+- **#195** — PR #217 は base が `chore/issue-195-format` になっていたため閉じ、
+  #221 で develop に直接入れ直した。経路が変わっただけで中身は同じ
+- **#168** — 直ったのは**リポジトリの `appsscript.json` だけ**で、本番 GAS への反映は
+  リリース時。下の「判断の指針」にある dev デプロイの手作業運用はまだ続く
+- **#214** — 「リリース作業に入る前に直しておく」ものだったので、v1.3.1 の準備はこれで済んだ
+
+---
 
 ## v1.3.1（次）
 
@@ -64,8 +88,8 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 
 - v1.3.0 で入った**移行用の経路は v1.4.0 で削除する**（[#186](https://github.com/myu-mikazuki/Chitose-bus/issues/186)）。
   v1.3.1 では消さない
-- [#214](https://github.com/myu-mikazuki/Chitose-bus/issues/214)（`release.yml` の `track` が非推奨）は
-  リリース作業に入る前に直しておく
+- ~~[#214](https://github.com/myu-mikazuki/Chitose-bus/issues/214)（`release.yml` の `track` が非推奨）は
+  リリース作業に入る前に直しておく~~ → **対応済み**（PR #226 / #227）
 
 ---
 
@@ -115,7 +139,10 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
   あるのにリポジトリには無く、そのまま push すると本番から消える（#168 / PR #213）
 - **Play へのアップロードは GCP で Android Publisher API を有効化する必要がある**。
   #165 の初回実行がこれで失敗した。有効化して再実行で成功
-- **`release.yml` の `track` が非推奨**になった（[#214](https://github.com/myu-mikazuki/Chitose-bus/issues/214)）
+- **`release.yml` の `track` が非推奨**になった（[#214](https://github.com/myu-mikazuki/Chitose-bus/issues/214)・
+  PR #226 / #227 で対応済み）。ついでに分かったこととして、`track` と `tracks` の**どちらも
+  未設定だとアクションの既定は `production`**。Actions は未知の `with:` キーを警告止まりで
+  通すので、キー名を打ち間違えると製品版に上がる
 - **`Closes` はリリース PR の本文に書く。** #177 / #191 / #198 / #201 / #204 は
   develop へマージした各 PR に書いてあったが、release → main の PR 本文には無かったため
   **自動で閉じず、手で閉じた**。次回はリリース PR の本文に並べる
@@ -132,12 +159,20 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 | [#171](https://github.com/myu-mikazuki/Chitose-bus/issues/171) | ソース側の表記統一 | 表示に影響しない |
 | [#155](https://github.com/myu-mikazuki/Chitose-bus/issues/155) | `doc/spec.md` の GAS 章更新 | `?v=4` の節が「GAS 側のみ実装済み」のまま。v1.3.0 で実際に使い始めたので**記述が古い** |
 | [#117](https://github.com/myu-mikazuki/Chitose-bus/issues/117) | 利用規約 | #109 でログ収集を入れる際に同意事項が必要になるため、その段階で再検討 |
-| [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入りの停留所を選択から外しても何も伝えない | #177 が作った隙間だが、実害は星が消えるだけ |
+| [#185](https://github.com/myu-mikazuki/Chitose-bus/issues/185) | エラー画面に生の例外文字列が出る | [#108](https://github.com/myu-mikazuki/Chitose-bus/issues/108)（エラーメッセージ整備）と同じ範囲。まとめて扱うほうがよい |
 | [#190](https://github.com/myu-mikazuki/Chitose-bus/issues/190) | 通知キーが同時刻・別系統の便で衝突する | #177 以前からの不具合で回帰ではない |
+| [#228](https://github.com/myu-mikazuki/Chitose-bus/issues/228) | お気に入りの停留所を選択から外しても何も伝えない | #177 が作った隙間だが、実害は星が消えるだけ |
 | [#202](https://github.com/myu-mikazuki/Chitose-bus/issues/202) | 「来週のダイヤ」シートが4停留所固定 | `upcoming` が常に null で、シート自体を開けない |
 | #124 / #83 / #73 / #56 / #2 / #22 / #108 | | 未定 |
 
-**#168 / #192 / #195 は着手済み**（PR #213 / #215 / #216・#217）。#207 / #208 は v1.3.1 へ上げた。
+#207 / #208 は v1.3.1 へ上げた。#140 は上の「直近の順序」（順3）に入れてあるので、
+この表からは外した。
+
+> [!NOTE]
+> **この表の #140 の行は内容が issue と食い違っていた。**「お気に入りの停留所を選択から
+> 外しても何も伝えない」と書かれていたが、#140 は「研究棟タブの本部棟⇔千歳駅でも
+> お気に入り登録できるようにする」という別の話。書かれていた事象自体はコードで確認でき
+> たので、[#228](https://github.com/myu-mikazuki/Chitose-bus/issues/228) として切り出した。
 
 ---
 
@@ -175,6 +210,13 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 |-------|------|
 | #198 | CI が `build_runner` で止まる → Flutter を `pubspec.yaml` で固定（PR #199） |
 
+> [!IMPORTANT]
+> **条件がかかるのは PR 単体の差分ではなく、develop → main のマージ全体。**
+> #214 は変更自体が `release.yml` と `doc/` だけだったのでこの経路に見えたが、
+> そのとき develop には #192 / #219 などの `flutter_app` の変更が溜まっていたため
+> **使えなかった**（次のリリースに載せた）。判断する前に
+> `git diff --name-only origin/main...origin/develop` を見ること。
+
 ---
 
 ## 判断の指針
@@ -208,7 +250,11 @@ GAS 側で吸収できないか先に検討する。
 
 dev への反映は `clasp push --user dev` まで Claude が行い、デプロイのバージョン更新は
 Apps Script の UI で人が行う（`appsscript.json` に `webapp` が無く clasp 経由の
-バージョンが 404 になるため。[#168](https://github.com/myu-mikazuki/Chitose-bus/issues/168) が直るまでの運用）。
+バージョンが 404 になるため）。
+
+[#168](https://github.com/myu-mikazuki/Chitose-bus/issues/168) の修正（PR #213）は
+develop に入っているが、**直ったのはリポジトリ側のマニフェストだけ**で、GAS 側に
+届くのは push した後。**この手作業の運用は、実際に 404 が出なくなるのを確認するまで続ける。**
 
 > リリース時のデプロイ漏れは**新アプリが全く動かない**事故になる。
 > リリース手順の最初に置くこと。
