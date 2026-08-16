@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:kagi_bus/domain/entities/stop_selection.dart';
+import 'package:kagi_bus/presentation/viewmodels/banner_ad_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/stop_selection_viewmodel.dart';
@@ -34,13 +35,6 @@ class _FakeStopSelectionNotifier extends StopSelectionNotifier {
   @override
   Future<StopSelection> build() async => _initial;
 }
-
-const _stopMaster = [
-  BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
-  BusStop(id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳'),
-  BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
-  BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
-];
 
 // kTestNow は 2024-06-17（月）09:00。すべて未来の便にして、どのタブでも
 // NEXT BUS が「次のバスなし」に落ちないようにする。過去便を混ぜると
@@ -76,7 +70,7 @@ const _schedules = [
 
 final _result = ScheduleResult(
   data: ScheduleResponse(
-    stopMaster: _stopMaster,
+    stopMaster: kTestStopMaster,
     updatedAt: '2024-01-01',
     current: BusTimetable(
       validFrom: '2024-01-01',
@@ -88,9 +82,10 @@ final _result = ScheduleResult(
 
 Future<void> _pumpHomeScreen(WidgetTester tester) async {
   // 375x812（iPhone X 相当）に固定する。既定の4タブが縮小経路に入らない幅。
-  tester.view.physicalSize = const Size(750, 1624);
-  tester.view.devicePixelRatio = 2.0;
-  addTearDown(tester.view.reset);
+  // 既存の golden 2ファイルと同じ setSurfaceSize を使う。matchesGoldenFile は
+  // 論理サイズで 1:1 に切り出すので、dpr を触っても PNG の解像度は変わらない。
+  await tester.binding.setSurfaceSize(const Size(375, 812));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
 
   await tester.pumpWidget(
     ProviderScope(

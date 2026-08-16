@@ -1,14 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
+import '../viewmodels/banner_ad_viewmodel.dart';
 import '../viewmodels/favorite_tab_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import '../viewmodels/stop_selection_viewmodel.dart';
@@ -19,19 +16,6 @@ import 'widgets/offline_cache_banner.dart';
 import 'widgets/schedule_list.dart';
 import 'widgets/season_notice_banner.dart';
 import 'widgets/weekend_warning_banner.dart';
-
-/// 画面下端のバナー広告を組み立てる。**テストで差し替えるための継ぎ目**（#192）。
-///
-/// 既定は実物の [_BannerAdWidget]。`initState` で `BannerAd.load()` を呼ぶため、
-/// テスト環境では実装が無く `MissingPluginException` になる。google_mobile_ads は
-/// 独自のメッセージコーデックを使っていてメソッドチャネルの差し替えが効かないので、
-/// ウィジェットごと差し替えられるようにしてある。
-///
-/// HomeScreen 全体を widget テスト・golden で扱うには、この経路を塞ぐ必要がある。
-final bannerAdBuilderProvider =
-    Provider<Widget Function(VoidCallback onDismissed)>(
-  (ref) => (onDismissed) => _BannerAdWidget(onDismissed: onDismissed),
-);
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -423,7 +407,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               bottom: 0,
               left: 0,
               right: 0,
-              child: ref.watch(bannerAdBuilderProvider)(
+              child: ref.read(bannerAdBuilderProvider)(
                 () => setState(() => _bannerDismissed = true),
               ),
             ),
@@ -972,78 +956,3 @@ class _StopTabState extends State<_StopTab> {
 }
 
 
-class _BannerAdWidget extends StatefulWidget {
-  const _BannerAdWidget({required this.onDismissed});
-
-  final VoidCallback onDismissed;
-
-  @override
-  State<_BannerAdWidget> createState() => _BannerAdWidgetState();
-}
-
-class _BannerAdWidgetState extends State<_BannerAdWidget> {
-  BannerAd? _bannerAd;
-
-  static String get _adUnitId {
-    if (Platform.isAndroid) {
-      return AppConstants.admobAndroidAdUnitId;
-    } else {
-      return AppConstants.admobIosAdUnitId;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _bannerAd = BannerAd(
-      adUnitId: _adUnitId,
-      request: const AdRequest(),
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) => setState(() {}),
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-          setState(() => _bannerAd = null);
-        },
-      ),
-    )..load();
-  }
-
-  @override
-  void dispose() {
-    _bannerAd?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_bannerAd == null) return const SizedBox.shrink();
-    return Stack(
-      alignment: Alignment.topRight,
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: _bannerAd!.size.height.toDouble(),
-          child: AdWidget(ad: _bannerAd!),
-        ),
-        GestureDetector(
-          onTap: widget.onDismissed,
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.black54,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, size: 16, color: Colors.white),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
