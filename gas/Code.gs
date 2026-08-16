@@ -285,10 +285,15 @@ function toLegacyResponse(result) {
 
   var schedules = current.schedules
     .filter(function(en) {
+      // 期別は v=1 のアプリが判定できないため、常にサーバ側で絞る。
       if (season === 'vacation' && en.academicOnly) return false;
       if (season === 'academic' && en.vacationOnly) return false;
-      if (dayType === 'weekendHoliday' && en.weekdayOnly) return false;
-      if (dayType === 'weekday' && en.weekendOnly) return false;
+      // 運行日は v=1 のアプリも曜日から判定できるので、絞るのは判定が食い違う
+      // 「平日に当たる祝日」だけにする。毎日絞ると、v1.1.0 の「当日以外のダイヤ」
+      // （同じ current.schedules をクライアント側で絞り直す）が 0 件になる。
+      // isHolidayOnWeekday が真なら dayType は必ず weekendHoliday なので、
+      // 落とすのは weekdayOnly の便だけでよい。
+      if (isHolidayOnWeekday && en.weekdayOnly) return false;
       return true;
     })
     .map(stripSeasonFlags)

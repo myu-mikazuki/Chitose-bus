@@ -252,6 +252,7 @@ GitHub Actions の **iOS Build** ワークフロー（`workflow_dispatch`）か�
 
 | バージョン | 内容 |
 |-----------|------|
+| [v1.3.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.3.0) | 乗車地にするバス停を選べる機能を追加（上限5件）、祝日ダイヤの判定に対応、復路の南千歳着を修正、旧形式の応答でキャッシュが空に上書きされる不具合を修正 |
 | [v1.2.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.2.0) | 美々空港線の学休期ダイヤに対応、時刻表の有効期間表示を削除、GAS のスクリプトキャッシュを廃止 |
 | [v1.1.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.1.0) | 当日以外の時刻表を表示できる機能を追加、直17系統の運行日誤りを修正 |
 | [v1.0.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.0.0) | 正式リリース、AdMob 広告のテスト/本番切り替え対応 |
