@@ -2,145 +2,284 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/data/models/bus_schedule_model.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 
+/// 系統1 往路（千歳駅 → 空港経由 → 科技大）の 07:20 便。
+/// 現行の4停留所に加え、途中の「もりもと本店前」を含む。
+const _outbound = TripModel(
+  destination: '科技大',
+  routeLabel: '空港経由',
+  stops: [
+    StopTimeModel(id: 'chitose', time: '07:20', platform: '5番'),
+    StopTimeModel(id: 'morimoto', time: '07:23'),
+    StopTimeModel(id: 'minamiChitose', time: '07:31'),
+    StopTimeModel(id: 'kenkyuto', time: '07:44'),
+    StopTimeModel(id: 'honbuto', time: '07:45'),
+  ],
+);
+
+/// 系統1 復路（科技大 → 空港経由 → 千歳駅）の 11:36 便
+const _inbound = TripModel(
+  destination: '千歳駅',
+  routeLabel: '空港経由',
+  weekdayOnly: true,
+  stops: [
+    StopTimeModel(id: 'honbuto', time: '11:36'),
+    StopTimeModel(id: 'kenkyuto', time: '11:39'),
+    StopTimeModel(id: 'minamiChitose', time: '11:51'),
+    StopTimeModel(id: 'chitose', time: '12:02'),
+  ],
+);
+
+/// 系統2 直通（南千歳を経由しない）
+const _direct = TripModel(
+  destination: '科技大',
+  routeLabel: '直通',
+  weekdayOnly: true,
+  academicOnly: true,
+  stops: [
+    StopTimeModel(id: 'chitose', time: '07:14', platform: '3番'),
+    StopTimeModel(id: 'kenkyuto', time: '07:32'),
+    StopTimeModel(id: 'honbuto', time: '07:35'),
+  ],
+);
+
+List<BusEntry> entriesOf(List<TripModel> trips) => BusTimetableModel(
+      validFrom: '2025-04-01',
+      validTo: '2099-12-31',
+      trips: trips,
+    ).toEntity().schedules;
+
 void main() {
-  group('BusEntryModelMapper', () {
-    BusEntry makeEntry(String direction) => BusEntryModel(
-          time: '09:30',
-          direction: direction,
-          destination: 'テスト',
-        ).toEntity();
-
-    test('maps from_chitose to fromChitose', () {
-      expect(makeEntry('from_chitose').direction, BusDirection.fromChitose);
+  group('TripModel → BusEntry の展開', () {
+    test('終点を除く全ての停留所が乗車地になる', () {
+      // 終点は後に停留所が無いので乗車地にならない
+      final entries = entriesOf([_outbound]);
+      expect(entries.map((e) => e.boardingStopId), [
+        'chitose',
+        'morimoto',
+        'minamiChitose',
+        'kenkyuto',
+      ]);
+      expect(entries.map((e) => e.time), ['07:20', '07:23', '07:31', '07:44']);
     });
 
-    test('maps from_minami_chitose to fromMinamiChitose', () {
-      expect(makeEntry('from_minami_chitose').direction, BusDirection.fromMinamiChitose);
+    test('復路も同じく終点以外が乗車地になる', () {
+      final entries = entriesOf([_inbound]);
+      expect(entries.map((e) => e.boardingStopId), [
+        'honbuto',
+        'kenkyuto',
+        'minamiChitose',
+      ]);
+      expect(entries.map((e) => e.time), ['11:36', '11:39', '11:51']);
     });
 
-    test('maps from_kenkyuto_to_honbuto to fromKenkyutoToHonbuto', () {
-      expect(makeEntry('from_kenkyuto_to_honbuto').direction, BusDirection.fromKenkyutoToHonbuto);
+    test('terminus は全ての乗車地の BusEntry に載る', () {
+      // 終点は便の属性なので、どこから乗っても同じ
+      final entries = entriesOf([
+        _outbound.copyWith(terminus: 'honbuto'),
+      ]);
+      expect(entries.map((e) => e.terminusStopId),
+          everyElement('honbuto'));
     });
 
-    test('maps from_kenkyuto_to_station to fromKenkyutoToStation', () {
-      expect(makeEntry('from_kenkyuto_to_station').direction, BusDirection.fromKenkyutoToStation);
+    test('terminus が無ければ null（未デプロイの GAS・旧キャッシュ）', () {
+      final entries = entriesOf([_outbound]);
+      expect(entries.map((e) => e.terminusStopId), everyElement(isNull));
     });
 
-    test('maps from_honbuto to fromHonbuto', () {
-      expect(makeEntry('from_honbuto').direction, BusDirection.fromHonbuto);
-    });
-
-    test('unknown direction falls back to fromChitose', () {
-      expect(makeEntry('unknown_direction').direction, BusDirection.fromChitose);
-    });
-
-    test('copies other fields correctly', () {
-      const model = BusEntryModel(
-        time: '12:45',
-        direction: 'from_chitose',
-        destination: '千歳科技大',
-        arrivals: {'stop_a': '12:50'},
-      );
-      final entity = model.toEntity();
-      expect(entity.time, '12:45');
-      expect(entity.destination, '千歳科技大');
-      expect(entity.arrivals, {'stop_a': '12:50'});
-    });
-
-    test('期別フラグが entity に引き継がれる', () {
-      const model = BusEntryModel(
-        time: '08:10',
-        direction: 'from_chitose',
-        destination: '科技大',
-        weekdayOnly: true,
-        vacationOnly: true,
-      );
-      final entity = model.toEntity();
-      expect(entity.weekdayOnly, isTrue);
-      expect(entity.vacationOnly, isTrue);
-      expect(entity.academicOnly, isFalse);
-    });
-
-    test('fromJson: 期別フラグを省略した JSON は両期運行として扱う', () {
-      final model = BusEntryModel.fromJson(const {
-        'time': '07:20',
-        'direction': 'from_chitose',
-        'destination': '科技大',
-      });
-      expect(model.academicOnly, isFalse);
-      expect(model.vacationOnly, isFalse);
-    });
-
-    test('fromJson: 期別フラグを読み取れる', () {
-      final model = BusEntryModel.fromJson(const {
-        'time': '08:10',
-        'direction': 'from_chitose',
-        'destination': '科技大',
-        'academicOnly': false,
-        'vacationOnly': true,
-      });
-      expect(model.vacationOnly, isTrue);
-      expect(model.toEntity().vacationOnly, isTrue);
-    });
-  });
-
-  group('BusTimetableModelMapper', () {
-    test('converts schedule list', () {
-      const model = BusTimetableModel(
-        validFrom: '2024-01-01',
-        validTo: '2024-03-31',
-        pdfUrl: '',
-        schedules: [
-          BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '千歳科技大'),
-          BusEntryModel(time: '10:00', direction: 'from_honbuto', destination: '本部棟'),
+    test('terminus は絞り込みの影響を受けない', () {
+      // 長都行き（千歳駅を通過して長都駅東口まで続く）から、
+      // 途中のイオン千歳店前だけを選んだ状態
+      const osatsuBound = TripModel(
+        destination: '千歳駅',
+        routeLabel: '長都行き',
+        terminus: 'osatsu',
+        stops: [
+          StopTimeModel(id: 'chitose', time: '12:02'),
+          StopTimeModel(id: 'aeon', time: '12:08'),
         ],
       );
-      final entity = model.toEntity();
-      expect(entity.validFrom, '2024-01-01');
-      expect(entity.validTo, '2024-03-31');
-      expect(entity.schedules.length, 2);
-      expect(entity.schedules[0].direction, BusDirection.fromChitose);
-      expect(entity.schedules[1].direction, BusDirection.fromHonbuto);
+      final entries = entriesOf([osatsuBound]);
+
+      // 到着地の末尾はイオン千歳店前だが、終点は長都駅東口のまま
+      expect(entries.single.arrivals.keys.last, 'aeon');
+      expect(entries.single.terminusStopId, 'osatsu');
+    });
+
+    test('絞り込みで末尾に来ただけの停留所は乗車地にしない', () {
+      // terminus で終点を判定すると、ここでイオン千歳店前が乗車地になる
+      // （終点は長都駅東口なので一致しない）。だが選んだ停留所の中に降り先が
+      // 無いので、出せるのは発車時刻だけになる。
+      //
+      // 既定の4停留所でも同じことが起き、長都行きの末尾が千歳駅前になって
+      // 千歳駅タブに行き先の切り替えが生えた。設定を触っていない利用者の
+      // 見た目が変わるので採らない（#200 のレビュー）
+      const osatsuBound = TripModel(
+        destination: '千歳駅',
+        terminus: 'osatsu',
+        stops: [
+          StopTimeModel(id: 'chitose', time: '12:02'),
+          StopTimeModel(id: 'aeon', time: '12:08'),
+        ],
+      );
+
+      expect(entriesOf([osatsuBound]).map((e) => e.boardingStopId), ['chitose']);
+    });
+
+    test('停留所を1つだけ選ぶと便が残らない', () {
+      // 選択が1つだと GAS は全便を stops 1要素で返すため、降り先が無くなる。
+      // 画面側は _StopHasNoBus で受ける（見出しだけの空白にはしない）
+      const trip = TripModel(
+        destination: '科技大',
+        terminus: 'honbuto',
+        stops: [StopTimeModel(id: 'morimoto', time: '07:23')],
+      );
+
+      expect(entriesOf([trip]), isEmpty);
+    });
+
+    test('arrivals は乗車地より後の停留所を通過順に持つ', () {
+      final entries = entriesOf([_outbound]);
+      expect(entries[0].arrivals, {
+        'morimoto': '07:23',
+        'minamiChitose': '07:31',
+        'kenkyuto': '07:44',
+        'honbuto': '07:45',
+      });
+      expect(entries.last.arrivals, {'honbuto': '07:45'});
+    });
+
+    test('途中の停留所も乗車地・到着地として扱える', () {
+      // #177 の目的。もりもと本店前から乗る便が引ける
+      final entries = entriesOf([_outbound]);
+      final fromMorimoto =
+          entries.firstWhere((e) => e.boardingStopId == 'morimoto');
+      expect(fromMorimoto.time, '07:23');
+      expect(fromMorimoto.arrivals.keys, ['minamiChitose', 'kenkyuto', 'honbuto']);
+    });
+
+    test('復路の arrivals も通過順（研究棟 → 南千歳 → 千歳駅）', () {
+      final entries = entriesOf([_inbound]);
+      expect(entries[0].arrivals.keys.toList(),
+          ['kenkyuto', 'minamiChitose', 'chitose']);
+      expect(entries[1].arrivals.keys.toList(), ['minamiChitose', 'chitose']);
+    });
+
+    test('のりばは乗車地のものだけが付く', () {
+      final entries = entriesOf([_outbound]);
+      expect(entries.first.platformNumber, '5番');
+      expect(entries[1].platformNumber, isNull);
+    });
+
+    test('通らない停留所は arrivals に現れない（直通は南千歳を経由しない）', () {
+      final entries = entriesOf([_direct]);
+      expect(entries.map((e) => e.boardingStopId), [
+        'chitose',
+        'kenkyuto',
+      ]);
+      expect(entries[0].arrivals, {'kenkyuto': '07:32', 'honbuto': '07:35'});
+    });
+
+    test('のりばは乗車地が持つものだけを引き継ぐ', () {
+      final entries = entriesOf([_outbound]);
+      expect(entries[0].platformNumber, '5番');
+      expect(entries[1].platformNumber, isNull);
+      expect(entries[2].platformNumber, isNull);
+    });
+
+    test('運行日・期別のフラグが全ての展開先に引き継がれる', () {
+      final entries = entriesOf([_direct]);
+      for (final e in entries) {
+        expect(e.weekdayOnly, isTrue);
+        expect(e.academicOnly, isTrue);
+        expect(e.weekendOnly, isFalse);
+        expect(e.vacationOnly, isFalse);
+      }
+    });
+
+    test('destination と routeLabel が引き継がれる', () {
+      final entries = entriesOf([_outbound]);
+      for (final e in entries) {
+        expect(e.destination, '科技大');
+        expect(e.routeLabel, '空港経由');
+      }
+    });
+
+    test('停留所が1つだけの便は展開されない', () {
+      // 選んだ停留所を1つしか通らない便。乗っても降りる先が無い
+      final entries = entriesOf([
+        const TripModel(
+          destination: '科技大',
+          stops: [StopTimeModel(id: 'morimoto', time: '07:23')],
+        ),
+      ]);
+      expect(entries, isEmpty);
     });
   });
 
-  group('ScheduleResponseModelMapper', () {
-    const currentModel = BusTimetableModel(
-      validFrom: '2024-01-01',
-      validTo: '2024-03-31',
-      pdfUrl: '',
-      schedules: [
-        BusEntryModel(time: '09:30', direction: 'from_chitose', destination: '千歳科技大'),
-      ],
-    );
-
-    test('toEntity with upcoming=null', () {
+  group('ScheduleResponseModel', () {
+    test('stopMaster が entity に引き継がれる', () {
       const model = ScheduleResponseModel(
-        updatedAt: '2024-01-01',
-        current: currentModel,
-        upcoming: null,
+        updatedAt: '2026-08-10',
+        stopMaster: [
+          StopModel(id: 'chitose', label: '千歳駅前'),
+          StopModel(id: 'rapidus', label: 'ラピダス前', boardable: false),
+        ],
+        current: BusTimetableModel(trips: []),
       );
-      final entity = model.toEntity();
-      expect(entity.updatedAt, '2024-01-01');
-      expect(entity.upcoming, isNull);
-      expect(entity.current.schedules.length, 1);
+      final entity = model.toEntity(coveredStopIds: const []);
+      expect(entity.stopMaster.length, 2);
+      expect(entity.stopMaster.first.label, '千歳駅前');
     });
 
-    test('toEntity with non-null upcoming', () {
-      const upcomingModel = BusTimetableModel(
-        validFrom: '2024-04-01',
-        validTo: '2024-06-30',
-        pdfUrl: '',
-        schedules: [],
-      );
+    test('boardable は既定 true、false のときだけ落ちる', () {
       const model = ScheduleResponseModel(
-        updatedAt: '2024-01-01',
-        current: currentModel,
-        upcoming: upcomingModel,
+        updatedAt: '2026-08-10',
+        stopMaster: [
+          StopModel(id: 'chitose', label: '千歳駅前'),
+          StopModel(id: 'rapidus', label: 'ラピダス前', boardable: false),
+        ],
+        current: BusTimetableModel(trips: []),
       );
-      final entity = model.toEntity();
-      expect(entity.upcoming, isNotNull);
-      expect(entity.upcoming!.validFrom, '2024-04-01');
+      final stops = model.toEntity(coveredStopIds: const []).stopMaster;
+      expect(stops[0].boardable, isTrue);
+      expect(stops[1].boardable, isFalse);
+    });
+
+    test('JSON から復元できる（GAS の応答そのままの形）', () {
+      final model = ScheduleResponseModel.fromJson(const {
+        'updatedAt': '2026-08-10',
+        'stopMaster': [
+          {'id': 'chitose', 'label': '千歳駅前'},
+          {'id': 'rapidus', 'label': 'ラピダス前', 'boardable': false},
+        ],
+        'current': {
+          'validFrom': '2025-04-01',
+          'validTo': '2099-12-31',
+          'trips': [
+            {
+              'destination': '科技大',
+              'routeLabel': '空港経由',
+              'weekdayOnly': false,
+              'weekendOnly': false,
+              'academicOnly': false,
+              'vacationOnly': false,
+              'stops': [
+                {'id': 'chitose', 'time': '07:20', 'platform': '5番'},
+                {'id': 'honbuto', 'time': '07:45'},
+              ],
+            },
+          ],
+        },
+        'upcoming': null,
+      });
+
+      expect(model.stopMaster.length, 2);
+      expect(model.stopMaster[1].boardable, isFalse);
+      expect(model.current.trips.single.stops.first.platform, '5番');
+
+      final entries = model.toEntity(coveredStopIds: const []).current.schedules;
+      expect(entries.single.boardingStopId, 'chitose');
+      expect(entries.single.arrivals, {'honbuto': '07:45'});
     });
   });
 }

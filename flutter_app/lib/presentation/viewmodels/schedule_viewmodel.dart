@@ -4,6 +4,7 @@ import '../../core/constants/app_constants.dart';
 import '../../data/repositories/schedule_repository_impl.dart';
 import '../../data/sources/schedule_remote_source.dart';
 import '../../data/sources/schedule_local_source.dart';
+import 'stop_selection_viewmodel.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../../domain/repositories/schedule_repository.dart';
 import 'schedule_result.dart';
@@ -17,7 +18,11 @@ final scheduleLocalSourceProvider = Provider<ScheduleLocalSource>((ref) {
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
   final remote = ScheduleRemoteSource(endpointUrl: AppConstants.gasEndpointUrl);
   final local = ref.read(scheduleLocalSourceProvider);
-  return ScheduleRepositoryImpl(remoteSource: remote, localSource: local);
+  return ScheduleRepositoryImpl(
+    remoteSource: remote,
+    localSource: local,
+    stopSelectionRepository: ref.read(stopSelectionRepositoryProvider),
+  );
 });
 
 final scheduleViewModelProvider =
@@ -48,16 +53,31 @@ class ScheduleViewModel extends AsyncNotifier<ScheduleResult> {
   @override
   Future<ScheduleResult> build() async {
     ref.onDispose(() => _refreshTimer?.cancel());
+    _startAutoRefresh();
 
     final cached = await _repo.getCached();
-    if (cached != null) {
-      _startAutoRefresh();
-      _fetchAndUpdateSilently();
-      return ScheduleResult(data: cached, isFromCache: true);
+    if (cached == null) {
+      return ScheduleResult(data: await _repo.fetchSchedule());
     }
 
-    _startAutoRefresh();
-    return ScheduleResult(data: await _repo.fetchSchedule());
+    // 選択を変えた直後は、キャッシュが今の停留所を賄えていない。
+    //
+    // そのまま出すと、**自分で足した停留所が一瞬「取得できていません」になり**、
+    // 「キャッシュデータを表示中」バナーまで出てから正しい時刻に切り替わる。
+    // 操作した直後だけに戸惑いやすいので、この経路は取得を先に試す。
+    // オフラインなら失敗するまで待たされるが、持っている分は結局出る（#177）。
+    final selection = await ref.read(stopSelectionRepositoryProvider).load();
+    if (!selection.stopIds.every(cached.covers)) {
+      try {
+        return ScheduleResult(data: await _repo.fetchSchedule());
+      } catch (_) {
+        return ScheduleResult(data: cached, isFromCache: true);
+      }
+    }
+
+    // 起動時などキャッシュが今の選択を賄えている場合。すぐ出して裏で更新する
+    _fetchAndUpdateSilently();
+    return ScheduleResult(data: cached, isFromCache: true);
   }
 
   ScheduleRepository get _repo => ref.read(scheduleRepositoryProvider);

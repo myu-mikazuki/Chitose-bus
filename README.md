@@ -1,37 +1,71 @@
-# 千歳科技大 シャトルバス時刻表アプリ
+# Kagi-Bus — 千歳の大学へ通う人のバス時刻表アプリ
 
-千歳科学技術大学のシャトルバス時刻表を表示する Flutter アプリと、その GAS バックエンドのリポジトリです。
+千歳の大学へのバス（千歳市路線バス 美々空港線）の時刻表を表示する Flutter アプリと、その GAS バックエンドのリポジトリです。学生有志による非公式アプリで、大学および各バス事業者とは関係ありません。
 
-## ストア公開
+## ダウンロード
 
-> **現在ベータテスト中です。**  
-> 正式公開に向けて TestFlight（iOS）および Google Play 内部テスト（Android）でテストを実施しています。
+iOS・Android とも無料で公開しています。
 
-| プラットフォーム | 状態 |
-|----------------|------|
-| iOS (TestFlight) | ベータテスト中 |
-| Android (Google Play) | ベータテスト中 |
+| プラットフォーム | |
+|----------------|---|
+| iOS | [App Store](https://apps.apple.com/jp/app/kagi-bus/id6761445725) |
+| Android | [Google Play](https://play.google.com/store/apps/details?id=com.myu_mikazuki.kagibus) |
+
+紹介ページ: <https://myu-mikazuki.com/>
 
 ## 主な機能
 
 - 千歳駅・南千歳・研究棟・本部棟 各方向のバス時刻表を表示
 - 次のバスまでのカウントダウン表示
+- **学休期ダイヤの自動切り替え**（夏季・冬季・お盆）
+- **祝日ダイヤの判定**（「祝日だが平日ダイヤ」の例外日にも対応）
+- 年末年始（12/31〜1/3）の全便運休表示
+- 当日以外のダイヤ表示（平日／土日祝 × 授業期／学休期）
 - お気に入りタブ登録（起動時に自動選択）
 - バス出発前の通知
-- 来週のダイヤ表示
+- オフライン表示（取得済みの時刻表を端末に保存）
+- 講時タグ表示（1講・昼休み・放課後など）
 - バナー広告（AdMob）
 
 ## システム構成
 
 ```
-[大学Webサイト]
-      ↓ PDF自動取得
-[GAS バックエンド] ── JSON API ──→ [Flutter アプリ]
-  gas/Code.gs                        flutter_app/
+[GAS バックエンド] ── JSON API (?v=) ──→ [Flutter アプリ]
+  gas/Code.gs                             flutter_app/
 ```
 
-- **GAS バックエンド** (`gas/`): 大学Webサイトから時刻表PDFを自動取得・解析し、JSON形式で返す Google Apps Script
-- **Flutter フロントエンド** (`flutter_app/`): GAS APIを呼び出して時刻表を表示する iOS/Android アプリ
+- **GAS バックエンド** (`gas/`): 時刻表をハードコードで保持し、JSON で返す Google Apps Script。
+  外部 I/O を持たないため応答が速く、障害点も少ない
+- **Flutter フロントエンド** (`flutter_app/`): GAS API を呼び出して時刻表を表示する iOS/Android アプリ
+
+時刻表データは千歳市および大学が公開する美々空港線の時刻表をもとに手動で更新する。
+かつては大学 Web サイトから PDF を自動取得・解析していたが、現在は使っていない
+（該当コードは `gas/Code.gs` にコメントとして残置）。
+
+### スキーマバージョン（`?v=`）
+
+GAS は手動デプロイ、アプリはストア審査を挟むリリースのため反映タイミングが必ずずれ、
+更新しないユーザーの旧バージョンは永続的に残る。そこでリクエストの `?v=` で
+**アプリが持つ判定ロジックの世代**を伝え、判定できない分は GAS がサーバ側で絞ってから返す。
+
+これにより、期限のある時刻表の修正を**ストア審査を待たず全ユーザーに届けられる**。
+詳細は [`doc/spec.md`](doc/spec.md) を参照。
+
+### 乗車地の選択（`?stops=`）
+
+`?v=4` 以降は、美々空港線の全31停留所から乗車地を選べる。アプリは設定画面の
+「バス停」で選び、その選択を `?stops=` に載せて送る（既定は現行の4停留所）。
+
+> [!IMPORTANT]
+> アプリは `v=4` を送る。**GAS の本番デプロイをストア提出より先に**完了させること。
+> 順序を逆にすると、更新した利用者の応答が壊れる。
+
+```bash
+curl -sL "<GAS_ENDPOINT_URL>?v=4"                        # 全停留所
+curl -sL "<GAS_ENDPOINT_URL>?v=4&stops=chitose,morimoto" # 指定した停留所だけ
+```
+
+`?stops=` は絞り込みのみで、形式の分岐には関与しない（形式は `?v=` が決める）。
 
 ## ディレクトリ構成
 
@@ -48,9 +82,11 @@
 │   └── pubspec.yaml
 └── .github/
     └── workflows/
-        ├── test.yml      # Flutter テスト自動実行（push / PR）
-        ├── ios-build.yml # iOS IPA ビルド（手動実行）
-        └── release.yml   # リリースビルド・GitHub Release 作成（タグ push で起動）
+        ├── test.yml          # Flutter テスト + GAS 判定の検証（PR / main・develop への push）
+        ├── android-build.yml # Android release ビルド（PR / main・develop への push）
+        ├── ios-build.yml     # iOS release ビルド（PR / main・develop への push）
+        └── release.yml       # リリースビルド・TestFlight / Play 内部テスト・
+                              # GitHub Release 作成（タグ push で起動）
 ```
 
 ## セットアップ
@@ -82,6 +118,26 @@ curl -sL "<GAS_ENDPOINT_URL>" | head -c 200
 
 `doGet` はキャッシュを持たないため、再デプロイすれば次のリクエストから新しい応答になります。
 
+#### 時刻表データを変更したとき
+
+`gas/Code.gs` の `ROUTES` を変更すると、応答のスナップショット検査が落ちます。
+
+```bash
+node scripts/check_gas_response.js
+```
+
+これは**意図した変更かどうかを人に確認させるための仕組み**です。旧アプリは
+ストア更新をしない限り永久に残るため、応答が変わればリリース済みの全バージョンに
+影響します。落ちたら差分を読み、意図どおりであることを確かめてから更新してください。
+
+```bash
+node scripts/check_gas_response.js --update
+git diff scripts/fixtures/   # 変わった便が意図どおりか必ず目視する
+```
+
+> [!WARNING]
+> CI を通すためだけに `--update` を実行しないでください。検査の意味が失われます。
+
 #### GitHub Variables の設定
 
 iOS ビルド時に `--dart-define` でエンドポイント URL を渡すため、リポジトリの Variables に登録します。
@@ -96,8 +152,21 @@ iOS ビルド時に `--dart-define` でエンドポイント URL を渡すため
 
 #### 前提条件
 
-- Flutter SDK（stable チャンネル）
+- **Flutter SDK 3.41.3**（`flutter_app/pubspec.yaml` の `environment.flutter`）
 - Dart SDK（Flutter に同梱）
+
+> [!IMPORTANT]
+> Flutter は**完全一致で固定**しています。別の版だと `flutter pub get` の時点で
+> 止まります。`flutter upgrade` したあとに動かなくなったらこれが原因です。
+>
+> ```bash
+> flutter downgrade 3.41.3   # または fvm use 3.41.3
+> ```
+>
+> 固定している理由は [#198](https://github.com/myu-mikazuki/Chitose-bus/issues/198)。
+> 版を上げるときは `pubspec.yaml` の `environment.flutter` と、この節の版を
+> 一緒に直してください。CI は `pubspec.yaml` を読むので、ワークフロー側の
+> 変更は要りません。
 
 #### セットアップ手順
 
@@ -183,6 +252,7 @@ GitHub Actions の **iOS Build** ワークフロー（`workflow_dispatch`）か�
 
 | バージョン | 内容 |
 |-----------|------|
+| [v1.3.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.3.0) | 乗車地にするバス停を選べる機能を追加（上限5件）、祝日ダイヤの判定に対応、復路の南千歳着を修正、旧形式の応答でキャッシュが空に上書きされる不具合を修正 |
 | [v1.2.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.2.0) | 美々空港線の学休期ダイヤに対応、時刻表の有効期間表示を削除、GAS のスクリプトキャッシュを廃止 |
 | [v1.1.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.1.0) | 当日以外の時刻表を表示できる機能を追加、直17系統の運行日誤りを修正 |
 | [v1.0.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.0.0) | 正式リリース、AdMob 広告のテスト/本番切り替え対応 |

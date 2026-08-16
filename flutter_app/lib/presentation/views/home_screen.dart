@@ -11,6 +11,8 @@ import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/favorite_tab_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
+import '../viewmodels/stop_selection_viewmodel.dart';
+import '../../domain/entities/stop_selection.dart';
 import 'settings_screen.dart';
 import 'widgets/next_bus_display.dart';
 import 'widgets/offline_cache_banner.dart';
@@ -28,13 +30,53 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
+
+  /// [_tabController] を組んだときの停留所。**タブの構成はこれが正**で、
+  /// TabBar / TabBarView もこれを見る。選択そのものを直接描画すると、
+  /// controller の長さと食い違ったフレームが生まれて落ちる。
+  late List<String> _tabStopIds;
+
   bool _bannerDismissed = false;
   bool _favoriteApplied = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    // 選択の読み出しは非同期。解決するまでは既定の4停留所で組んでおく
+    _tabStopIds = StopSelection.initial.stopIds;
+    _tabController = TabController(length: _tabStopIds.length, vsync: this);
+  }
+
+  /// タブを [stopIds] の構成で組み直す。
+  ///
+  /// [focusStopId] を渡すとその停留所を開く（お気に入りの初回適用）。
+  /// 指定が無ければ**いま見ている停留所を追いかける**。タブ番号で覚えると、
+  /// 並べ替えや追加のたびに別の停留所へ飛んでしまう。
+  ///
+  /// 長さを変えるだけ（`_tabController.index = ...`）では足りず作り直す。
+  /// TabBarView が未生成のまま index を動かすと、初回生成時に PageView の
+  /// initialPage と TabController の内部状態がずれて SegmentedButton の高さが
+  /// 0 になる（#126）。initialIndex を持つ controller を作れば起きない。
+  ///
+  /// **build 中から呼ぶ。** この直後に組む TabBar / TabBarView が同じ build で
+  /// 新しい controller と `_tabStopIds` を読むため、setState は要らないし、
+  /// 次フレームへ遅らせると1フレームだけ両者が食い違う。
+  void _retuneTabs(List<String> stopIds, {String? focusStopId}) {
+    final viewing = _tabController.index < _tabStopIds.length
+        ? _tabStopIds[_tabController.index]
+        : null;
+    // 見ていた停留所が外されていれば先頭に戻す
+    final index = stopIds.indexOf(focusStopId ?? viewing ?? '');
+
+    final old = _tabController;
+    _tabStopIds = stopIds;
+    _tabController = TabController(
+      length: stopIds.length,
+      initialIndex: index < 0 ? 0 : index,
+      vsync: this,
+    );
+    // build 中に捨てると、まだ古い controller を参照している TabBar が落ちる
+    WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
   }
 
   @override
@@ -43,29 +85,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
-  Tab _buildTab(String label, int index, int? favoriteTabIndex) {
+  /// タブ1つ。[label] が null なら停留所名がまだ分からない（初回起動）。
+  ///
+  /// 名前の供給元は GAS の `stopMaster` だけなので、届くまで出せる名前が無い。
+  /// ID をそのまま出すと `chitose` のような英字が並ぶため、代わりに場所だけ
+  /// 取っておく（#177）。
+  ///
+  /// 場所取りも名前と同じ幅の計算に通す。別扱いにすると、名前が届いた瞬間に
+  /// 星が横並びから右端へ跳ぶ。
+  Tab _buildTab(String? label, String stopId, String? favoriteStopId) {
     return Tab(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isFavorite = favoriteTabIndex == index;
+          final isFavorite = favoriteStopId == stopId;
           final tabWidth = constraints.maxWidth;
 
-          // タブ内のラベルスタイルでテキスト幅を計測
-          final textStyle = DefaultTextStyle.of(context).style;
-          final textPainter = TextPainter(
-            text: TextSpan(text: label, style: textStyle),
-            textDirection: TextDirection.ltr,
-          )..layout();
-          final textWidth = textPainter.width;
+          // 並べ方を決めるための幅。名前はタブ内のラベルスタイルで実測する
+          // （場所取りは幅が決まっているので計測しない）
+          final double textWidth;
+          if (label == null) {
+            textWidth = _StopLabelPlaceholder.width;
+          } else {
+            final textStyle = DefaultTextStyle.of(context).style;
+            textWidth = (TextPainter(
+              text: TextSpan(text: label, style: textStyle),
+              textDirection: TextDirection.ltr,
+            )..layout())
+                .width;
+          }
 
           const starSize = 20.0;
           const gap = 4.0;
+
+          /// 名前、または届くまでの場所取り。**見た目の分岐はここだけ**。
+          /// 3つの並べ方それぞれで書き分けると、片方だけ直す事故が起きる。
+          ///
+          /// ellipsis はどの並べ方でも付けてよい。収まる経路では効かず、
+          /// 縮小経路（[Flexible] の中）でだけ働く。
+          Widget labelWidget([TextStyle? style]) => label == null
+              ? const _StopLabelPlaceholder()
+              : Text(
+                  label,
+                  style: style,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                );
 
           Widget starIcon(double size) => GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => ref
                     .read(favoriteTabProvider.notifier)
-                    .toggleFavorite(index),
+                    .toggleFavorite(stopId),
                 child: Icon(
                   isFavorite ? Icons.star : Icons.star_border,
                   size: size,
@@ -81,7 +151,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           if (stackFits) {
             return Stack(
               children: [
-                Align(alignment: Alignment.center, child: Text(label)),
+                Align(alignment: Alignment.center, child: labelWidget()),
                 Align(
                     alignment: Alignment.centerRight,
                     child: starIcon(starSize)),
@@ -96,19 +166,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(label),
+                labelWidget(),
                 const SizedBox(width: gap),
                 starIcon(starSize),
               ],
             );
           }
 
-          // 縮小表示（横並びでも収まらない場合）
+          // 縮小表示（横並びでも収まらない場合）。
+          // ここは「入らないと分かっている」経路なので、Flexible + ellipsis で
+          // 必ず幅に収める。短縮名を持たない停留所（古泉循環器内科クリニック前
+          // など）を選ぶと、11px でもタブ幅を超える（#177）
           return Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(label, style: const TextStyle(fontSize: 11)),
+              // 場所取りも Flexible の中では縮む（停留所を増やすとタブが狭まる）
+              Flexible(child: labelWidget(const TextStyle(fontSize: 11))),
               const SizedBox(width: 2),
               starIcon(14),
             ],
@@ -141,34 +215,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final scheduleAsync = ref.watch(scheduleViewModelProvider);
     final favoriteAsync = ref.watch(favoriteTabProvider);
-    final favoriteTabIndex = favoriteAsync.valueOrNull?.tabIndex;
+    final favoriteStopId = favoriteAsync.valueOrNull?.stopId;
+    final selectionAsync = ref.watch(stopSelectionProvider);
+    final selection = selectionAsync.valueOrNull ?? StopSelection.initial;
     final dayType = ref.watch(dayTypeOverrideProvider);
     final season = ref.watch(seasonOverrideProvider);
 
-    // お気に入りタブの初回適用（アプリ起動時のみ）
-    // addPostFrameCallback で index を変更する方式だと、TabBarView が未生成の状態で
-    // index が変わり、TabBarView 初回生成時に PageView の initialPage と
-    // TabController の内部状態がずれて SegmentedButton の高さが 0 になる場合がある。
-    // initialIndex を正しく設定した新しい TabController を作り直すことで回避する。
-    ref.listen(favoriteTabProvider, (prev, next) {
-      if (_favoriteApplied) return;
-      next.whenData((fav) {
-        _favoriteApplied = true;
-        if (fav.hasFavorite) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            setState(() {
-              _tabController.dispose();
-              _tabController = TabController(
-                length: 4,
-                initialIndex: fav.tabIndex!,
-                vsync: this,
-              );
-            });
-          });
-        }
-      });
-    });
+    // お気に入りタブの初回適用（アプリ起動時のみ）。
+    //
+    // 停留所の選択と favorite の両方が揃ってから適用する。ref.listen は変化時に
+    // しか発火しないため、片方が先に解決した時点で適用済みにすると、あとから
+    // もう片方が届いても再適用されない。build で両方を watch して判定する。
+    final applyFavorite =
+        !_favoriteApplied && favoriteAsync.hasValue && selectionAsync.hasValue;
+    if (applyFavorite) _favoriteApplied = true;
+
+    // 設定でバス停を足す・外す・並べ替えるとここに届く
+    if (applyFavorite || !listEquals(_tabStopIds, selection.stopIds)) {
+      _retuneTabs(
+        selection.stopIds,
+        focusStopId: applyFavorite ? favoriteStopId : null,
+      );
+    }
+    final stopIds = _tabStopIds;
 
     return Scaffold(
       backgroundColor: context.appColors.background,
@@ -222,7 +291,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     icon: const Icon(Icons.calendar_month,
                         color: AppColors.warning),
                     tooltip: '来週のダイヤ',
-                    onPressed: () => _showUpcomingSheet(context, r.data.upcoming!),
+                    onPressed: () => _showUpcomingSheet(
+                      context,
+                      r.data.upcoming!,
+                      r.data.stopMaster,
+                    ),
                   )
                 : const SizedBox.shrink(),
             orElse: () => const SizedBox.shrink(),
@@ -255,10 +328,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           labelColor: AppColors.primary,
           unselectedLabelColor: context.appColors.textDisabled,
           tabs: [
-            _buildTab('千歳駅', 0, favoriteTabIndex),
-            _buildTab('南千歳', 1, favoriteTabIndex),
-            _buildTab('研究棟', 2, favoriteTabIndex),
-            _buildTab('本部棟', 3, favoriteTabIndex),
+            for (final id in stopIds)
+              _buildTab(
+                // 応答そのものがまだ無ければ名前は分からない（初回起動）。
+                // 応答があって stopMaster に無い停留所は ID のまま出す
+                // （GAS から消えた停留所。ずっと直らないので伏せない）
+                scheduleAsync.valueOrNull?.data.stopMaster.labelOf(id),
+                id,
+                favoriteStopId,
+              ),
           ],
         ),
       ),
@@ -299,10 +377,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromChitose, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromMinamiChitose, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _KenkyutoTab(timetable: result.data.current, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
-                        _DirectionTab(timetable: result.data.current, direction: BusDirection.fromHonbuto, updatedAt: result.data.updatedAt, dayType: dayType, season: season),
+                        for (final id in stopIds)
+                          // オフラインで停留所を足すと、その停留所の時刻を
+                          // 持たないキャッシュを表示することになる。
+                          // 「便が1本も無い」と区別して伝える（#177）
+                          if (!result.data.covers(id))
+                            _StopNotFetched(
+                              key: ValueKey('notFetched_$id'),
+                              onRetry: () => ref
+                                  .read(scheduleViewModelProvider.notifier)
+                                  .refresh(),
+                            )
+                          else
+                            _StopTab(
+                              key: ValueKey(id),
+                              timetable: result.data.current,
+                              stopId: id,
+                              stopMaster: result.data.stopMaster,
+                              updatedAt: result.data.updatedAt,
+                              dayType: dayType,
+                              season: season,
+                            ),
                       ],
                     ),
                   ),
@@ -379,7 +474,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  void _showUpcomingSheet(BuildContext context, BusTimetable upcoming) {
+  /// 「来週のダイヤ」シート。
+  ///
+  /// **ここだけ4停留所のまま**。`upcoming` も `?stops=` で絞られるので、選択から
+  /// 外した停留所の節は空のまま並ぶ。
+  ///
+  /// GAS の `doGet` は `upcoming: null` を直書きしており（`getHardcodedTimetable`・
+  /// `buildStopsResponse`）、カレンダーアイコンも `upcoming != null` でしか出ない
+  /// ため、今はシート自体を開けない。実害が無いのでそのままにしてある。
+  ///
+  /// TODO(#202): `upcoming` を復活させるときに選択ベースへ直す。
+  /// 研究棟だけ行き先で2節に分かれている作りも含めて見直しになる。
+  void _showUpcomingSheet(
+    BuildContext context,
+    BusTimetable upcoming,
+    List<BusStop> stopMaster,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -420,23 +530,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const SizedBox(height: 16),
               const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromChitose),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'chitose',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromMinamiChitose),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'minamiChitose',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromKenkyutoToHonbuto),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'kenkyuto',
+                destination: BusDestination.campus,
+              ),
               const SizedBox(height: 16),
               const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromKenkyutoToStation),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'kenkyuto',
+                destination: BusDestination.station,
+              ),
               const SizedBox(height: 16),
               const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
               const SizedBox(height: 8),
-              ScheduleList(timetable: upcoming, direction: BusDirection.fromHonbuto),
+              ScheduleList(
+                stopMaster: stopMaster,
+                timetable: upcoming,
+                stopId: 'honbuto',
+                destination: BusDestination.station,
+              ),
             ],
           ),
         ),
@@ -518,59 +653,235 @@ class _SeasonSelector extends ConsumerWidget {
   }
 }
 
-class _KenkyutoTab extends StatefulWidget {
-  const _KenkyutoTab({
+/// この停留所から引ける便が1本も無いときの表示。
+///
+/// 「取得できていません」（[_StopNotFetched]）とは別物。取得はできている。
+///
+/// **バスが走っていないわけではない。** 便は「どこへ何時に着くか」の組で持つので、
+/// 選んだ停留所の中に降り先が無いと引けない。停留所を1つだけ選ぶとこうなるので、
+/// 次にどうすればよいかが分かる言い方にする。
+class _StopHasNoBus extends StatelessWidget {
+  const _StopHasNoBus();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.directions_bus_filled_outlined,
+                color: context.appColors.textDisabled),
+            const SizedBox(height: 12),
+            Text(
+              '到着地にする停留所をもう1つ選んでください。',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: context.appColors.textTertiary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 停留所名が届くまでタブに置くもの。
+class _StopLabelPlaceholder extends StatelessWidget {
+  const _StopLabelPlaceholder();
+
+  /// 既定の停留所の短縮名（`千歳駅` `南千歳` `研究棟` `本部棟`）の実測幅。
+  /// 3文字 × タブのラベル 14sp = 42px。
+  ///
+  /// **見た目を整える値ではなく、並べ方を名前と揃えるための値。** タブは
+  /// この幅で中央寄せ / 横並び / 縮小を決めるので、名前とずらすと画面幅に
+  /// よっては名前が届いた瞬間に並べ方が切り替わり、星が跳ぶ。
+  static const width = 42.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // 画面に英字を出さないためのものなので、読み上げでも ID は読ませない。
+    // ラベルが無いと「タブ 1/4」としか読まれず、待てば出ると分からない
+    return Semantics(
+      label: '読み込み中',
+      child: Container(
+        width: width,
+        height: 10,
+        decoration: BoxDecoration(
+          color: context.appColors.textDisabled,
+          borderRadius: BorderRadius.circular(5),
+        ),
+      ),
+    );
+  }
+}
+
+/// キャッシュにこの停留所の時刻が入っていないときの表示。
+///
+/// オフラインで停留所を足すと起きる。「時刻表データなし」（便が1本も無い）とは
+/// 別物なので、取得すれば出ることが分かる言い方にする。
+class _StopNotFetched extends StatelessWidget {
+  const _StopNotFetched({super.key, required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cloud_off, color: context.appColors.textDisabled),
+            const SizedBox(height: 12),
+            Text(
+              'このバス停の時刻はまだ取得できていません。\n通信できる場所で読み込んでください。',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: context.appColors.textTertiary),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: onRetry,
+              child: const Text('再試行',
+                  style: TextStyle(color: AppColors.primary)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StopTab extends StatefulWidget {
+  const _StopTab({
+    super.key,
+    required this.stopId,
+    required this.stopMaster,
     required this.timetable,
     required this.updatedAt,
     this.dayType,
     this.season,
   });
+  final String stopId;
+  final List<BusStop> stopMaster;
   final BusTimetable timetable;
   final String updatedAt;
   final DayType? dayType;
   final SeasonType? season;
 
+  /// この停留所から行ける行き先。途中の停留所は上下両方向のバスが通るため、
+  /// 複数あるときは利用者に選ばせる。データから導くのでハードコードしない。
+  List<String> get destinations {
+    final seen = <String>{};
+    for (final e in timetable.schedules) {
+      if (e.boardingStopId == stopId) seen.add(e.destination);
+    }
+    // 表示順を安定させる（科技大 → 千歳駅）
+    const order = [BusDestination.campus, BusDestination.station];
+    final out = order.where(seen.contains).toList();
+    for (final d in seen) {
+      if (!out.contains(d)) out.add(d);
+    }
+    return out;
+  }
+
+  /// [destination] へ向かうとき、この停留所から見た終点の表示名。
+  /// 「→ 本部棟」のように出す。
+  ///
+  /// 終点は便ごとの属性で、GAS が絞り込みの前に決めて返す（[BusEntry.terminusStopId]）。
+  /// **到着地の末尾から導いてはいけない** — 選んだ停留所で変わってしまう。
+  /// 古い供給元（未デプロイの GAS・#177 以前のキャッシュ）だけ末尾に頼る。
+  ///
+  /// 同じ行き先でも便によって終点が違うことはある（もりもと本店前から千歳駅方面
+  /// なら、多くは千歳駅前止まりで長都行きだけ先へ続く）。見出しは1つなので
+  /// 最初の便のものを使う。
+  String terminusLabel(String destination) {
+    for (final e in timetable.schedules) {
+      if (e.boardingStopId != stopId || e.destination != destination) continue;
+      final last = e.terminusStopId ?? e.arrivals.keys.lastOrNull;
+      if (last == null) continue;
+      return stopMaster.labelOf(last);
+    }
+    return destination;
+  }
+
   @override
-  State<_KenkyutoTab> createState() => _KenkyutoTabState();
+  State<_StopTab> createState() => _StopTabState();
 }
 
-class _KenkyutoTabState extends State<_KenkyutoTab> {
-  BusDirection _direction = BusDirection.fromKenkyutoToHonbuto;
+class _StopTabState extends State<_StopTab> {
+  String? _selected;
+
+  /// 時刻表の全便を走査するので、build のたびに数えない
+  late List<String> _destinations;
+
+  @override
+  void initState() {
+    super.initState();
+    _destinations = widget.destinations;
+  }
+
+  @override
+  void didUpdateWidget(_StopTab old) {
+    super.didUpdateWidget(old);
+    if (!identical(old.timetable, widget.timetable) ||
+        old.stopId != widget.stopId) {
+      _destinations = widget.destinations;
+    }
+  }
+
+  String get _destination =>
+      _selected ?? _destinations.firstOrNull ?? BusDestination.campus;
 
   @override
   Widget build(BuildContext context) {
+    // 行き先が1つも無いと、この下の IndexedStack はどちらも children が空になり、
+    // 見出しだけが並んで下が無言の空白になる。ScheduleList 自体が作られないので
+    // その中の「時刻表データなし」にも辿り着かない。
+    //
+    // 取得はできているので「取得できていません」でもない。**この停留所を通る
+    // 便が1本も無い**という状態で、ここでだけ言える（#177）
+    if (_destinations.isEmpty) return const _StopHasNoBus();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: SeasonNoticeBanner(),
-        ),
-        // SegmentedButton で本部棟/千歳駅を切り替え
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: SegmentedButton<BusDirection>(
-            segments: const [
-              ButtonSegment(
-                value: BusDirection.fromKenkyutoToHonbuto,
-                label: Text('→ 本部棟'),
-              ),
-              ButtonSegment(
-                value: BusDirection.fromKenkyutoToStation,
-                label: Text('→ 千歳駅'),
-              ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 現在は無効化中だが、再有効化したときにここへ出る
+              WeekendWarningBanner(),
+              SeasonNoticeBanner(),
             ],
-            selected: {_direction},
-            onSelectionChanged: (selection) =>
-                setState(() => _direction = selection.first),
-            style: SegmentedButton.styleFrom(
-              backgroundColor: context.appColors.surface,
-              foregroundColor: context.appColors.textTertiary,
-              selectedBackgroundColor: AppColors.primary,
-              selectedForegroundColor: AppColors.onPrimary,
-            ),
           ),
         ),
+        // 行き先が複数ある停留所だけ切り替えを出す。
+        // 終点や片方向しか通らない停留所では選ぶものが無い
+        if (_destinations.length > 1)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: SegmentedButton<String>(
+              segments: [
+                for (final d in _destinations)
+                  ButtonSegment(
+                    value: d,
+                    label: Text('→ ${widget.terminusLabel(d)}'),
+                  ),
+              ],
+              selected: {_destination},
+              onSelectionChanged: (selection) =>
+                  setState(() => _selected = selection.first),
+              style: SegmentedButton.styleFrom(
+                backgroundColor: context.appColors.surface,
+                foregroundColor: context.appColors.textTertiary,
+                selectedBackgroundColor: AppColors.primary,
+                selectedForegroundColor: AppColors.onPrimary,
+              ),
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Column(
@@ -588,10 +899,15 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
                 GestureDetector(
                   onVerticalDragUpdate: (_) {},
                   child: IndexedStack(
-                    index: _direction == BusDirection.fromKenkyutoToHonbuto ? 0 : 1,
+                    index: _destinations.indexOf(_destination).clamp(0, 99),
                     children: [
-                      NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToHonbuto),
-                      NextBusDisplay(timetable: widget.timetable, direction: BusDirection.fromKenkyutoToStation),
+                      for (final d in _destinations)
+                        NextBusDisplay(
+                          timetable: widget.timetable,
+                          stopId: widget.stopId,
+                          stopMaster: widget.stopMaster,
+                          destination: d,
+                        ),
                     ],
                   ),
                 ),
@@ -613,24 +929,19 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
           child: GestureDetector(
             onVerticalDragUpdate: (_) {},
             child: IndexedStack(
-              index: _direction == BusDirection.fromKenkyutoToHonbuto ? 0 : 1,
+              index: _destinations.indexOf(_destination).clamp(0, 99),
               children: [
-                ScheduleList(
-                  key: PageStorageKey(
-                      'kenkyuto_honbuto_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-                  timetable: widget.timetable,
-                  direction: BusDirection.fromKenkyutoToHonbuto,
-                  dayType: widget.dayType,
-                  season: widget.season,
-                ),
-                ScheduleList(
-                  key: PageStorageKey(
-                      'kenkyuto_chitose_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-                  timetable: widget.timetable,
-                  direction: BusDirection.fromKenkyutoToStation,
-                  dayType: widget.dayType,
-                  season: widget.season,
-                ),
+                for (final d in _destinations)
+                  ScheduleList(
+                    key: ValueKey(
+                        '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
+                    timetable: widget.timetable,
+                    stopId: widget.stopId,
+                    stopMaster: widget.stopMaster,
+                    destination: d,
+                    dayType: widget.dayType,
+                    season: widget.season,
+                  ),
               ],
             ),
           ),
@@ -647,103 +958,6 @@ class _KenkyutoTabState extends State<_KenkyutoTab> {
   }
 }
 
-class _DirectionTab extends StatelessWidget {
-  const _DirectionTab({
-    required this.timetable,
-    required this.direction,
-    required this.updatedAt,
-    this.dayType,
-    this.season,
-  });
-
-  final BusTimetable timetable;
-  final BusDirection direction;
-  final String updatedAt;
-  final DayType? dayType;
-  final SeasonType? season;
-
-  @override
-  Widget build(BuildContext context) {
-    // Column + Expanded 構成により:
-    // - NEXT BUS セクションを固定ヘッダとして常時表示
-    // - ScheduleList に有界な高さを与えて独立スクロール可能にする
-    // - Scrollable.ensureVisible が ListView 自身をスクロール（親は不変）
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const WeekendWarningBanner(),
-              const SeasonNoticeBanner(),
-              const SizedBox(height: 8),
-              // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
-              if (dayType == null) ...[
-                Text(
-                  'NEXT BUS',
-                  style: TextStyle(
-                    color: context.appColors.textTertiary,
-                    fontSize: 12,
-                    letterSpacing: 3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-                // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
-                // これにより TabBarView（PageView）への伝播を防ぐ。
-                GestureDetector(
-                  onVerticalDragUpdate: (_) {},
-                  child: NextBusDisplay(
-                    timetable: timetable,
-                    direction: direction,
-                    showPlatform: direction == BusDirection.fromChitose,
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-              Text(
-                dayType == null ? 'TODAY\'S SCHEDULE' : 'SCHEDULE',
-                style: TextStyle(
-                  color: context.appColors.textTertiary,
-                  fontSize: 12,
-                  letterSpacing: 3,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-        // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-        // ジェスチャーアリーナに参加し、スクロール不可時の縦スワイプを消費する。
-        // これにより TabBarView（PageView）への伝播を防ぐ。
-        Expanded(
-          child: GestureDetector(
-            onVerticalDragUpdate: (_) {},
-            // dayType をキーに含めて表示モード切替時に State を再生成し、
-            // 当日表示に戻ったとき NEXT への自動スクロールを再実行させる。
-            child: ScheduleList(
-              key: ValueKey(
-                  '${direction.name}_${dayType?.name ?? 'today'}_${season?.name ?? ''}'),
-              timetable: timetable,
-              direction: direction,
-              dayType: dayType,
-              season: season,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Text(
-            '更新: $updatedAt',
-            style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _BannerAdWidget extends StatefulWidget {
   const _BannerAdWidget({required this.onDismissed});

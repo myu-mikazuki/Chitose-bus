@@ -12,13 +12,24 @@ class ScheduleList extends ConsumerStatefulWidget {
   const ScheduleList({
     super.key,
     required this.timetable,
-    required this.direction,
+    required this.stopId,
+    required this.stopMaster,
+    this.destination,
     this.dayType,
     this.season,
   });
 
   final BusTimetable timetable;
-  final BusDirection direction;
+
+  /// 停留所の表示名の供給元（GAS の stopMaster）。
+  /// アプリ側に対応表を持つと、停留所が増えるたびにリリースが要る（#177）
+  final List<BusStop> stopMaster;
+
+  /// 乗車地
+  final String stopId;
+
+  /// 行き先（科技大 / 千歳駅）。指定しなければ絞らない
+  final String? destination;
 
   /// 非 null の場合、当日ではなく指定ダイヤ種別（平日 / 土日祝）の全便を表示する。
   /// このとき現在時刻に依存する表示（NEXT ハイライト・過去便のグレーアウト・
@@ -36,18 +47,18 @@ class ScheduleList extends ConsumerStatefulWidget {
 class _ScheduleListState extends ConsumerState<ScheduleList> {
   final GlobalKey _nextBusKey = GlobalKey();
   // LayoutBuilder のコールバックで設定される。
-  // true = 有界コンテキスト（_DirectionTab の Expanded 配下）→ 独立スクロール
-  // false = 非有界コンテキスト（_KenkyutoTab・来週ダイヤ BottomSheet）→ スクロールなし
+  // true = 有界コンテキスト（_StopTab の Expanded 配下）→ 独立スクロール
+  // false = 非有界コンテキスト（来週ダイヤ BottomSheet）→ スクロールなし
   bool _isBounded = false;
 
   @override
   void initState() {
     super.initState();
     // スクロールは初期表示時のみ実行（didUpdateWidgetは対象外）。
-    // - direction は各タブで固定のため変化しない
+    // - stopId / destination は各タブで固定のため変化しない
     // - timetable 更新時の再スクロールは要件外（ユーザー操作の上書きを避けるため）
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 非有界コンテキスト（KenkyutoTab・来週ダイヤ等）はスクロールしない。
+      // 非有界コンテキスト（来週ダイヤ BottomSheet 等）はスクロールしない。
       // nextBus が null の場合は _nextBusKey が付与されず currentContext が null となり
       // スクロールは発生しない（意図通り）。
       if (!_isBounded) return;
@@ -71,15 +82,16 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
     final dayType = widget.dayType;
     final buses = dayType == null
-        ? widget.timetable.todayBuses(widget.direction, now: now)
+        ? widget.timetable.todayBuses(widget.stopId, destination: widget.destination, now: now)
         : widget.timetable.busesFor(
-            widget.direction,
+            widget.stopId,
             dayType,
             widget.season ?? SeasonType.fromDate(now),
+            destination: widget.destination,
           );
     // 当日以外の表示では NEXT の概念がないため null とする
     final nextBus = dayType == null
-        ? widget.timetable.nextBus(widget.direction, now: now)
+        ? widget.timetable.nextBus(widget.stopId, destination: widget.destination, now: now)
         : null;
 
     if (buses.isEmpty) {
@@ -100,8 +112,8 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // maxHeight が有限 = Expanded 等で有界な高さが与えられている（_DirectionTab）。
-        // maxHeight が無限大 = SingleChildScrollView 配下（_KenkyutoTab・BottomSheet 等）。
+        // maxHeight が有限 = Expanded 等で有界な高さが与えられている（_StopTab）。
+        // maxHeight が無限大 = SingleChildScrollView 配下（来週ダイヤ BottomSheet 等）。
         _isBounded = constraints.maxHeight.isFinite;
 
         final rows = List.generate(buses.length, (index) {
@@ -112,6 +124,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
           return _ScheduleRow(
             key: isNext ? _nextBusKey : null,
             bus: bus,
+            stopMaster: widget.stopMaster,
             isPast: isPast,
             isNext: isNext,
             showBell: dayType == null,
@@ -146,12 +159,14 @@ class _ScheduleRow extends ConsumerStatefulWidget {
   const _ScheduleRow({
     super.key,
     required this.bus,
+    required this.stopMaster,
     required this.isPast,
     required this.isNext,
     this.showBell = true,
   });
 
   final BusEntry bus;
+  final List<BusStop> stopMaster;
   final bool isPast;
   final bool isNext;
 
@@ -165,33 +180,6 @@ class _ScheduleRow extends ConsumerStatefulWidget {
 
 class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   bool _expanded = false;
-
-  static const _stopLabels = {
-    'kenkyuto': '研究棟',
-    'honbuto': '本部棟',
-    'minamiChitose': '南千歳',
-    'chitose': '千歳駅',
-  };
-
-  List<String> _getArrivalOrder(BusEntry entry) {
-    final isRoute2 = entry.routeLabel == '直通';
-    switch (entry.direction) {
-      case BusDirection.fromChitose:
-        return isRoute2
-            ? ['kenkyuto', 'honbuto']
-            : ['minamiChitose', 'kenkyuto', 'honbuto'];
-      case BusDirection.fromMinamiChitose:
-        return ['kenkyuto', 'honbuto'];
-      case BusDirection.fromKenkyutoToHonbuto:
-        return ['honbuto'];
-      case BusDirection.fromKenkyutoToStation:
-        return isRoute2 ? ['chitose'] : ['minamiChitose', 'chitose'];
-      case BusDirection.fromHonbuto:
-        return isRoute2
-            ? ['kenkyuto', 'chitose']
-            : ['kenkyuto', 'minamiChitose', 'chitose'];
-    }
-  }
 
   List<Widget> _buildLectureTagWidgets() {
     final showTags =
@@ -260,16 +248,14 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
 
   List<Widget> _buildArrivalRows() {
     final colors = context.appColors;
-    final order = _getArrivalOrder(widget.bus);
-    return order
-        .where((key) => widget.bus.arrivals.containsKey(key))
-        .map((key) => Padding(
+    final order = widget.bus.arrivals.keys.toList();
+    return order.map((key) => Padding(
               padding: const EdgeInsets.only(top: 4, left: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_stopLabels[key]} 着',
+                    '${widget.stopMaster.labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 12,

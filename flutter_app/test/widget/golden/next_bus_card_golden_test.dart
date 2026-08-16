@@ -8,15 +8,20 @@ import 'package:kagi_bus/presentation/views/widgets/next_bus_display.dart';
 
 import '../../helpers/test_theme.dart';
 
-// 次のバスあり：常に未来の時刻（23:59）を使う
+// 次のバスあり：常に未来の時刻（23:59）を使う。
+//
+// terminusStopId を入れておくこと。NEXT BUS の行き先は終点を出すので、
+// 省くと destination（科技大）へのフォールバックが写り、実機（本部棟）と
+// 違う画像を固定してしまう（#200 のレビュー）
 final _timetableWithNextBus = BusTimetable(
   validFrom: '2024-01-01',
   validTo: '2024-12-31',
   schedules: [
     BusEntry(
       time: '23:59',
-      direction: BusDirection.fromChitose,
-      destination: '千歳科技大',
+      boardingStopId: 'chitose',
+      destination: '科技大',
+      terminusStopId: 'honbuto',
       arrivals: {'kenkyuto': '00:10', 'honbuto': '00:15'},
     ),
   ],
@@ -57,8 +62,9 @@ void main() {
         ],
         child: _buildTestApp(
           child: NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: _timetableWithNextBus,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
           ),
         ),
       ),
@@ -84,8 +90,9 @@ void main() {
         ],
         child: _buildTestApp(
           child: NextBusDisplay(
+          stopMaster: kTestStopMaster,
             timetable: _timetableNoMoreBus,
-            direction: BusDirection.fromChitose,
+            stopId: 'chitose',
           ),
         ),
       ),

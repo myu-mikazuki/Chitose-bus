@@ -10,8 +10,8 @@ void main() {
       test('returns DateTime with correct date and parsed time', () {
         const entry = BusEntry(
           time: '09:30',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
         );
         final result = entry.toDateTimeToday(now: fixedNow);
 
@@ -27,8 +27,8 @@ void main() {
       test('weekdayOnly=true: 平日ダイヤでは運行、土日祝ダイヤでは運休', () {
         const entry = BusEntry(
           time: '09:30',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
           weekdayOnly: true,
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isTrue);
@@ -38,8 +38,8 @@ void main() {
       test('weekendOnly=true: 土日祝ダイヤでは運行、平日ダイヤでは運休', () {
         const entry = BusEntry(
           time: '09:30',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
           weekendOnly: true,
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isFalse);
@@ -49,8 +49,8 @@ void main() {
       test('フラグなし: どちらのダイヤでも運行', () {
         const entry = BusEntry(
           time: '09:30',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
         );
         expect(entry.runsOn(DayType.weekday, SeasonType.academic), isTrue);
         expect(entry.runsOn(DayType.weekendHoliday, SeasonType.academic), isTrue);
@@ -61,8 +61,8 @@ void main() {
       test('weekdayOnly=true: 土曜日は運休、月曜日は運行', () {
         const entry = BusEntry(
           time: '09:30',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
           weekdayOnly: true,
         );
         final saturday = DateTime(2024, 6, 15); // 土曜日
@@ -74,8 +74,8 @@ void main() {
       test('weekendOnly=true: 月曜日は運休、日曜日は運行', () {
         const entry = BusEntry(
           time: '09:30',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
           weekendOnly: true,
         );
         final sunday = DateTime(2024, 6, 16); // 日曜日
@@ -89,8 +89,8 @@ void main() {
       test('returns positive value for future time', () {
         const entry = BusEntry(
           time: '13:00',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
         );
         // fixedNow = 12:00, entry = 13:00 → +60 minutes
         expect(entry.minutesFromNow(now: fixedNow), equals(60));
@@ -99,8 +99,8 @@ void main() {
       test('returns negative value for past time', () {
         const entry = BusEntry(
           time: '11:00',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
         );
         // fixedNow = 12:00, entry = 11:00 → -60 minutes
         expect(entry.minutesFromNow(now: fixedNow), equals(-60));
@@ -109,8 +109,8 @@ void main() {
       test('returns 0 for exact current time (boundary)', () {
         const entry = BusEntry(
           time: '12:00',
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大',
+          boardingStopId: 'chitose',
+          destination: '科技大',
         );
         // fixedNow = 12:00:00, entry = 12:00 → 0 seconds diff → 0 minutes
         expect(entry.minutesFromNow(now: fixedNow), equals(0));

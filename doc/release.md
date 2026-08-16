@@ -5,8 +5,16 @@
 `v*` タグを push すると `.github/workflows/release.yml` が起動し、以下が自動実行される。
 
 1. iOS の署名付き IPA をビルドし、**TestFlight にアップロード**
-2. Android の APK / AAB をビルド
+2. Android の APK / AAB をビルドし、**Google Play の内部テストにアップロード**
 3. **GitHub Release を作成**し、成果物を添付
+
+### ストアの「新機能」
+
+Google Play の「新機能」は **`distribution/whatsnew/whatsnew-<言語>`** の内容がそのまま使われる（例: `whatsnew-ja-JP`）。リリースブランチの作業で更新する。
+
+**Google Play の上限は 500 文字。**
+
+iOS の「このバージョンの新機能」は App Store Connect で手入力する（自動化していない）。
 
 ### リリースノート
 
@@ -21,10 +29,11 @@ PR の一覧）のみで公開される。その場合はワークフローに w
 ### 手順
 
 ```bash
-# develop → release/vX.Y.Z を作成し、バージョンバンプとリリースノートを用意
+# develop → release/vX.Y.Z を作成し、以下を用意する
 #   - flutter_app/pubspec.yaml の version
 #   - README.md のバージョン履歴
-#   - doc/release-notes/vX.Y.Z.md
+#   - doc/release-notes/vX.Y.Z.md（GitHub Release の本文）
+#   - distribution/whatsnew/whatsnew-ja-JP（Google Play の「新機能」）
 # → main へマージコミットで PR・マージした後
 git checkout main && git pull
 git tag -a vX.Y.Z -m "vX.Y.Z"
@@ -33,10 +42,14 @@ git push origin vX.Y.Z
 
 ### 手動でストアに提出する部分
 
-TestFlight までは自動だが、**App Store / Google Play への提出は手動**。
+配布経路まで自動だが、**製品版への公開は手動**。
 
 - iOS: App Store Connect で TestFlight のビルドを選択して審査提出
-- Android: Play Console に `kagi_bus-<タグ>-android.aab` をアップロード
+- Android: **内部テストまで自動**。Play Console から製品版へ手動で昇格
+
+Android を `track: internal` に留めているのは、誤って本番公開されるのを防ぐため。運用が安定したら `release.yml` の `track` を上げるか検討する。
+
+`PLAY_SERVICE_ACCOUNT_JSON` が未設定の場合、アップロードはスキップされ warning が出る（ビルド自体は成功する）。
 
 ---
 

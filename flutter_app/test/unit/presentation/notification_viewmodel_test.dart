@@ -66,7 +66,7 @@ final _fixedNow = DateTime(2026, 1, 15, 12, 0, 0);
 // ---- テスト用の BusTimetable ヘルパー ----
 
 /// 指定した direction で未来時刻のバスを含む BusTimetable を生成する
-BusTimetable futureTimetable(BusDirection direction) {
+BusTimetable futureTimetable(String stopId) {
   final future1 = _fixedNow.add(const Duration(hours: 1));
   final future2 = _fixedNow.add(const Duration(hours: 2));
   final future3 = _fixedNow.add(const Duration(hours: 3));
@@ -78,16 +78,16 @@ BusTimetable futureTimetable(BusDirection direction) {
     validFrom: '2026-01-01',
     validTo: '2026-12-31',
     schedules: [
-      BusEntry(time: fmt(future1), direction: direction, destination: '千歳科技大'),
-      BusEntry(time: fmt(future2), direction: direction, destination: '千歳科技大'),
-      BusEntry(time: fmt(future3), direction: direction, destination: '千歳科技大'),
-      BusEntry(time: fmt(future4), direction: direction, destination: '千歳科技大'),
+      BusEntry(time: fmt(future1), boardingStopId: stopId, destination: '科技大'),
+      BusEntry(time: fmt(future2), boardingStopId: stopId, destination: '科技大'),
+      BusEntry(time: fmt(future3), boardingStopId: stopId, destination: '科技大'),
+      BusEntry(time: fmt(future4), boardingStopId: stopId, destination: '科技大'),
     ],
   );
 }
 
 /// 過去時刻のみのバスを含む BusTimetable を生成する
-BusTimetable pastTimetable(BusDirection direction) {
+BusTimetable pastTimetable(String stopId) {
   final past1 = _fixedNow.subtract(const Duration(hours: 2));
   final past2 = _fixedNow.subtract(const Duration(hours: 1));
   String fmt(DateTime dt) =>
@@ -97,8 +97,8 @@ BusTimetable pastTimetable(BusDirection direction) {
     validFrom: '2026-01-01',
     validTo: '2026-12-31',
     schedules: [
-      BusEntry(time: fmt(past1), direction: direction, destination: '千歳科技大'),
-      BusEntry(time: fmt(past2), direction: direction, destination: '千歳科技大'),
+      BusEntry(time: fmt(past1), boardingStopId: stopId, destination: '科技大'),
+      BusEntry(time: fmt(past2), boardingStopId: stopId, destination: '科技大'),
     ],
   );
 }
@@ -108,7 +108,7 @@ ProviderContainer makeContainer({
   required FakeNotificationService service,
   NotificationSettings? initialSettings,
   BusTimetable? timetable,
-  BusDirection direction = BusDirection.fromChitose,
+  String stopId = 'chitose',
 }) {
   final repo = FakeNotificationSettingsRepository(initialSettings);
 
@@ -126,7 +126,7 @@ ProviderContainer makeContainer({
             ScheduleResult(
               data: ScheduleResponse(
                 updatedAt: '2026-01-01',
-                current: futureTimetable(direction),
+                current: futureTimetable(stopId),
               ),
             ),
           ),
@@ -170,11 +170,11 @@ BusTimetable mixedDirectionTimetable() {
     schedules: [
       BusEntry(
           time: fmt(future1),
-          direction: BusDirection.fromChitose,
-          destination: '千歳科技大'),
+          boardingStopId: 'chitose',
+          destination: '科技大'),
       BusEntry(
           time: fmt(future2),
-          direction: BusDirection.fromHonbuto,
+          boardingStopId: 'honbuto',
           destination: '千歳駅'),
     ],
   );
@@ -235,7 +235,7 @@ void main() {
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         final futureBus = BusEntry(
           time: fmt(futureTime),
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '千歳駅',
         );
         final key = NotificationSettingsNotifier.busKey(futureBus);
@@ -307,7 +307,7 @@ void main() {
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         final futureBus = BusEntry(
           time: fmt(futureTime),
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '千歳駅',
         );
         final key = NotificationSettingsNotifier.busKey(futureBus);
@@ -402,7 +402,7 @@ void main() {
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         return BusEntry(
           time: fmt(future),
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '千歳駅',
         );
       }
@@ -464,7 +464,7 @@ void main() {
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         final pastBus = BusEntry(
           time: fmt(past),
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '千歳駅',
         );
         final container = makeContainer(
@@ -514,7 +514,7 @@ void main() {
             '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
         final futureBus = BusEntry(
           time: fmt(futureTime),
-          direction: BusDirection.fromChitose,
+          boardingStopId: 'chitose',
           destination: '千歳駅',
         );
         final key = NotificationSettingsNotifier.busKey(futureBus);
@@ -542,7 +542,7 @@ void main() {
 
         final trackedCalls = service.scheduledCalls
             .where((c) => c.bus.time == futureBus.time &&
-                          c.bus.direction == futureBus.direction)
+                          c.bus.boardingStopId == futureBus.boardingStopId)
             .toList();
         expect(trackedCalls, isNotEmpty,
             reason: '選択済み便が再スケジュールされるべき');

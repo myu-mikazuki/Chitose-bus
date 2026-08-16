@@ -45,54 +45,54 @@ void main() {
 
   group('FavoriteTabNotifier', () {
     test('build: リポジトリから読み込んだ値を返す', () async {
-      final container = makeContainer(const FavoriteTab(tabIndex: 1));
+      final container = makeContainer(const FavoriteTab(stopId: 'minamiChitose'));
       addTearDown(container.dispose);
 
       final result = await container.read(favoriteTabProvider.future);
-      expect(result.tabIndex, equals(1));
+      expect(result.stopId, equals('minamiChitose'));
     });
 
-    test('build: 未設定のとき tabIndex=null を返す', () async {
+    test('build: 未設定のとき stopId=null を返す', () async {
       final container = makeContainer();
       addTearDown(container.dispose);
 
       final result = await container.read(favoriteTabProvider.future);
-      expect(result.tabIndex, isNull);
+      expect(result.stopId, isNull);
     });
 
-    test('toggleFavorite(2): 未設定 → tabIndex=2 が保存・返される', () async {
+    test('toggleFavorite(kenkyuto): 未設定 → stopId=kenkyuto が保存・返される', () async {
       final container = makeContainer();
       addTearDown(container.dispose);
       await container.read(favoriteTabProvider.future);
 
-      await container.read(favoriteTabProvider.notifier).toggleFavorite(2);
+      await container.read(favoriteTabProvider.notifier).toggleFavorite('kenkyuto');
 
       final result = container.read(favoriteTabProvider).value!;
-      expect(result.tabIndex, equals(2));
+      expect(result.stopId, equals('kenkyuto'));
     });
 
-    test('toggleFavorite(2) × 2回: 設定 → 解除（null）', () async {
+    test('toggleFavorite(kenkyuto) × 2回: 設定 → 解除（null）', () async {
       final container = makeContainer();
       addTearDown(container.dispose);
       await container.read(favoriteTabProvider.future);
 
-      await container.read(favoriteTabProvider.notifier).toggleFavorite(2);
-      await container.read(favoriteTabProvider.notifier).toggleFavorite(2);
+      await container.read(favoriteTabProvider.notifier).toggleFavorite('kenkyuto');
+      await container.read(favoriteTabProvider.notifier).toggleFavorite('kenkyuto');
 
       final result = container.read(favoriteTabProvider).value!;
-      expect(result.tabIndex, isNull);
+      expect(result.stopId, isNull);
     });
 
-    test('toggleFavorite(1) → toggleFavorite(2): 別タブで上書き登録', () async {
+    test('toggleFavorite(minamiChitose) → toggleFavorite(kenkyuto): 別タブで上書き登録', () async {
       final container = makeContainer();
       addTearDown(container.dispose);
       await container.read(favoriteTabProvider.future);
 
-      await container.read(favoriteTabProvider.notifier).toggleFavorite(1);
-      await container.read(favoriteTabProvider.notifier).toggleFavorite(2);
+      await container.read(favoriteTabProvider.notifier).toggleFavorite('minamiChitose');
+      await container.read(favoriteTabProvider.notifier).toggleFavorite('kenkyuto');
 
       final result = container.read(favoriteTabProvider).value!;
-      expect(result.tabIndex, equals(2));
+      expect(result.stopId, equals('kenkyuto'));
     });
 
     test('state が AsyncLoading のとき toggleFavorite は何もしない', () async {
@@ -105,7 +105,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await container.read(favoriteTabProvider.notifier).toggleFavorite(3);
+      await container.read(favoriteTabProvider.notifier).toggleFavorite('honbuto');
 
       final state = container.read(favoriteTabProvider);
       expect(state, isA<AsyncLoading>());

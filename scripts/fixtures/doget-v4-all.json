@@ -1,0 +1,3886 @@
+{
+ "updatedAt": "2026-06-17",
+ "stopMaster": [
+  {
+   "id": "osatsu",
+   "label": "長都駅東口"
+  },
+  {
+   "id": "arcs",
+   "label": "アークス前"
+  },
+  {
+   "id": "isamai7",
+   "label": "勇舞7丁目"
+  },
+  {
+   "id": "isamaiPark",
+   "label": "勇舞公園前"
+  },
+  {
+   "id": "isamaiJhs",
+   "label": "勇舞中学校前"
+  },
+  {
+   "id": "isamai2",
+   "label": "勇舞2丁目"
+  },
+  {
+   "id": "alice",
+   "label": "アリスこども園前"
+  },
+  {
+   "id": "hokuyoHs",
+   "label": "北陽高校前"
+  },
+  {
+   "id": "hokuyo3",
+   "label": "北陽3丁目"
+  },
+  {
+   "id": "hokko6",
+   "label": "北光6丁目"
+  },
+  {
+   "id": "fuji4",
+   "label": "富士4丁目"
+  },
+  {
+   "id": "shinano4",
+   "label": "信濃4丁目"
+  },
+  {
+   "id": "yao",
+   "label": "矢尾外科胃腸科前"
+  },
+  {
+   "id": "hoyukai",
+   "label": "千歳豊友会病院前"
+  },
+  {
+   "id": "hokuei2",
+   "label": "北栄2丁目"
+  },
+  {
+   "id": "aeon",
+   "label": "イオン千歳店前"
+  },
+  {
+   "id": "chitose",
+   "label": "千歳駅前",
+   "shortLabel": "千歳駅"
+  },
+  {
+   "id": "morimoto",
+   "label": "もりもと本店前"
+  },
+  {
+   "id": "koizumi",
+   "label": "古泉循環器内科クリニック前"
+  },
+  {
+   "id": "shiyakusho",
+   "label": "市役所前"
+  },
+  {
+   "id": "asahicho4",
+   "label": "朝日町4丁目"
+  },
+  {
+   "id": "asahicho7",
+   "label": "朝日町7丁目"
+  },
+  {
+   "id": "arcadia",
+   "label": "オフィス・アルカディア入口"
+  },
+  {
+   "id": "minamiChitose",
+   "label": "南千歳駅",
+   "shortLabel": "南千歳"
+  },
+  {
+   "id": "airCargo",
+   "label": "エアカーゴ前"
+  },
+  {
+   "id": "domestic28",
+   "label": "空港国内線28番"
+  },
+  {
+   "id": "domestic1",
+   "label": "空港国内線1番"
+  },
+  {
+   "id": "international85",
+   "label": "空港国際線85番"
+  },
+  {
+   "id": "kenkyuto",
+   "label": "科技大研究棟",
+   "shortLabel": "研究棟"
+  },
+  {
+   "id": "honbuto",
+   "label": "科技大本部棟",
+   "shortLabel": "本部棟"
+  },
+  {
+   "id": "rapidus",
+   "label": "ラピダス前",
+   "boardable": false
+  }
+ ],
+ "current": {
+  "validFrom": "2025-04-01",
+  "validTo": "2099-12-31",
+  "trips": [
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "07:20",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "07:23"
+     },
+     {
+      "id": "koizumi",
+      "time": "07:24"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "07:25"
+     },
+     {
+      "id": "asahicho4",
+      "time": "07:26"
+     },
+     {
+      "id": "asahicho7",
+      "time": "07:27"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "07:31"
+     },
+     {
+      "id": "airCargo",
+      "time": "07:32"
+     },
+     {
+      "id": "domestic28",
+      "time": "07:33"
+     },
+     {
+      "id": "domestic1",
+      "time": "07:34"
+     },
+     {
+      "id": "international85",
+      "time": "07:37"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "07:44"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:45"
+     },
+     {
+      "id": "rapidus",
+      "time": "07:48"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:18",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "08:21"
+     },
+     {
+      "id": "koizumi",
+      "time": "08:22"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "08:23"
+     },
+     {
+      "id": "asahicho4",
+      "time": "08:24"
+     },
+     {
+      "id": "asahicho7",
+      "time": "08:25"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "08:29"
+     },
+     {
+      "id": "airCargo",
+      "time": "08:30"
+     },
+     {
+      "id": "domestic28",
+      "time": "08:31"
+     },
+     {
+      "id": "domestic1",
+      "time": "08:32"
+     },
+     {
+      "id": "international85",
+      "time": "08:35"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:42"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:43"
+     },
+     {
+      "id": "rapidus",
+      "time": "08:46"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:10",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "09:13"
+     },
+     {
+      "id": "koizumi",
+      "time": "09:14"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "09:15"
+     },
+     {
+      "id": "asahicho4",
+      "time": "09:16"
+     },
+     {
+      "id": "asahicho7",
+      "time": "09:17"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "09:21"
+     },
+     {
+      "id": "airCargo",
+      "time": "09:22"
+     },
+     {
+      "id": "domestic28",
+      "time": "09:23"
+     },
+     {
+      "id": "domestic1",
+      "time": "09:24"
+     },
+     {
+      "id": "international85",
+      "time": "09:27"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:34"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:35"
+     },
+     {
+      "id": "rapidus",
+      "time": "09:38"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "10:30",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "10:33"
+     },
+     {
+      "id": "koizumi",
+      "time": "10:34"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "10:35"
+     },
+     {
+      "id": "asahicho4",
+      "time": "10:36"
+     },
+     {
+      "id": "asahicho7",
+      "time": "10:37"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "10:41"
+     },
+     {
+      "id": "airCargo",
+      "time": "10:42"
+     },
+     {
+      "id": "domestic28",
+      "time": "10:43"
+     },
+     {
+      "id": "domestic1",
+      "time": "10:44"
+     },
+     {
+      "id": "international85",
+      "time": "10:47"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:54"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:55"
+     },
+     {
+      "id": "rapidus",
+      "time": "10:58"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "11:00",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "11:03"
+     },
+     {
+      "id": "koizumi",
+      "time": "11:04"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "11:05"
+     },
+     {
+      "id": "asahicho4",
+      "time": "11:06"
+     },
+     {
+      "id": "asahicho7",
+      "time": "11:07"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "11:11"
+     },
+     {
+      "id": "airCargo",
+      "time": "11:12"
+     },
+     {
+      "id": "domestic28",
+      "time": "11:13"
+     },
+     {
+      "id": "domestic1",
+      "time": "11:14"
+     },
+     {
+      "id": "international85",
+      "time": "11:17"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "11:24"
+     },
+     {
+      "id": "honbuto",
+      "time": "11:25"
+     },
+     {
+      "id": "rapidus",
+      "time": "11:28"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "12:10",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "12:13"
+     },
+     {
+      "id": "koizumi",
+      "time": "12:14"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "12:15"
+     },
+     {
+      "id": "asahicho4",
+      "time": "12:16"
+     },
+     {
+      "id": "asahicho7",
+      "time": "12:17"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "12:21"
+     },
+     {
+      "id": "airCargo",
+      "time": "12:22"
+     },
+     {
+      "id": "domestic28",
+      "time": "12:23"
+     },
+     {
+      "id": "domestic1",
+      "time": "12:24"
+     },
+     {
+      "id": "international85",
+      "time": "12:27"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "12:34"
+     },
+     {
+      "id": "honbuto",
+      "time": "12:35"
+     },
+     {
+      "id": "rapidus",
+      "time": "12:38"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "13:20",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "13:23"
+     },
+     {
+      "id": "koizumi",
+      "time": "13:24"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "13:25"
+     },
+     {
+      "id": "asahicho4",
+      "time": "13:26"
+     },
+     {
+      "id": "asahicho7",
+      "time": "13:27"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "13:31"
+     },
+     {
+      "id": "airCargo",
+      "time": "13:32"
+     },
+     {
+      "id": "domestic28",
+      "time": "13:33"
+     },
+     {
+      "id": "domestic1",
+      "time": "13:34"
+     },
+     {
+      "id": "international85",
+      "time": "13:37"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "13:44"
+     },
+     {
+      "id": "honbuto",
+      "time": "13:45"
+     },
+     {
+      "id": "rapidus",
+      "time": "13:48"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "11:34"
+     },
+     {
+      "id": "honbuto",
+      "time": "11:36"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "11:39"
+     },
+     {
+      "id": "domestic28",
+      "time": "11:46"
+     },
+     {
+      "id": "domestic1",
+      "time": "11:47"
+     },
+     {
+      "id": "international85",
+      "time": "11:48"
+     },
+     {
+      "id": "airCargo",
+      "time": "11:50"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "11:51"
+     },
+     {
+      "id": "asahicho7",
+      "time": "11:54"
+     },
+     {
+      "id": "asahicho4",
+      "time": "11:55"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "11:56"
+     },
+     {
+      "id": "koizumi",
+      "time": "11:57"
+     },
+     {
+      "id": "morimoto",
+      "time": "11:58"
+     },
+     {
+      "id": "chitose",
+      "time": "12:02"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "12:40"
+     },
+     {
+      "id": "honbuto",
+      "time": "12:42"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "12:45"
+     },
+     {
+      "id": "domestic28",
+      "time": "12:52"
+     },
+     {
+      "id": "domestic1",
+      "time": "12:53"
+     },
+     {
+      "id": "international85",
+      "time": "12:54"
+     },
+     {
+      "id": "airCargo",
+      "time": "12:56"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "12:57"
+     },
+     {
+      "id": "asahicho7",
+      "time": "13:00"
+     },
+     {
+      "id": "asahicho4",
+      "time": "13:01"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "13:02"
+     },
+     {
+      "id": "koizumi",
+      "time": "13:03"
+     },
+     {
+      "id": "morimoto",
+      "time": "13:04"
+     },
+     {
+      "id": "chitose",
+      "time": "13:08"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "13:33"
+     },
+     {
+      "id": "honbuto",
+      "time": "13:35"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "13:38"
+     },
+     {
+      "id": "domestic28",
+      "time": "13:45"
+     },
+     {
+      "id": "domestic1",
+      "time": "13:46"
+     },
+     {
+      "id": "international85",
+      "time": "13:47"
+     },
+     {
+      "id": "airCargo",
+      "time": "13:49"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "13:50"
+     },
+     {
+      "id": "asahicho7",
+      "time": "13:53"
+     },
+     {
+      "id": "asahicho4",
+      "time": "13:54"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "13:55"
+     },
+     {
+      "id": "koizumi",
+      "time": "13:56"
+     },
+     {
+      "id": "morimoto",
+      "time": "13:57"
+     },
+     {
+      "id": "chitose",
+      "time": "14:01"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "14:30"
+     },
+     {
+      "id": "honbuto",
+      "time": "14:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "14:35"
+     },
+     {
+      "id": "domestic28",
+      "time": "14:42"
+     },
+     {
+      "id": "domestic1",
+      "time": "14:43"
+     },
+     {
+      "id": "international85",
+      "time": "14:44"
+     },
+     {
+      "id": "airCargo",
+      "time": "14:46"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "14:47"
+     },
+     {
+      "id": "asahicho7",
+      "time": "14:50"
+     },
+     {
+      "id": "asahicho4",
+      "time": "14:51"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "14:52"
+     },
+     {
+      "id": "koizumi",
+      "time": "14:53"
+     },
+     {
+      "id": "morimoto",
+      "time": "14:54"
+     },
+     {
+      "id": "chitose",
+      "time": "14:58"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "15:22"
+     },
+     {
+      "id": "honbuto",
+      "time": "15:24"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "15:27"
+     },
+     {
+      "id": "domestic28",
+      "time": "15:34"
+     },
+     {
+      "id": "domestic1",
+      "time": "15:35"
+     },
+     {
+      "id": "international85",
+      "time": "15:36"
+     },
+     {
+      "id": "airCargo",
+      "time": "15:38"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "15:39"
+     },
+     {
+      "id": "asahicho7",
+      "time": "15:42"
+     },
+     {
+      "id": "asahicho4",
+      "time": "15:43"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "15:44"
+     },
+     {
+      "id": "koizumi",
+      "time": "15:45"
+     },
+     {
+      "id": "morimoto",
+      "time": "15:46"
+     },
+     {
+      "id": "chitose",
+      "time": "15:50"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "16:45"
+     },
+     {
+      "id": "honbuto",
+      "time": "16:47"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "16:50"
+     },
+     {
+      "id": "domestic28",
+      "time": "16:57"
+     },
+     {
+      "id": "domestic1",
+      "time": "16:58"
+     },
+     {
+      "id": "international85",
+      "time": "16:59"
+     },
+     {
+      "id": "airCargo",
+      "time": "17:01"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "17:02"
+     },
+     {
+      "id": "asahicho7",
+      "time": "17:05"
+     },
+     {
+      "id": "asahicho4",
+      "time": "17:06"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "17:07"
+     },
+     {
+      "id": "koizumi",
+      "time": "17:08"
+     },
+     {
+      "id": "morimoto",
+      "time": "17:09"
+     },
+     {
+      "id": "chitose",
+      "time": "17:13"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "17:50"
+     },
+     {
+      "id": "honbuto",
+      "time": "17:52"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:55"
+     },
+     {
+      "id": "domestic28",
+      "time": "18:02"
+     },
+     {
+      "id": "domestic1",
+      "time": "18:03"
+     },
+     {
+      "id": "international85",
+      "time": "18:04"
+     },
+     {
+      "id": "airCargo",
+      "time": "18:06"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "18:07"
+     },
+     {
+      "id": "asahicho7",
+      "time": "18:10"
+     },
+     {
+      "id": "asahicho4",
+      "time": "18:11"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "18:12"
+     },
+     {
+      "id": "koizumi",
+      "time": "18:13"
+     },
+     {
+      "id": "morimoto",
+      "time": "18:14"
+     },
+     {
+      "id": "chitose",
+      "time": "18:18"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "19:00"
+     },
+     {
+      "id": "honbuto",
+      "time": "19:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "19:05"
+     },
+     {
+      "id": "domestic28",
+      "time": "19:12"
+     },
+     {
+      "id": "domestic1",
+      "time": "19:13"
+     },
+     {
+      "id": "international85",
+      "time": "19:14"
+     },
+     {
+      "id": "airCargo",
+      "time": "19:16"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "19:17"
+     },
+     {
+      "id": "asahicho7",
+      "time": "19:20"
+     },
+     {
+      "id": "asahicho4",
+      "time": "19:21"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "19:22"
+     },
+     {
+      "id": "koizumi",
+      "time": "19:23"
+     },
+     {
+      "id": "morimoto",
+      "time": "19:24"
+     },
+     {
+      "id": "chitose",
+      "time": "19:28"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "19:40"
+     },
+     {
+      "id": "honbuto",
+      "time": "19:42"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "19:45"
+     },
+     {
+      "id": "domestic28",
+      "time": "19:52"
+     },
+     {
+      "id": "domestic1",
+      "time": "19:53"
+     },
+     {
+      "id": "international85",
+      "time": "19:54"
+     },
+     {
+      "id": "airCargo",
+      "time": "19:56"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "19:57"
+     },
+     {
+      "id": "asahicho7",
+      "time": "20:00"
+     },
+     {
+      "id": "asahicho4",
+      "time": "20:01"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "20:02"
+     },
+     {
+      "id": "koizumi",
+      "time": "20:03"
+     },
+     {
+      "id": "morimoto",
+      "time": "20:04"
+     },
+     {
+      "id": "chitose",
+      "time": "20:08"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "21:20"
+     },
+     {
+      "id": "honbuto",
+      "time": "21:22"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "21:25"
+     },
+     {
+      "id": "domestic28",
+      "time": "21:32"
+     },
+     {
+      "id": "domestic1",
+      "time": "21:33"
+     },
+     {
+      "id": "international85",
+      "time": "21:34"
+     },
+     {
+      "id": "airCargo",
+      "time": "21:36"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "21:37"
+     },
+     {
+      "id": "asahicho7",
+      "time": "21:40"
+     },
+     {
+      "id": "asahicho4",
+      "time": "21:41"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "21:42"
+     },
+     {
+      "id": "koizumi",
+      "time": "21:43"
+     },
+     {
+      "id": "morimoto",
+      "time": "21:44"
+     },
+     {
+      "id": "chitose",
+      "time": "21:48"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "07:14",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "07:17"
+     },
+     {
+      "id": "koizumi",
+      "time": "07:18"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "07:19"
+     },
+     {
+      "id": "asahicho4",
+      "time": "07:20"
+     },
+     {
+      "id": "asahicho7",
+      "time": "07:21"
+     },
+     {
+      "id": "arcadia",
+      "time": "07:25"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "07:32"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:35"
+     },
+     {
+      "id": "rapidus",
+      "time": "07:38"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "07:29",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "07:32"
+     },
+     {
+      "id": "koizumi",
+      "time": "07:33"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "07:34"
+     },
+     {
+      "id": "asahicho4",
+      "time": "07:35"
+     },
+     {
+      "id": "asahicho7",
+      "time": "07:36"
+     },
+     {
+      "id": "arcadia",
+      "time": "07:40"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "07:47"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:50"
+     },
+     {
+      "id": "rapidus",
+      "time": "07:53"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:04",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "08:07"
+     },
+     {
+      "id": "koizumi",
+      "time": "08:08"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "08:09"
+     },
+     {
+      "id": "asahicho4",
+      "time": "08:10"
+     },
+     {
+      "id": "asahicho7",
+      "time": "08:11"
+     },
+     {
+      "id": "arcadia",
+      "time": "08:15"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:22"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:25"
+     },
+     {
+      "id": "rapidus",
+      "time": "08:28"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:14",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "08:17"
+     },
+     {
+      "id": "koizumi",
+      "time": "08:18"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "08:19"
+     },
+     {
+      "id": "asahicho4",
+      "time": "08:20"
+     },
+     {
+      "id": "asahicho7",
+      "time": "08:21"
+     },
+     {
+      "id": "arcadia",
+      "time": "08:25"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:32"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:35"
+     },
+     {
+      "id": "rapidus",
+      "time": "08:38"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:19",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "08:22"
+     },
+     {
+      "id": "koizumi",
+      "time": "08:23"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "08:24"
+     },
+     {
+      "id": "asahicho4",
+      "time": "08:25"
+     },
+     {
+      "id": "asahicho7",
+      "time": "08:26"
+     },
+     {
+      "id": "arcadia",
+      "time": "08:30"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:37"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:40"
+     },
+     {
+      "id": "rapidus",
+      "time": "08:43"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:24",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "08:27"
+     },
+     {
+      "id": "koizumi",
+      "time": "08:28"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "08:29"
+     },
+     {
+      "id": "asahicho4",
+      "time": "08:30"
+     },
+     {
+      "id": "asahicho7",
+      "time": "08:31"
+     },
+     {
+      "id": "arcadia",
+      "time": "08:35"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:42"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:45"
+     },
+     {
+      "id": "rapidus",
+      "time": "08:48"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:29",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "08:32"
+     },
+     {
+      "id": "koizumi",
+      "time": "08:33"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "08:34"
+     },
+     {
+      "id": "asahicho4",
+      "time": "08:35"
+     },
+     {
+      "id": "asahicho7",
+      "time": "08:36"
+     },
+     {
+      "id": "arcadia",
+      "time": "08:40"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:47"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:50"
+     },
+     {
+      "id": "rapidus",
+      "time": "08:53"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:04",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "09:07"
+     },
+     {
+      "id": "koizumi",
+      "time": "09:08"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "09:09"
+     },
+     {
+      "id": "asahicho4",
+      "time": "09:10"
+     },
+     {
+      "id": "asahicho7",
+      "time": "09:11"
+     },
+     {
+      "id": "arcadia",
+      "time": "09:15"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:22"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:25"
+     },
+     {
+      "id": "rapidus",
+      "time": "09:28"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:19",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "09:22"
+     },
+     {
+      "id": "koizumi",
+      "time": "09:23"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "09:24"
+     },
+     {
+      "id": "asahicho4",
+      "time": "09:25"
+     },
+     {
+      "id": "asahicho7",
+      "time": "09:26"
+     },
+     {
+      "id": "arcadia",
+      "time": "09:30"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:37"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:40"
+     },
+     {
+      "id": "rapidus",
+      "time": "09:43"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:34",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "09:37"
+     },
+     {
+      "id": "koizumi",
+      "time": "09:38"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "09:39"
+     },
+     {
+      "id": "asahicho4",
+      "time": "09:40"
+     },
+     {
+      "id": "asahicho7",
+      "time": "09:41"
+     },
+     {
+      "id": "arcadia",
+      "time": "09:45"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:52"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:55"
+     },
+     {
+      "id": "rapidus",
+      "time": "09:58"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:44",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "09:47"
+     },
+     {
+      "id": "koizumi",
+      "time": "09:48"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "09:49"
+     },
+     {
+      "id": "asahicho4",
+      "time": "09:50"
+     },
+     {
+      "id": "asahicho7",
+      "time": "09:51"
+     },
+     {
+      "id": "arcadia",
+      "time": "09:55"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:02"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:05"
+     },
+     {
+      "id": "rapidus",
+      "time": "10:08"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:54",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "09:57"
+     },
+     {
+      "id": "koizumi",
+      "time": "09:58"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "09:59"
+     },
+     {
+      "id": "asahicho4",
+      "time": "10:00"
+     },
+     {
+      "id": "asahicho7",
+      "time": "10:01"
+     },
+     {
+      "id": "arcadia",
+      "time": "10:05"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:12"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:15"
+     },
+     {
+      "id": "rapidus",
+      "time": "10:18"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "10:04",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "10:07"
+     },
+     {
+      "id": "koizumi",
+      "time": "10:08"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "10:09"
+     },
+     {
+      "id": "asahicho4",
+      "time": "10:10"
+     },
+     {
+      "id": "asahicho7",
+      "time": "10:11"
+     },
+     {
+      "id": "arcadia",
+      "time": "10:15"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:22"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:25"
+     },
+     {
+      "id": "rapidus",
+      "time": "10:28"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "10:14",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "10:17"
+     },
+     {
+      "id": "koizumi",
+      "time": "10:18"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "10:19"
+     },
+     {
+      "id": "asahicho4",
+      "time": "10:20"
+     },
+     {
+      "id": "asahicho7",
+      "time": "10:21"
+     },
+     {
+      "id": "arcadia",
+      "time": "10:25"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:32"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:35"
+     },
+     {
+      "id": "rapidus",
+      "time": "10:38"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "14:24",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "14:27"
+     },
+     {
+      "id": "koizumi",
+      "time": "14:28"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "14:29"
+     },
+     {
+      "id": "asahicho4",
+      "time": "14:30"
+     },
+     {
+      "id": "asahicho7",
+      "time": "14:31"
+     },
+     {
+      "id": "arcadia",
+      "time": "14:35"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "14:42"
+     },
+     {
+      "id": "honbuto",
+      "time": "14:45"
+     },
+     {
+      "id": "rapidus",
+      "time": "14:48"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "15:22",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "15:25"
+     },
+     {
+      "id": "koizumi",
+      "time": "15:26"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "15:27"
+     },
+     {
+      "id": "asahicho4",
+      "time": "15:28"
+     },
+     {
+      "id": "asahicho7",
+      "time": "15:29"
+     },
+     {
+      "id": "arcadia",
+      "time": "15:33"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "15:40"
+     },
+     {
+      "id": "honbuto",
+      "time": "15:43"
+     },
+     {
+      "id": "rapidus",
+      "time": "15:46"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "15:55",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "15:58"
+     },
+     {
+      "id": "koizumi",
+      "time": "15:59"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "16:00"
+     },
+     {
+      "id": "asahicho4",
+      "time": "16:01"
+     },
+     {
+      "id": "asahicho7",
+      "time": "16:02"
+     },
+     {
+      "id": "arcadia",
+      "time": "16:06"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "16:13"
+     },
+     {
+      "id": "honbuto",
+      "time": "16:16"
+     },
+     {
+      "id": "rapidus",
+      "time": "16:19"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "16:04",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "16:07"
+     },
+     {
+      "id": "koizumi",
+      "time": "16:08"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "16:09"
+     },
+     {
+      "id": "asahicho4",
+      "time": "16:10"
+     },
+     {
+      "id": "asahicho7",
+      "time": "16:11"
+     },
+     {
+      "id": "arcadia",
+      "time": "16:15"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "16:22"
+     },
+     {
+      "id": "honbuto",
+      "time": "16:25"
+     },
+     {
+      "id": "rapidus",
+      "time": "16:28"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "17:51",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "17:54"
+     },
+     {
+      "id": "koizumi",
+      "time": "17:55"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "17:56"
+     },
+     {
+      "id": "asahicho4",
+      "time": "17:57"
+     },
+     {
+      "id": "asahicho7",
+      "time": "17:58"
+     },
+     {
+      "id": "arcadia",
+      "time": "18:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:09"
+     },
+     {
+      "id": "honbuto",
+      "time": "18:12"
+     },
+     {
+      "id": "rapidus",
+      "time": "18:15"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:10",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "08:13"
+     },
+     {
+      "id": "koizumi",
+      "time": "08:14"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "08:15"
+     },
+     {
+      "id": "asahicho4",
+      "time": "08:16"
+     },
+     {
+      "id": "asahicho7",
+      "time": "08:17"
+     },
+     {
+      "id": "arcadia",
+      "time": "08:21"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:28"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:31"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:40",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "08:43"
+     },
+     {
+      "id": "koizumi",
+      "time": "08:44"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "08:45"
+     },
+     {
+      "id": "asahicho4",
+      "time": "08:46"
+     },
+     {
+      "id": "asahicho7",
+      "time": "08:47"
+     },
+     {
+      "id": "arcadia",
+      "time": "08:51"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:58"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:01"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:10",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "09:13"
+     },
+     {
+      "id": "koizumi",
+      "time": "09:14"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "09:15"
+     },
+     {
+      "id": "asahicho4",
+      "time": "09:16"
+     },
+     {
+      "id": "asahicho7",
+      "time": "09:17"
+     },
+     {
+      "id": "arcadia",
+      "time": "09:21"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:28"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:31"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:50",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "09:53"
+     },
+     {
+      "id": "koizumi",
+      "time": "09:54"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "09:55"
+     },
+     {
+      "id": "asahicho4",
+      "time": "09:56"
+     },
+     {
+      "id": "asahicho7",
+      "time": "09:57"
+     },
+     {
+      "id": "arcadia",
+      "time": "10:01"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:08"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:11"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "16:00",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "16:03"
+     },
+     {
+      "id": "koizumi",
+      "time": "16:04"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "16:05"
+     },
+     {
+      "id": "asahicho4",
+      "time": "16:06"
+     },
+     {
+      "id": "asahicho7",
+      "time": "16:07"
+     },
+     {
+      "id": "arcadia",
+      "time": "16:11"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "16:18"
+     },
+     {
+      "id": "honbuto",
+      "time": "16:21"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "18:00",
+      "platform": "3番"
+     },
+     {
+      "id": "morimoto",
+      "time": "18:03"
+     },
+     {
+      "id": "koizumi",
+      "time": "18:04"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "18:05"
+     },
+     {
+      "id": "asahicho4",
+      "time": "18:06"
+     },
+     {
+      "id": "asahicho7",
+      "time": "18:07"
+     },
+     {
+      "id": "arcadia",
+      "time": "18:11"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:18"
+     },
+     {
+      "id": "honbuto",
+      "time": "18:21"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "11:00"
+     },
+     {
+      "id": "honbuto",
+      "time": "11:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "11:05"
+     },
+     {
+      "id": "arcadia",
+      "time": "11:12"
+     },
+     {
+      "id": "asahicho7",
+      "time": "11:16"
+     },
+     {
+      "id": "asahicho4",
+      "time": "11:17"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "11:18"
+     },
+     {
+      "id": "koizumi",
+      "time": "11:19"
+     },
+     {
+      "id": "morimoto",
+      "time": "11:20"
+     },
+     {
+      "id": "chitose",
+      "time": "11:24"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "12:25"
+     },
+     {
+      "id": "honbuto",
+      "time": "12:27"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "12:30"
+     },
+     {
+      "id": "arcadia",
+      "time": "12:37"
+     },
+     {
+      "id": "asahicho7",
+      "time": "12:41"
+     },
+     {
+      "id": "asahicho4",
+      "time": "12:42"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "12:43"
+     },
+     {
+      "id": "koizumi",
+      "time": "12:44"
+     },
+     {
+      "id": "morimoto",
+      "time": "12:45"
+     },
+     {
+      "id": "chitose",
+      "time": "12:49"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "13:05"
+     },
+     {
+      "id": "honbuto",
+      "time": "13:07"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "13:10"
+     },
+     {
+      "id": "arcadia",
+      "time": "13:17"
+     },
+     {
+      "id": "asahicho7",
+      "time": "13:21"
+     },
+     {
+      "id": "asahicho4",
+      "time": "13:22"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "13:23"
+     },
+     {
+      "id": "koizumi",
+      "time": "13:24"
+     },
+     {
+      "id": "morimoto",
+      "time": "13:25"
+     },
+     {
+      "id": "chitose",
+      "time": "13:29"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "14:15"
+     },
+     {
+      "id": "honbuto",
+      "time": "14:17"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "14:20"
+     },
+     {
+      "id": "arcadia",
+      "time": "14:27"
+     },
+     {
+      "id": "asahicho7",
+      "time": "14:31"
+     },
+     {
+      "id": "asahicho4",
+      "time": "14:32"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "14:33"
+     },
+     {
+      "id": "koizumi",
+      "time": "14:34"
+     },
+     {
+      "id": "morimoto",
+      "time": "14:35"
+     },
+     {
+      "id": "chitose",
+      "time": "14:39"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "15:00"
+     },
+     {
+      "id": "honbuto",
+      "time": "15:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "15:05"
+     },
+     {
+      "id": "arcadia",
+      "time": "15:12"
+     },
+     {
+      "id": "asahicho7",
+      "time": "15:16"
+     },
+     {
+      "id": "asahicho4",
+      "time": "15:17"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "15:18"
+     },
+     {
+      "id": "koizumi",
+      "time": "15:19"
+     },
+     {
+      "id": "morimoto",
+      "time": "15:20"
+     },
+     {
+      "id": "chitose",
+      "time": "15:24"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "16:40"
+     },
+     {
+      "id": "honbuto",
+      "time": "16:42"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "16:45"
+     },
+     {
+      "id": "arcadia",
+      "time": "16:52"
+     },
+     {
+      "id": "asahicho7",
+      "time": "16:56"
+     },
+     {
+      "id": "asahicho4",
+      "time": "16:57"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "16:58"
+     },
+     {
+      "id": "koizumi",
+      "time": "16:59"
+     },
+     {
+      "id": "morimoto",
+      "time": "17:00"
+     },
+     {
+      "id": "chitose",
+      "time": "17:04"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "17:00"
+     },
+     {
+      "id": "honbuto",
+      "time": "17:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:05"
+     },
+     {
+      "id": "arcadia",
+      "time": "17:12"
+     },
+     {
+      "id": "asahicho7",
+      "time": "17:16"
+     },
+     {
+      "id": "asahicho4",
+      "time": "17:17"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "17:18"
+     },
+     {
+      "id": "koizumi",
+      "time": "17:19"
+     },
+     {
+      "id": "morimoto",
+      "time": "17:20"
+     },
+     {
+      "id": "chitose",
+      "time": "17:24"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "17:28"
+     },
+     {
+      "id": "honbuto",
+      "time": "17:30"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:33"
+     },
+     {
+      "id": "arcadia",
+      "time": "17:40"
+     },
+     {
+      "id": "asahicho7",
+      "time": "17:44"
+     },
+     {
+      "id": "asahicho4",
+      "time": "17:45"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "17:46"
+     },
+     {
+      "id": "koizumi",
+      "time": "17:47"
+     },
+     {
+      "id": "morimoto",
+      "time": "17:48"
+     },
+     {
+      "id": "chitose",
+      "time": "17:52"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "18:25"
+     },
+     {
+      "id": "honbuto",
+      "time": "18:27"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:30"
+     },
+     {
+      "id": "arcadia",
+      "time": "18:37"
+     },
+     {
+      "id": "asahicho7",
+      "time": "18:41"
+     },
+     {
+      "id": "asahicho4",
+      "time": "18:42"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "18:43"
+     },
+     {
+      "id": "koizumi",
+      "time": "18:44"
+     },
+     {
+      "id": "morimoto",
+      "time": "18:45"
+     },
+     {
+      "id": "chitose",
+      "time": "18:49"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "12:30"
+     },
+     {
+      "id": "honbuto",
+      "time": "12:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "12:35"
+     },
+     {
+      "id": "arcadia",
+      "time": "12:42"
+     },
+     {
+      "id": "asahicho7",
+      "time": "12:46"
+     },
+     {
+      "id": "asahicho4",
+      "time": "12:47"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "12:48"
+     },
+     {
+      "id": "koizumi",
+      "time": "12:49"
+     },
+     {
+      "id": "morimoto",
+      "time": "12:50"
+     },
+     {
+      "id": "chitose",
+      "time": "12:54"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "14:30"
+     },
+     {
+      "id": "honbuto",
+      "time": "14:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "14:35"
+     },
+     {
+      "id": "arcadia",
+      "time": "14:42"
+     },
+     {
+      "id": "asahicho7",
+      "time": "14:46"
+     },
+     {
+      "id": "asahicho4",
+      "time": "14:47"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "14:48"
+     },
+     {
+      "id": "koizumi",
+      "time": "14:49"
+     },
+     {
+      "id": "morimoto",
+      "time": "14:50"
+     },
+     {
+      "id": "chitose",
+      "time": "14:54"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "17:30"
+     },
+     {
+      "id": "honbuto",
+      "time": "17:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:35"
+     },
+     {
+      "id": "arcadia",
+      "time": "17:42"
+     },
+     {
+      "id": "asahicho7",
+      "time": "17:46"
+     },
+     {
+      "id": "asahicho4",
+      "time": "17:47"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "17:48"
+     },
+     {
+      "id": "koizumi",
+      "time": "17:49"
+     },
+     {
+      "id": "morimoto",
+      "time": "17:50"
+     },
+     {
+      "id": "chitose",
+      "time": "17:54"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": true,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "18:30"
+     },
+     {
+      "id": "honbuto",
+      "time": "18:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:35"
+     },
+     {
+      "id": "arcadia",
+      "time": "18:42"
+     },
+     {
+      "id": "asahicho7",
+      "time": "18:46"
+     },
+     {
+      "id": "asahicho4",
+      "time": "18:47"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "18:48"
+     },
+     {
+      "id": "koizumi",
+      "time": "18:49"
+     },
+     {
+      "id": "morimoto",
+      "time": "18:50"
+     },
+     {
+      "id": "chitose",
+      "time": "18:54"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "osatsu",
+      "time": "11:10"
+     },
+     {
+      "id": "arcs",
+      "time": "11:11"
+     },
+     {
+      "id": "isamai7",
+      "time": "11:12"
+     },
+     {
+      "id": "isamaiPark",
+      "time": "11:12"
+     },
+     {
+      "id": "isamaiJhs",
+      "time": "11:13"
+     },
+     {
+      "id": "isamai2",
+      "time": "11:14"
+     },
+     {
+      "id": "alice",
+      "time": "11:15"
+     },
+     {
+      "id": "hokuyoHs",
+      "time": "11:16"
+     },
+     {
+      "id": "hokuyo3",
+      "time": "11:16"
+     },
+     {
+      "id": "hokko6",
+      "time": "11:17"
+     },
+     {
+      "id": "fuji4",
+      "time": "11:18"
+     },
+     {
+      "id": "shinano4",
+      "time": "11:19"
+     },
+     {
+      "id": "yao",
+      "time": "11:20"
+     },
+     {
+      "id": "hoyukai",
+      "time": "11:21"
+     },
+     {
+      "id": "hokuei2",
+      "time": "11:22"
+     },
+     {
+      "id": "aeon",
+      "time": "11:23"
+     },
+     {
+      "id": "chitose",
+      "time": "11:29",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "11:32"
+     },
+     {
+      "id": "koizumi",
+      "time": "11:33"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "11:34"
+     },
+     {
+      "id": "asahicho4",
+      "time": "11:35"
+     },
+     {
+      "id": "asahicho7",
+      "time": "11:36"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "11:40"
+     },
+     {
+      "id": "airCargo",
+      "time": "11:41"
+     },
+     {
+      "id": "domestic28",
+      "time": "11:42"
+     },
+     {
+      "id": "domestic1",
+      "time": "11:43"
+     },
+     {
+      "id": "international85",
+      "time": "11:46"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "11:53"
+     },
+     {
+      "id": "honbuto",
+      "time": "11:54"
+     },
+     {
+      "id": "rapidus",
+      "time": "12:02"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "osatsu",
+      "time": "12:00"
+     },
+     {
+      "id": "arcs",
+      "time": "12:01"
+     },
+     {
+      "id": "isamai7",
+      "time": "12:02"
+     },
+     {
+      "id": "isamaiPark",
+      "time": "12:02"
+     },
+     {
+      "id": "isamaiJhs",
+      "time": "12:03"
+     },
+     {
+      "id": "isamai2",
+      "time": "12:04"
+     },
+     {
+      "id": "alice",
+      "time": "12:05"
+     },
+     {
+      "id": "hokuyoHs",
+      "time": "12:06"
+     },
+     {
+      "id": "hokuyo3",
+      "time": "12:06"
+     },
+     {
+      "id": "hokko6",
+      "time": "12:07"
+     },
+     {
+      "id": "fuji4",
+      "time": "12:08"
+     },
+     {
+      "id": "shinano4",
+      "time": "12:09"
+     },
+     {
+      "id": "yao",
+      "time": "12:10"
+     },
+     {
+      "id": "hoyukai",
+      "time": "12:11"
+     },
+     {
+      "id": "hokuei2",
+      "time": "12:12"
+     },
+     {
+      "id": "aeon",
+      "time": "12:13"
+     },
+     {
+      "id": "chitose",
+      "time": "12:19",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "12:22"
+     },
+     {
+      "id": "koizumi",
+      "time": "12:23"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "12:24"
+     },
+     {
+      "id": "asahicho4",
+      "time": "12:25"
+     },
+     {
+      "id": "asahicho7",
+      "time": "12:26"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "12:30"
+     },
+     {
+      "id": "airCargo",
+      "time": "12:31"
+     },
+     {
+      "id": "domestic28",
+      "time": "12:32"
+     },
+     {
+      "id": "domestic1",
+      "time": "12:33"
+     },
+     {
+      "id": "international85",
+      "time": "12:36"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "12:43"
+     },
+     {
+      "id": "honbuto",
+      "time": "12:44"
+     },
+     {
+      "id": "rapidus",
+      "time": "12:52"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "osatsu",
+      "time": "14:10"
+     },
+     {
+      "id": "arcs",
+      "time": "14:11"
+     },
+     {
+      "id": "isamai7",
+      "time": "14:12"
+     },
+     {
+      "id": "isamaiPark",
+      "time": "14:12"
+     },
+     {
+      "id": "isamaiJhs",
+      "time": "14:13"
+     },
+     {
+      "id": "isamai2",
+      "time": "14:14"
+     },
+     {
+      "id": "alice",
+      "time": "14:15"
+     },
+     {
+      "id": "hokuyoHs",
+      "time": "14:16"
+     },
+     {
+      "id": "hokuyo3",
+      "time": "14:16"
+     },
+     {
+      "id": "hokko6",
+      "time": "14:17"
+     },
+     {
+      "id": "fuji4",
+      "time": "14:18"
+     },
+     {
+      "id": "shinano4",
+      "time": "14:19"
+     },
+     {
+      "id": "yao",
+      "time": "14:20"
+     },
+     {
+      "id": "hoyukai",
+      "time": "14:21"
+     },
+     {
+      "id": "hokuei2",
+      "time": "14:22"
+     },
+     {
+      "id": "aeon",
+      "time": "14:23"
+     },
+     {
+      "id": "chitose",
+      "time": "14:29",
+      "platform": "5番"
+     },
+     {
+      "id": "morimoto",
+      "time": "14:32"
+     },
+     {
+      "id": "koizumi",
+      "time": "14:33"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "14:34"
+     },
+     {
+      "id": "asahicho4",
+      "time": "14:35"
+     },
+     {
+      "id": "asahicho7",
+      "time": "14:36"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "14:40"
+     },
+     {
+      "id": "airCargo",
+      "time": "14:41"
+     },
+     {
+      "id": "domestic28",
+      "time": "14:42"
+     },
+     {
+      "id": "domestic1",
+      "time": "14:43"
+     },
+     {
+      "id": "international85",
+      "time": "14:46"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "14:53"
+     },
+     {
+      "id": "honbuto",
+      "time": "14:54"
+     },
+     {
+      "id": "rapidus",
+      "time": "15:02"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "20:30"
+     },
+     {
+      "id": "honbuto",
+      "time": "20:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "20:35"
+     },
+     {
+      "id": "domestic28",
+      "time": "20:42"
+     },
+     {
+      "id": "domestic1",
+      "time": "20:43"
+     },
+     {
+      "id": "international85",
+      "time": "20:44"
+     },
+     {
+      "id": "airCargo",
+      "time": "20:46"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "20:47"
+     },
+     {
+      "id": "asahicho7",
+      "time": "20:50"
+     },
+     {
+      "id": "asahicho4",
+      "time": "20:51"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "20:52"
+     },
+     {
+      "id": "koizumi",
+      "time": "20:53"
+     },
+     {
+      "id": "morimoto",
+      "time": "20:54"
+     },
+     {
+      "id": "chitose",
+      "time": "21:00",
+      "platform": "4番"
+     },
+     {
+      "id": "aeon",
+      "time": "21:01"
+     },
+     {
+      "id": "hokuei2",
+      "time": "21:02"
+     },
+     {
+      "id": "hoyukai",
+      "time": "21:03"
+     },
+     {
+      "id": "yao",
+      "time": "21:04"
+     },
+     {
+      "id": "shinano4",
+      "time": "21:05"
+     },
+     {
+      "id": "fuji4",
+      "time": "21:06"
+     },
+     {
+      "id": "hokko6",
+      "time": "21:07"
+     },
+     {
+      "id": "hokuyo3",
+      "time": "21:08"
+     },
+     {
+      "id": "hokuyoHs",
+      "time": "21:08"
+     },
+     {
+      "id": "alice",
+      "time": "21:09"
+     },
+     {
+      "id": "isamai2",
+      "time": "21:10"
+     },
+     {
+      "id": "isamaiJhs",
+      "time": "21:10"
+     },
+     {
+      "id": "isamaiPark",
+      "time": "21:11"
+     },
+     {
+      "id": "isamai7",
+      "time": "21:11"
+     },
+     {
+      "id": "arcs",
+      "time": "21:12"
+     },
+     {
+      "id": "osatsu",
+      "time": "21:22"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "rapidus",
+      "time": "22:00"
+     },
+     {
+      "id": "honbuto",
+      "time": "22:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "22:05"
+     },
+     {
+      "id": "domestic28",
+      "time": "22:12"
+     },
+     {
+      "id": "domestic1",
+      "time": "22:13"
+     },
+     {
+      "id": "international85",
+      "time": "22:14"
+     },
+     {
+      "id": "airCargo",
+      "time": "22:16"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "22:17"
+     },
+     {
+      "id": "asahicho7",
+      "time": "22:20"
+     },
+     {
+      "id": "asahicho4",
+      "time": "22:21"
+     },
+     {
+      "id": "shiyakusho",
+      "time": "22:22"
+     },
+     {
+      "id": "koizumi",
+      "time": "22:23"
+     },
+     {
+      "id": "morimoto",
+      "time": "22:24"
+     },
+     {
+      "id": "chitose",
+      "time": "22:30",
+      "platform": "4番"
+     },
+     {
+      "id": "aeon",
+      "time": "22:31"
+     },
+     {
+      "id": "hokuei2",
+      "time": "22:32"
+     },
+     {
+      "id": "hoyukai",
+      "time": "22:33"
+     },
+     {
+      "id": "yao",
+      "time": "22:34"
+     },
+     {
+      "id": "shinano4",
+      "time": "22:35"
+     },
+     {
+      "id": "fuji4",
+      "time": "22:36"
+     },
+     {
+      "id": "hokko6",
+      "time": "22:37"
+     },
+     {
+      "id": "hokuyo3",
+      "time": "22:38"
+     },
+     {
+      "id": "hokuyoHs",
+      "time": "22:38"
+     },
+     {
+      "id": "alice",
+      "time": "22:39"
+     },
+     {
+      "id": "isamai2",
+      "time": "22:40"
+     },
+     {
+      "id": "isamaiJhs",
+      "time": "22:40"
+     },
+     {
+      "id": "isamaiPark",
+      "time": "22:41"
+     },
+     {
+      "id": "isamai7",
+      "time": "22:41"
+     },
+     {
+      "id": "arcs",
+      "time": "22:42"
+     },
+     {
+      "id": "osatsu",
+      "time": "22:52"
+     }
+    ]
+   }
+  ]
+ },
+ "upcoming": null
+}

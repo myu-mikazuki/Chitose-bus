@@ -7,7 +7,7 @@ void main() {
     test('同じ便は同じIDを返す', () {
       const bus = BusEntry(
         time: '08:30',
-        direction: BusDirection.fromChitose,
+        boardingStopId: 'chitose',
         destination: '千歳駅',
       );
       final id1 = NotificationService.busNotificationId(bus);
@@ -18,12 +18,12 @@ void main() {
     test('時刻が同じでも方面が異なれば異なるIDを返す', () {
       const busA = BusEntry(
         time: '08:30',
-        direction: BusDirection.fromChitose,
+        boardingStopId: 'chitose',
         destination: '千歳駅',
       );
       const busB = BusEntry(
         time: '08:30',
-        direction: BusDirection.fromHonbuto,
+        boardingStopId: 'honbuto',
         destination: '本部棟',
       );
       expect(
@@ -35,7 +35,7 @@ void main() {
     test('IDは非負の整数', () {
       const bus = BusEntry(
         time: '23:59',
-        direction: BusDirection.fromMinamiChitose,
+        boardingStopId: 'minamiChitose',
         destination: '南千歳駅',
       );
       final id = NotificationService.busNotificationId(bus);

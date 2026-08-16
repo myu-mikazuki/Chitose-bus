@@ -20,15 +20,15 @@ class FavoriteTabNotifier extends AsyncNotifier<FavoriteTab> {
   }
 
   /// 現在表示中のタブをお気に入り登録/解除する。
-  /// 同じ [tabIndex] なら解除、異なれば上書き登録。
-  Future<void> toggleFavorite(int tabIndex) async {
+  /// 同じ [stopId] なら解除、異なれば上書き登録。
+  Future<void> toggleFavorite(String stopId) async {
     final current = state.valueOrNull;
     if (current == null) return;
 
     final repo = ref.read(favoriteTabRepositoryProvider);
-    final next = current.tabIndex == tabIndex
+    final next = current.stopId == stopId
         ? const FavoriteTab()
-        : FavoriteTab(tabIndex: tabIndex);
+        : FavoriteTab(stopId: stopId);
     await repo.save(next);
     state = AsyncData(next);
   }
