@@ -144,12 +144,6 @@ ProviderContainer makeContainer({
   );
 }
 
-/// scheduleViewModelProvider が永遠にロード中のままのスタブ
-class _FakeLoadingScheduleViewModel extends ScheduleViewModel {
-  @override
-  Future<ScheduleResult> build() => Completer<ScheduleResult>().future;
-}
-
 /// fromChitose と fromHonbuto が混在する BusTimetable
 BusTimetable mixedDirectionTimetable() {
   final future1 = _fixedNow.add(const Duration(hours: 1));
@@ -273,7 +267,7 @@ void main() {
             notificationSettingsRepositoryProvider.overrideWithValue(repo),
             clockProvider.overrideWithValue(() => _fixedNow),
             scheduleViewModelProvider
-                .overrideWith(() => _FakeLoadingScheduleViewModel()),
+                .overrideWith(() => FakeLoadingScheduleViewModel()),
           ],
         );
         addTearDown(container.dispose);

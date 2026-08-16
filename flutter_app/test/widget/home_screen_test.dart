@@ -20,25 +20,13 @@ import '../helpers/test_theme.dart';
 // ---------------------------------------------------------------------------
 // Fake ViewModels
 //
-// FakeScheduleViewModel / FakeStopSelectionNotifier は helpers/ にある（#219）
+// 決まった結果を返す / ロード中 / 投げる、の3つは helpers/ にある
+// （FakeScheduleViewModel・FakeLoadingScheduleViewModel・
+// FakeErrorScheduleViewModel、#219 #223）
+//
+// ここに残しているのは**非同期の進み方そのものを操るもの**だけ。共有版は
+// どれも「build() が何を返すか」しか変えられないので、途中経過は作れない。
 // ---------------------------------------------------------------------------
-
-class _LoadingViewModel extends ScheduleViewModel {
-  @override
-  Future<ScheduleResult> build() async {
-    // Never completes → keeps state as AsyncLoading
-    await Completer<void>().future;
-    throw Exception('unreachable');
-  }
-}
-
-class _ErrorViewModel extends ScheduleViewModel {
-  _ErrorViewModel(this._error);
-  final Object _error;
-
-  @override
-  Future<ScheduleResult> build() async => throw _error;
-}
 
 class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
   final FavoriteTab _initial;
@@ -63,6 +51,9 @@ class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
 
 /// スケジュールの解決を外部から制御できる VM。
 /// favoriteTabProvider が先に解決した後に scheduleAsync が解決するシナリオを再現する。
+///
+/// **helpers に寄せられない。** 共有版は解決済みかロード中かのどちらかで、
+/// 「いつ解決するか」を外から決められない（#223）。
 class _DelayedScheduleViewModel extends ScheduleViewModel {
   _DelayedScheduleViewModel(this._result);
 
@@ -83,6 +74,9 @@ class _DelayedScheduleViewModel extends ScheduleViewModel {
 
 /// refresh() が本物と同じく AsyncLoading を入れる VM。
 /// 入れたきり解決しないので、更新中のままの画面を確かめられる。
+///
+/// **helpers に寄せられない。** 共有版の `refresh()` は呼ばれたことを数えるだけで
+/// state を触らない。ここが要るのは**更新中という途中の state** そのもの（#223）。
 class _RefreshableViewModel extends ScheduleViewModel {
   _RefreshableViewModel(this._result);
   final ScheduleResult _result;
@@ -96,19 +90,6 @@ class _RefreshableViewModel extends ScheduleViewModel {
   }
 
   void fail() => state = AsyncError(Exception('test error'), StackTrace.empty);
-}
-
-/// Error VM that also tracks refresh() calls.
-class _TrackingErrorViewModel extends ScheduleViewModel {
-  bool refreshCalled = false;
-
-  @override
-  Future<ScheduleResult> build() async => throw Exception('test error');
-
-  @override
-  Future<void> refresh() async {
-    refreshCalled = true;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -188,7 +169,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            scheduleViewModelProvider.overrideWith(() => _LoadingViewModel()),
+            scheduleViewModelProvider
+                .overrideWith(() => FakeLoadingScheduleViewModel()),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -203,8 +185,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            scheduleViewModelProvider
-                .overrideWith(() => _ErrorViewModel(Exception('test error'))),
+            scheduleViewModelProvider.overrideWith(
+                () => FakeErrorScheduleViewModel(Exception('test error'))),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -217,7 +199,7 @@ void main() {
     });
 
     testWidgets('error状態で「再試行」タップ: refreshが呼ばれる', (tester) async {
-      final vm = _TrackingErrorViewModel();
+      final vm = FakeErrorScheduleViewModel(Exception('test error'));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -263,7 +245,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              scheduleViewModelProvider.overrideWith(() => _LoadingViewModel()),
+              scheduleViewModelProvider
+                  .overrideWith(() => FakeLoadingScheduleViewModel()),
               countdownOverride(),
             ],
             child:
