@@ -245,8 +245,11 @@ jobs:
 
       # Google Play へのアップロード（Issue #165）
       #
-      # track: internal に上げるだけで、製品版への昇格は Play Console から手動で行う。
+      # tracks: internal に上げるだけで、製品版への昇格は Play Console から手動で行う。
       # 誤って本番公開されるのを防ぐため。運用が安定してから track を上げるか検討する。
+      #
+      # サービスアカウントの GCP プロジェクトで Google Play Android Developer API
+      # を有効にしておく必要がある。無効だと最初のアップロードが失敗する。
       #
       # secrets は if: で直接参照できないため、出力に落としてから判定する。
       # 未設定の環境ではスキップし、リリースビルド自体は通るようにしている
@@ -270,7 +273,8 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.myu_mikazuki.kagibus
           releaseFiles: kagi_bus-${{ github.ref_name }}-android.aab
-          track: internal
+          # track は非推奨で、将来の版で削除される（#214）
+          tracks: internal
           status: completed
           # distribution/whatsnew/whatsnew-<言語> がストアの「新機能」になる
           whatsNewDirectory: distribution/whatsnew

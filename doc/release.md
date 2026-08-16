@@ -47,9 +47,21 @@ git push origin vX.Y.Z
 - iOS: App Store Connect で TestFlight のビルドを選択して審査提出
 - Android: **内部テストまで自動**。Play Console から製品版へ手動で昇格
 
-Android を `track: internal` に留めているのは、誤って本番公開されるのを防ぐため。運用が安定したら `release.yml` の `track` を上げるか検討する。
+Android を `tracks: internal` に留めているのは、誤って本番公開されるのを防ぐため。運用が安定したら `release.yml` の `tracks` を上げるか検討する。
 
 `PLAY_SERVICE_ACCOUNT_JSON` が未設定の場合、アップロードはスキップされ warning が出る（ビルド自体は成功する）。
+
+### Google Play アップロードの前提
+
+サービスアカウントを置いている GCP プロジェクトで、**Google Play Android Developer API**
+を有効にしておく必要がある。無効のままだと最初のアップロードが次のエラーで失敗する。
+
+```
+Google Play Android Developer API has not been used in project <番号>
+before or it is disabled.
+```
+
+一度有効にすれば以降は不要。環境を作り直したときだけ気にすればよい。
 
 ---
 
