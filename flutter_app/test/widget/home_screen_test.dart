@@ -1014,7 +1014,7 @@ void main() {
         expect(find.text('→ 本部棟'), findsOneWidget);
 
         // 設定で先頭に停留所を足す = index がずれる
-        selection.set(const StopSelection(stopIds: [
+        selection.setSelection(const StopSelection(stopIds: [
           'morimoto',
           'chitose',
           'minamiChitose',
@@ -1048,7 +1048,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('→ 本部棟'), findsOneWidget);
 
-        selection.set(const StopSelection(stopIds: ['chitose', 'honbuto']));
+        selection
+            .setSelection(const StopSelection(stopIds: ['chitose', 'honbuto']));
         await tester.pumpAndSettle();
 
         expect(find.byType(Tab), findsNWidgets(2));
