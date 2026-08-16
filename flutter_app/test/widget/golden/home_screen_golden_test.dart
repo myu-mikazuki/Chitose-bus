@@ -8,6 +8,7 @@ import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/stop_selection_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
+import 'package:kagi_bus/presentation/views/widgets/offline_cache_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fake_view_models.dart';
@@ -61,34 +62,54 @@ const _schedules = [
   ),
 ];
 
-final _result = ScheduleResult(
-  data: ScheduleResponse(
-    stopMaster: kTestStopMaster,
-    updatedAt: '2024-01-01',
-    current: BusTimetable(
-      validFrom: '2024-01-01',
-      validTo: '2024-12-31',
-      schedules: _schedules,
-    ),
-  ),
-);
+/// golden 4枚の土台。**違うところだけを引数で渡す。**
+///
+/// `ScheduleResponse` は freezed ではないので copyWith が無く、丸ごと書くと
+/// 複製が並ぶ。片方にだけ `updatedAt` や `upcoming` を足したときに
+/// golden どうしの前提が黙ってずれるのを防ぐため、1箇所にまとめている。
+ScheduleResult _resultWith({
+  List<String> coveredStopIds = const [],
+  bool isFromCache = false,
+}) =>
+    ScheduleResult(
+      isFromCache: isFromCache,
+      data: ScheduleResponse(
+        stopMaster: kTestStopMaster,
+        updatedAt: '2024-01-01',
+        coveredStopIds: coveredStopIds,
+        current: BusTimetable(
+          validFrom: '2024-01-01',
+          validTo: '2024-12-31',
+          schedules: _schedules,
+        ),
+      ),
+    );
+
+final _result = _resultWith();
 
 /// 本部棟の時刻を持たないキャッシュ。オフラインで停留所を足すと起きる状態で、
 /// `covers()` が false になったタブに `_StopNotFetched` が出る。
 ///
+/// **`isFromCache` は落とさない。** `_StopNotFetched` が出る経路は2つあり、
+/// バナーの有無が変わる。
+///
+/// | 経路 | isFromCache | 覆えないのは |
+/// |---|---|---|
+/// | キャッシュ返却（`build()` / `refresh()`） | true（バナーあり） | 足した停留所 |
+/// | 旧形式応答（GAS 未デプロイ・#201） | false（バナーなし） | 足した停留所 |
+///
+/// **この fixture が写せるのは前者だけ。** 旧形式応答が覆えないのは既定の4停留所の
+/// 外だけなので、本部棟を外したこの形は旧形式では起こらない。落とすと、
+/// どちらの経路にも無い組み合わせを焼くことになる。
+///
+/// 目に触れるのも大半はキャッシュ経路（旧形式は GAS をロールバックした間だけ）
+/// なので、バナー込みの縦の積み方まで固定する。
+///
 /// 既定の4停留所から選ぶので、タブのラベルは日本語のまま（`morimoto` のように
 /// ID が出ると、この golden がラベルの見た目まで巻き込む）。
-final _partiallyCoveredResult = ScheduleResult(
-  data: ScheduleResponse(
-    stopMaster: kTestStopMaster,
-    updatedAt: '2024-01-01',
-    coveredStopIds: const ['chitose', 'minamiChitose', 'kenkyuto'],
-    current: BusTimetable(
-      validFrom: '2024-01-01',
-      validTo: '2024-12-31',
-      schedules: _schedules,
-    ),
-  ),
+final _partiallyCoveredResult = _resultWith(
+  coveredStopIds: const ['chitose', 'minamiChitose', 'kenkyuto'],
+  isFromCache: true,
 );
 
 Future<void> _pumpHomeScreen(WidgetTester tester,
@@ -122,6 +143,20 @@ Future<void> _pumpHomeScreen(WidgetTester tester,
   await tester.pumpAndSettle();
 }
 
+/// [label] のタブを開く。
+///
+/// **必ず TabBar 配下に絞る。** 停留所の短縮名は見出し（`→ 本部棟`）や到着行にも
+/// 出るので、素の `find.text` は画面の作りが変わった途端に複数当たる。
+/// 一意な停留所でも揃えておくと、壊れたときに golden 不一致ではなく
+/// 「タップ先が一意でない」として原因が読める形で落ちる。
+Future<void> _tapStopTab(WidgetTester tester, String label) async {
+  await tester.tap(find.descendant(
+    of: find.byType(TabBar),
+    matching: find.text(label),
+  ));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -143,8 +178,7 @@ void main() {
   testWidgets('行き先が複数あるタブ（研究棟・SegmentedButton あり）', (tester) async {
     await _pumpHomeScreen(tester);
 
-    await tester.tap(find.text('研究棟'));
-    await tester.pumpAndSettle();
+    await _tapStopTab(tester, '研究棟');
 
     // この golden の主題。出ていなければ骨格を固定できていない
     expect(find.byType(SegmentedButton<String>), findsOneWidget);
@@ -160,8 +194,7 @@ void main() {
 
     // 南千歳を発つ便が _schedules に無いので、降り先が引けない。
     // 取得はできているので「取得できていません」ではない
-    await tester.tap(find.text('南千歳'));
-    await tester.pumpAndSettle();
+    await _tapStopTab(tester, '南千歳');
 
     // この golden の主題。出ていなければ別の状態を写している
     expect(find.textContaining('もう1つ選んでください'), findsOneWidget);
@@ -176,17 +209,14 @@ void main() {
   testWidgets('キャッシュに無いタブ（本部棟・取得できていません）', (tester) async {
     await _pumpHomeScreen(tester, result: _partiallyCoveredResult);
 
-    // 千歳駅タブの見出し「→ 本部棟」と紛れるので、タブに絞る
-    await tester.tap(find.descendant(
-      of: find.byType(TabBar),
-      matching: find.text('本部棟'),
-    ));
-    await tester.pumpAndSettle();
+    await _tapStopTab(tester, '本部棟');
 
     // この golden の主題。「再試行」まで含めて骨格
     expect(find.textContaining('このバス停の時刻はまだ取得できていません'), findsOneWidget);
     expect(find.text('再試行'), findsOneWidget);
     expect(find.textContaining('もう1つ選んでください'), findsNothing);
+    // キャッシュ経路なので、実機と同じくバナーが上に乗る
+    expect(find.byType(OfflineCacheBanner), findsOneWidget);
 
     await expectLater(
       find.byType(HomeScreen),
