@@ -11,6 +11,8 @@ import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/fake_view_models.dart';
+
 // ---- Fakes ----
 
 class FakeNotificationService implements NotificationService {
@@ -113,7 +115,7 @@ ProviderContainer makeContainer({
   final repo = FakeNotificationSettingsRepository(initialSettings);
 
   final scheduleOverride = timetable != null
-      ? scheduleViewModelProvider.overrideWith(() => _FakeScheduleViewModel(
+      ? scheduleViewModelProvider.overrideWith(() => FakeScheduleViewModel(
             ScheduleResult(
               data: ScheduleResponse(
                 updatedAt: '2026-01-01',
@@ -122,7 +124,7 @@ ProviderContainer makeContainer({
             ),
           ))
       : scheduleViewModelProvider.overrideWith(
-          () => _FakeScheduleViewModel(
+          () => FakeScheduleViewModel(
             ScheduleResult(
               data: ScheduleResponse(
                 updatedAt: '2026-01-01',
@@ -140,15 +142,6 @@ ProviderContainer makeContainer({
       scheduleOverride,
     ],
   );
-}
-
-/// テスト用のスタブ ScheduleViewModel
-class _FakeScheduleViewModel extends ScheduleViewModel {
-  _FakeScheduleViewModel(this._result);
-  final ScheduleResult _result;
-
-  @override
-  Future<ScheduleResult> build() async => _result;
 }
 
 /// scheduleViewModelProvider が永遠にロード中のままのスタブ

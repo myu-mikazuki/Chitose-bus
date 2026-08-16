@@ -10,6 +10,7 @@ import 'package:kagi_bus/presentation/viewmodels/stop_selection_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/fake_view_models.dart';
 import '../../helpers/test_theme.dart';
 
 // タブの骨格（_StopTab）を固定するための golden。単体の golden は
@@ -17,24 +18,6 @@ import '../../helpers/test_theme.dart';
 // 検知できなかった（#192、PR #189 で実際に 8px の余白変化を取りこぼした）。
 //
 // 骨格には SegmentedButton の有無で2通りある。両方を1枚ずつ押さえる。
-
-class _FakeScheduleViewModel extends ScheduleViewModel {
-  _FakeScheduleViewModel(this._result);
-
-  final ScheduleResult _result;
-
-  @override
-  Future<ScheduleResult> build() async => _result;
-}
-
-class _FakeStopSelectionNotifier extends StopSelectionNotifier {
-  _FakeStopSelectionNotifier(this._initial);
-
-  final StopSelection _initial;
-
-  @override
-  Future<StopSelection> build() async => _initial;
-}
 
 // kTestNow は 2024-06-17（月）09:00。すべて未来の便にして、どのタブでも
 // NEXT BUS が「次のバスなし」に落ちないようにする。過去便を混ぜると
@@ -91,9 +74,9 @@ Future<void> _pumpHomeScreen(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         scheduleViewModelProvider
-            .overrideWith(() => _FakeScheduleViewModel(_result)),
+            .overrideWith(() => FakeScheduleViewModel(_result)),
         stopSelectionProvider.overrideWith(
-            () => _FakeStopSelectionNotifier(StopSelection.initial)),
+            () => FakeStopSelectionNotifier(StopSelection.initial)),
         countdownOverride(),
         // 広告は golden の対象外。読み込み結果が環境で変わるうえ、テストには
         // プラグインの実装が無いため（#192）

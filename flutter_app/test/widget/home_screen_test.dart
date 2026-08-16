@@ -14,26 +14,14 @@ import 'package:kagi_bus/presentation/views/home_screen.dart';
 import 'package:kagi_bus/presentation/views/widgets/offline_cache_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/fake_view_models.dart';
 import '../helpers/test_theme.dart';
 
 // ---------------------------------------------------------------------------
 // Fake ViewModels
+//
+// FakeScheduleViewModel / FakeStopSelectionNotifier は helpers/ にある（#219）
 // ---------------------------------------------------------------------------
-
-class _FakeScheduleViewModel extends ScheduleViewModel {
-  _FakeScheduleViewModel(this._result);
-
-  final ScheduleResult _result;
-  bool refreshCalled = false;
-
-  @override
-  Future<ScheduleResult> build() async => _result;
-
-  @override
-  Future<void> refresh() async {
-    refreshCalled = true;
-  }
-}
 
 class _LoadingViewModel extends ScheduleViewModel {
   @override
@@ -108,18 +96,6 @@ class _RefreshableViewModel extends ScheduleViewModel {
   }
 
   void fail() => state = AsyncError(Exception('test error'), StackTrace.empty);
-}
-
-/// 選択を外から差し替えられる VM。設定画面での操作を再現する。
-/// 本物の select() は scheduleViewModelProvider を invalidate するため使わない。
-class _FakeStopSelectionNotifier extends StopSelectionNotifier {
-  _FakeStopSelectionNotifier(this._initial);
-  final StopSelection _initial;
-
-  @override
-  Future<StopSelection> build() async => _initial;
-
-  void set(StopSelection selection) => state = AsyncData(selection);
 }
 
 /// Error VM that also tracks refresh() calls.
@@ -265,7 +241,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider
-                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -413,7 +389,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(ScheduleResult(
+                () => FakeScheduleViewModel(ScheduleResult(
                   data: ScheduleResponse(
                     stopMaster: extendedMaster,
                     updatedAt: '2024-01-01',
@@ -422,7 +398,7 @@ void main() {
                 )),
               ),
               stopSelectionProvider.overrideWith(
-                () => _FakeStopSelectionNotifier(StopSelection(
+                () => FakeStopSelectionNotifier(StopSelection(
                   stopIds: extendedMaster
                       .take(StopSelection.maxStops)
                       .map((s) => s.id)
@@ -491,7 +467,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(
+                () => FakeScheduleViewModel(
                   ScheduleResult(
                     data: ScheduleResponse(
                       stopMaster:
@@ -520,7 +496,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(_mockResponseWithUpcoming)),
+                () => FakeScheduleViewModel(_mockResponseWithUpcoming)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -537,7 +513,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(_mockResponseWithUpcoming)),
+                () => FakeScheduleViewModel(_mockResponseWithUpcoming)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -552,7 +528,7 @@ void main() {
     });
 
     testWidgets('リフレッシュボタンタップ: refreshが呼ばれる', (tester) async {
-      final vm = _FakeScheduleViewModel(_mockResponse);
+      final vm = FakeScheduleViewModel(_mockResponse);
 
       await tester.pumpWidget(
         ProviderScope(
@@ -579,7 +555,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider
-                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
             countdownOverride(now: saturday),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -599,7 +575,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider
-                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -618,7 +594,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider
-                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -636,7 +612,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
             child:
@@ -654,7 +630,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
             child:
@@ -712,7 +688,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(result)),
+                  .overrideWith(() => FakeScheduleViewModel(result)),
               countdownOverride(),
             ],
             child:
@@ -742,7 +718,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
             child:
@@ -769,7 +745,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
@@ -790,7 +766,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
@@ -810,7 +786,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
@@ -833,7 +809,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
@@ -856,7 +832,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
@@ -882,7 +858,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
@@ -903,7 +879,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
@@ -965,7 +941,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
@@ -993,9 +969,9 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               stopSelectionProvider.overrideWith(
-                () => _FakeStopSelectionNotifier(
+                () => FakeStopSelectionNotifier(
                     const StopSelection(stopIds: ['honbuto', 'chitose'])),
               ),
               countdownOverride(),
@@ -1017,12 +993,12 @@ void main() {
       });
 
       testWidgets('停留所を足すとタブが増え、見ていた停留所のまま残る', (tester) async {
-        final selection = _FakeStopSelectionNotifier(StopSelection.initial);
+        final selection = FakeStopSelectionNotifier(StopSelection.initial);
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               stopSelectionProvider.overrideWith(() => selection),
               countdownOverride(),
             ],
@@ -1038,7 +1014,7 @@ void main() {
         expect(find.text('→ 本部棟'), findsOneWidget);
 
         // 設定で先頭に停留所を足す = index がずれる
-        selection.set(const StopSelection(stopIds: [
+        selection.setSelection(const StopSelection(stopIds: [
           'morimoto',
           'chitose',
           'minamiChitose',
@@ -1053,12 +1029,12 @@ void main() {
       });
 
       testWidgets('見ていた停留所が外されたら先頭のタブに戻る', (tester) async {
-        final selection = _FakeStopSelectionNotifier(StopSelection.initial);
+        final selection = FakeStopSelectionNotifier(StopSelection.initial);
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               stopSelectionProvider.overrideWith(() => selection),
               countdownOverride(),
             ],
@@ -1072,7 +1048,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('→ 本部棟'), findsOneWidget);
 
-        selection.set(const StopSelection(stopIds: ['chitose', 'honbuto']));
+        selection
+            .setSelection(const StopSelection(stopIds: ['chitose', 'honbuto']));
         await tester.pumpAndSettle();
 
         expect(find.byType(Tab), findsNWidgets(2));
@@ -1121,7 +1098,7 @@ void main() {
       Widget wrap(ScheduleResult result) => ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(result)),
+                  .overrideWith(() => FakeScheduleViewModel(result)),
               countdownOverride(),
             ],
             child:
@@ -1154,7 +1131,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(ScheduleResult(
+                () => FakeScheduleViewModel(ScheduleResult(
                   data: ScheduleResponse(
                     stopMaster: _stopMaster,
                     updatedAt: '2024-01-01',
@@ -1169,7 +1146,7 @@ void main() {
               ),
               stopSelectionProvider.overrideWith(
                 () =>
-                    _FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
+                    FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
               ),
               countdownOverride(),
             ],
@@ -1227,10 +1204,10 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(result)),
+                  .overrideWith(() => FakeScheduleViewModel(result)),
               if (stopIds != null)
                 stopSelectionProvider.overrideWith(
-                  () => _FakeStopSelectionNotifier(
+                  () => FakeStopSelectionNotifier(
                       StopSelection(stopIds: stopIds)),
                 ),
               countdownOverride(),
@@ -1267,12 +1244,12 @@ void main() {
       });
 
       testWidgets('「再試行」で取り直す', (tester) async {
-        final vm = _FakeScheduleViewModel(cachedCovering(['kenkyuto']));
+        final vm = FakeScheduleViewModel(cachedCovering(['kenkyuto']));
         await tester.pumpWidget(ProviderScope(
           overrides: [
             scheduleViewModelProvider.overrideWith(() => vm),
             stopSelectionProvider.overrideWith(
-              () => _FakeStopSelectionNotifier(
+              () => FakeStopSelectionNotifier(
                   const StopSelection(stopIds: ['kenkyuto', 'morimoto'])),
             ),
             countdownOverride(),
@@ -1313,7 +1290,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(cachedResult)),
+                  .overrideWith(() => FakeScheduleViewModel(cachedResult)),
               countdownOverride(),
             ],
             child:
@@ -1332,7 +1309,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
             child:
