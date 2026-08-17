@@ -596,46 +596,82 @@ function dayTypeForYmd(ymd) {
  *
  * 名称は大学配付物「美々空港線」に準拠する。
  *
- * shortLabel はタブなど幅の狭い場所で使う短縮名。**略称を勝手に作らないこと。**
- * アプリが以前から短い名前で表示していた4停留所にだけ付けてある。
+ * shortLabel はタブなど幅の狭い場所で使う短縮名。全停留所に付ける（#207）。
+ * 正式名（最長 143px）はタブに入らず、頭の1〜2文字しか出ないため。
+ *
+ * ラベルに使える幅は実測で **4タブ 45.8px・上限の5タブ 27.0px**（375px 端末で
+ * HomeScreen を実際に描画。#207）。**全角3字（33px）を目安**にすれば4タブで確実に
+ * 収まる。4字は上限ぎりぎりで（もりもと 44.2px / O･A入口 43.1px）、5タブでは
+ * どのみち1字＋… に切れる（#204）。
+ *
+ * issue #207 の「残り 27〜33px」は3字ラベル自体の幅であって、使える幅ではない。
+ * タブには3つの経路がある（中央＋星 → 横並び → 11px 縮小）うえ、labelPadding の
+ * 左右16px も引かれるので、幅は経路ごとに違う。
+ *
+ * **正式名に無い言葉を足さないこと。** 削るだけで作る:
+ *
+ * - 末尾の「前」「入口」「東口」などを落とす（アークス前 → アークス、
+ *   長都駅東口 → 長都駅）
+ * - 「N丁目」は地名＋N にする。地名が長ければそれも削る（朝日町4丁目 → 朝日4）
+ * - 区別に効かない頭を落とす（空港国内線28番 → 国内28）
+ * - 種別を表す語は頭だけ残すか落とす（勇舞中学校前 → 勇舞中、
+ *   古泉循環器内科クリニック前 → 古泉）
+ *
  * 出典の無い略称を発明すると、利用者が実際のバス停の表記と対応付けられなくなる。
+ * 例外は arcadia のみ（下記のコメント）。
+ *
+ * **31件で重複させないこと。** 同時に最大5停留所がタブに並ぶので、朝日4／朝日7 や
+ * 勇舞7／勇舞2／勇舞中 のように紛らわしい組ほど確実に別物として読める必要がある。
+ * **正式名と同じ短縮名にもしないこと**（削れないなら別の削り方を探す）。
+ * 全件必須・重複なし・正式名と別・全角4字以内は check_gas_response.js が見る。
+ *
+ * **短縮名はタブ以外にも出る。** アプリは labelOf（= shortLabel ?? label）を
+ * タブ・行き先の見出し・NEXT BUS カード・時刻表の「◯◯ 着」で共有している。
+ * 幅が足りているそれらの場所にも短縮名が出るので、**短縮名だけでどの停留所か
+ * 伝わるか**で選ぶこと。出し分けはアプリ側の作りを変える話になる（#208）。
  *
  * 千歳市の PDF を一次情報にしないこと。空17・空18 の表が画像で、
  * pdftotext で読めず目視に頼ることになる。実際に #159 で誤読した
  * （詳細は系統1復路のコメント）。
  */
 var STOPS = [
-  { id: 'osatsu', label: '長都駅東口' },
-  { id: 'arcs', label: 'アークス前' },
-  { id: 'isamai7', label: '勇舞7丁目' },
-  { id: 'isamaiPark', label: '勇舞公園前' },
-  { id: 'isamaiJhs', label: '勇舞中学校前' },
-  { id: 'isamai2', label: '勇舞2丁目' },
-  { id: 'alice', label: 'アリスこども園前' },
-  { id: 'hokuyoHs', label: '北陽高校前' },
-  { id: 'hokuyo3', label: '北陽3丁目' },
-  { id: 'hokko6', label: '北光6丁目' },
-  { id: 'fuji4', label: '富士4丁目' },
-  { id: 'shinano4', label: '信濃4丁目' },
-  { id: 'yao', label: '矢尾外科胃腸科前' },
-  { id: 'hoyukai', label: '千歳豊友会病院前' },
-  { id: 'hokuei2', label: '北栄2丁目' },
-  { id: 'aeon', label: 'イオン千歳店前' },
+  { id: 'osatsu', label: '長都駅東口', shortLabel: '長都駅' },
+  { id: 'arcs', label: 'アークス前', shortLabel: 'アークス' },
+  { id: 'isamai7', label: '勇舞7丁目', shortLabel: '勇舞7' },
+  { id: 'isamaiPark', label: '勇舞公園前', shortLabel: '勇舞公園' },
+  { id: 'isamaiJhs', label: '勇舞中学校前', shortLabel: '勇舞中' },
+  { id: 'isamai2', label: '勇舞2丁目', shortLabel: '勇舞2' },
+  { id: 'alice', label: 'アリスこども園前', shortLabel: 'アリス' },
+  { id: 'hokuyoHs', label: '北陽高校前', shortLabel: '北陽高' },
+  { id: 'hokuyo3', label: '北陽3丁目', shortLabel: '北陽3' },
+  { id: 'hokko6', label: '北光6丁目', shortLabel: '北光6' },
+  { id: 'fuji4', label: '富士4丁目', shortLabel: '富士4' },
+  { id: 'shinano4', label: '信濃4丁目', shortLabel: '信濃4' },
+  { id: 'yao', label: '矢尾外科胃腸科前', shortLabel: '矢尾' },
+  { id: 'hoyukai', label: '千歳豊友会病院前', shortLabel: '豊友会' },
+  { id: 'hokuei2', label: '北栄2丁目', shortLabel: '北栄2' },
+  { id: 'aeon', label: 'イオン千歳店前', shortLabel: 'イオン' },
   { id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅' },
-  { id: 'morimoto', label: 'もりもと本店前' },
-  { id: 'koizumi', label: '古泉循環器内科クリニック前' },
-  { id: 'shiyakusho', label: '市役所前' },
-  { id: 'asahicho4', label: '朝日町4丁目' },
-  { id: 'asahicho7', label: '朝日町7丁目' },
-  { id: 'arcadia', label: 'オフィス・アルカディア入口' },
+  { id: 'morimoto', label: 'もりもと本店前', shortLabel: 'もりもと' },
+  { id: 'koizumi', label: '古泉循環器内科クリニック前', shortLabel: '古泉' },
+  { id: 'shiyakusho', label: '市役所前', shortLabel: '市役所' },
+  { id: 'asahicho4', label: '朝日町4丁目', shortLabel: '朝日4' },
+  { id: 'asahicho7', label: '朝日町7丁目', shortLabel: '朝日7' },
+  // 「オフィス・アルカディア」は3字に縮めようがないため頭字語で受ける。
+  // 半角カナ（ｱﾙｶﾃﾞｨｱ）はここだけ表記が浮くので採らなかった。
+  //
+  // 中点が半角（U+FF65 ･）なのは実測の都合。全角の「・」（U+30FB）だと 49.1px で
+  // 4タブの 45.8px に入らず省略される（半角なら 43.6px）。**全角に直さないこと。**
+  { id: 'arcadia', label: 'オフィス・アルカディア入口', shortLabel: 'O･A入口' },
   { id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳' },
-  { id: 'airCargo', label: 'エアカーゴ前' },
-  { id: 'domestic28', label: '空港国内線28番' },
-  { id: 'domestic1', label: '空港国内線1番' },
-  { id: 'international85', label: '空港国際線85番' },
+  // 「エアカーゴ」だと4タブでも「エアカ…」に切れる（31件で唯一の省略だった）
+  { id: 'airCargo', label: 'エアカーゴ前', shortLabel: 'カーゴ' },
+  { id: 'domestic28', label: '空港国内線28番', shortLabel: '国内28' },
+  { id: 'domestic1', label: '空港国内線1番', shortLabel: '国内1' },
+  { id: 'international85', label: '空港国際線85番', shortLabel: '国際85' },
   { id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟' },
   { id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟' },
-  { id: 'rapidus', label: 'ラピダス前', boardable: false },
+  { id: 'rapidus', label: 'ラピダス前', shortLabel: 'ラピダス', boardable: false },
 ];
 
 /**
