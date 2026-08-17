@@ -131,6 +131,24 @@ function checkRouteData() {
     }
   }
 
+  // 短縮名が要るのは幅が足りないからなので、長さも見る。4タブでラベルに使える
+  // 幅は実測 45.8px（375px 端末、11px の縮小経路。#207）で、全角4字＝44px が
+  // 上限。ここを見ないと `shortLabel: '古泉循環器内科クリニック'` のような
+  // 「短くない短縮名」が通り、タブで省略されて元の問題に戻る。
+  //
+  // 半角は全角の約半分の幅なので 0.5 で数える（arcadia の O･A入口 は 3.5字）。
+  const widthOf = (s) => [...s].reduce(
+    (w, c) => w + (/[\x00-\x7F｡-ﾟ]/.test(c) ? 0.5 : 1), 0);
+  const MAX_WIDTH = 4;
+  for (const s of STOPS) {
+    if (!s.shortLabel) continue;
+    const w = widthOf(s.shortLabel);
+    if (w > MAX_WIDTH) {
+      console.log(`  FAIL ${s.id}: shortLabel が長い（${s.shortLabel} = 全角${w}字相当 > ${MAX_WIDTH}）`);
+      failures++;
+    }
+  }
+
   const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
   let trips = 0;
   let times = 0;
