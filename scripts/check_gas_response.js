@@ -104,19 +104,31 @@ function checkRouteData() {
   }
 
   // shortLabel はタブなど幅の狭い場所で使う短縮名。#177 以降、タブの文字列は
-  // GAS が唯一の供給元になり、アプリ側には比較対象が無い。増やすと利用者の
-  // 表示が黙って変わるので、集合を固定する。
+  // GAS が唯一の供給元になり、アプリ側には比較対象が無い。
   //
-  // 増やしたくなったら「その略称の出典は何か」を先に確かめること。
+  // #207 より前は「4停留所だけが持つ」と集合を固定していた。全件に付けたので
+  // 固定はやめ、代わりに**全件あること**と**重複が無いこと**を見る。
+  // 抜けると正式名がそのままタブに出て頭の1〜2文字しか読めなくなり（#207 の発端）、
+  // 重複すると最大5件並ぶタブで別の停留所が同じ名前になる。
+  //
+  // 足すときは「正式名から削って作る」こと（gas/Code.gs の STOPS のコメント）。
   // 出典の無い略称を発明すると、利用者が実際のバス停の表記と対応付けられなくなる。
-  const SHORT_LABEL_STOPS = ['chitose', 'minamiChitose', 'kenkyuto', 'honbuto'];
-  const actualShort = STOPS.filter((s) => s.shortLabel).map((s) => s.id).sort();
-  const expectedShort = [...SHORT_LABEL_STOPS].sort();
-  if (actualShort.join('|') !== expectedShort.join('|')) {
-    console.log(`  FAIL shortLabel を持つ停留所の集合が変わっている`);
-    console.log(`         これまで: ${expectedShort.join(' / ')}`);
-    console.log(`         現在    : ${actualShort.join(' / ') || '(なし)'}`);
+  const noShort = STOPS.filter((s) => !s.shortLabel).map((s) => s.id);
+  if (noShort.length) {
+    console.log(`  FAIL shortLabel が無い停留所: ${noShort.join(' / ')}`);
     failures++;
+  }
+  const byShort = new Map();
+  for (const s of STOPS) {
+    if (!s.shortLabel) continue;
+    if (!byShort.has(s.shortLabel)) byShort.set(s.shortLabel, []);
+    byShort.get(s.shortLabel).push(s.id);
+  }
+  for (const [short, dupes] of byShort) {
+    if (dupes.length > 1) {
+      console.log(`  FAIL shortLabel の重複: ${short} (${dupes.join(' / ')})`);
+      failures++;
+    }
   }
 
   const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
