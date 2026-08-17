@@ -702,6 +702,62 @@ class _StopHasNoBus extends StatelessWidget {
   }
 }
 
+/// 節の見出し（`NEXT BUS` `TODAY'S SCHEDULE` `SCHEDULE`）の文字。
+TextStyle _sectionTitleStyle(BuildContext context) => TextStyle(
+      color: context.appColors.textTertiary,
+      fontSize: 12,
+      letterSpacing: 3,
+    );
+
+/// 節の見出しと、いま見ている停留所の**正式名**を1行に並べる（#208）。
+///
+/// タブは短縮名（#207）でもさらに省略される。375px・上限の5タブではラベルに
+/// 27px しか残らず、どれも1字＋`…` に切れるため、**タブだけでは見ている停留所を
+/// 確定できない**。ここは幅が足りるので、`labelOf`（= `shortLabel ?? label`）では
+/// なく [BusStopLookup.officialLabelOf] を引く。
+///
+/// **見出しと同じ行に置く。** 独立した1行にすると縦が 35px 増え、短い画面
+/// （800x600）で `_StopTab` の Column が溢れる。この画面は NEXT BUS のサイズが
+/// そのまま下を押す作りで縦の余裕がほとんど無い（#124）ため、行を増やさずに済む
+/// 置き方を採る。
+///
+/// 使うのは**一番上の見出しだけ**。同じ停留所を2度書いても情報は増えない。
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, required this.boardingLabel});
+
+  final String title;
+
+  /// 乗車地の正式名。`◯◯ 発` の形で出す
+  final String boardingLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(title, style: _sectionTitleStyle(context)),
+        const SizedBox(width: 12),
+        // 375px なら実データで最も長い名前（オフィス・アルカディア入口）まで
+        // 収まる。文字を大きくする設定や、より狭い画面のための ellipsis
+        Expanded(
+          child: Text(
+            '$boardingLabel 発',
+            textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+            style: TextStyle(
+              color: context.appColors.textPrimary,
+              fontSize: 14,
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// 停留所名が届くまでタブに置くもの。
 class _StopLabelPlaceholder extends StatelessWidget {
   const _StopLabelPlaceholder();
@@ -905,11 +961,11 @@ class _StopTabState extends State<_StopTab> {
             children: [
               // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
               if (widget.dayType == null) ...[
-                Text('NEXT BUS',
-                    style: TextStyle(
-                        color: context.appColors.textTertiary,
-                        fontSize: 12,
-                        letterSpacing: 3)),
+                _SectionHeader(
+                  title: 'NEXT BUS',
+                  boardingLabel:
+                      widget.stopMaster.officialLabelOf(widget.stopId),
+                ),
                 const SizedBox(height: 8),
                 // IndexedStack で両方向の NextBusDisplay を常時保持し、
                 // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
@@ -932,12 +988,16 @@ class _StopTabState extends State<_StopTab> {
                   ),
                 ),
                 const SizedBox(height: 24),
-              ],
-              Text(widget.dayType == null ? "TODAY'S SCHEDULE" : 'SCHEDULE',
-                  style: TextStyle(
-                      color: context.appColors.textTertiary,
-                      fontSize: 12,
-                      letterSpacing: 3)),
+                // 乗車地は上の NEXT BUS 側に出ているので、ここでは繰り返さない
+                Text("TODAY'S SCHEDULE", style: _sectionTitleStyle(context)),
+              ] else
+                // 当日以外のダイヤ表示では NEXT BUS ごと消える。一番上の見出しは
+                // こちらになるので、乗車地はここに乗せる
+                _SectionHeader(
+                  title: 'SCHEDULE',
+                  boardingLabel:
+                      widget.stopMaster.officialLabelOf(widget.stopId),
+                ),
               const SizedBox(height: 8),
             ],
           ),

@@ -589,6 +589,107 @@ void main() {
       expect(find.textContaining('有効期間'), findsNothing);
     });
 
+    /// 本文に出す「いま見ている停留所」（#208）。
+    ///
+    /// タブは短縮名（#207）でもさらに省略される（375px・5タブでラベルに残るのは
+    /// 27px）。**タブが短くなるほど本文の正式名が要る**ので、タブと本文で
+    /// 違う名前が出ていること自体がこの群の主題。
+    group('いま見ている停留所の名前', () {
+      Future<void> pump(WidgetTester tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+      }
+
+      testWidgets('本文には正式名を出す（タブは短縮名のまま）', (tester) async {
+        await pump(tester);
+
+        // 本文は正式名。短縮名だけでは指す停留所が曖昧になる
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+        // タブは短縮名のまま。ここを正式名にすると幅が足りない
+        expect(
+          find.descendant(
+            of: find.byType(TabBar),
+            matching: find.text('千歳駅'),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('タブを切り替えると追随する', (tester) async {
+        await pump(tester);
+
+        await tester.tap(find.descendant(
+          of: find.byType(TabBar),
+          matching: find.text('研究棟'),
+        ));
+        await tester.pumpAndSettle();
+
+        expect(find.text('科技大研究棟 発'), findsOneWidget);
+        expect(find.text('千歳駅前 発'), findsNothing);
+      });
+
+      testWidgets('当日以外のダイヤ表示でも残る（NEXT BUS ごと消さない）', (tester) async {
+        await pump(tester);
+
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+
+        // NEXT BUS は消えるが、タブが省略されるのは同じなので名前は要る
+        expect(find.text('NEXT BUS'), findsNothing);
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+      });
+
+      testWidgets('狭い端末でも見出しと同じ行に収まる', (tester) async {
+        // iPhone SE 相当。見出し（NEXT BUS）と同居させているので、名前が
+        // 伸びると行が溢れる。overflow はテストが失敗として拾う
+        tester.view.physicalSize = const Size(750, 1334);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await pump(tester);
+
+        expect(find.text('NEXT BUS'), findsOneWidget);
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+      });
+
+      testWidgets('stopMaster に無い停留所は ID のまま出す', (tester) async {
+        // 取得はできているのに引けない = GAS から消えた停留所。
+        // 本文だけ空白にすると、どこの時刻表かが分からなくなる
+        final result = ScheduleResult(
+          data: ScheduleResponse(
+            stopMaster: const [],
+            updatedAt: '2024-01-01',
+            current: _emptyTimetable,
+          ),
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => FakeScheduleViewModel(result)),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('chitose 発'), findsOneWidget);
+      });
+    });
+
     group('当日以外のダイヤ表示', () {
       testWidgets('表示モード切替アイコンが表示される', (tester) async {
         await tester.pumpWidget(

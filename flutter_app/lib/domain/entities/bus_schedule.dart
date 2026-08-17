@@ -368,6 +368,13 @@ extension BusStopLookup on List<BusStop> {
   /// null を返して呼び出し側で埋めさせると、対応表を持っていた頃と同じ
   /// `null 着` を作り込むことになる。
   String labelOf(String id) => byId(id)?.displayLabel ?? id;
+
+  /// [id] の正式名。短縮名があっても**そちらを使わない**。
+  ///
+  /// 幅の足りる場所で「どの停留所か」を確定させるためのもの。タブは短縮名でも
+  /// さらに省略されるので（5タブで1字＋`…`）、そこだけでは停留所を特定できない
+  /// （#208）。引けなければ [labelOf] と同じく ID をそのまま返す。
+  String officialLabelOf(String id) => byId(id)?.label ?? id;
 }
 
 class ScheduleResponse {
