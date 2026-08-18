@@ -12,8 +12,9 @@
 |----|-------|------|------|
 | — | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（タブに出す） | **develop 済み**・v1.3.1 で出す |
 | — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
-| 1 | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | 次 |
-| 2 | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | #231 の後 |
+| — | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | **develop 済み**・v1.3.1 で出す |
+| 1 | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | 次 |
+| 2 | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | #234 の後 |
 | 3 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
 | 4 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
 | 5 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
@@ -37,6 +38,18 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
   → `古泉 着`）
 
 **#231 → #234 の順で入れること。** #234 は名前を長くするので、先に入れると #231 が悪化する。
+**#231 は develop 済み**（2026-08-18・PR #236）。
+
+- **[#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237)** — 拡大設定（`TextScaler`）を見るテストが1件も無い。
+  #231 を**字を小さくして**直したが、倍率が同じなら同じように溢れるので拡大設定には効かない。
+  PR #236 のレビュー指摘から切った
+
+**#234 → #237 の順で入れる。** #237 を先に置いても新しい情報は出ない
+（到着行が縮まないことは issue の時点で分かっている）うえ、直後に #234 が
+同じ行を触るので、**#234 が置いたばかりのテストを赤にする**。#237 の issue 本文も
+「#234 で到着行を共通化するならそこで一度に決められる」と #234 に譲っている。
+#237 は `flutter_app/test` を触るので main への直行はできないが、
+**v1.3.1 を止めるものではない**（検知までで、直しは別 issue に切る）。
 
 **[#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) だけ期限がある。** iOS の最低要件が 14.0 のままで、
 **2027年春以降は App Store Connect へのアップロード・申請ができなくなる**
@@ -94,7 +107,14 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 **入れる順序**: #231 → #234。#234 は到着地の名前を長くする（`古泉 着` →
 `古泉循環器内科クリニック前 着`）ので、先に入れると #231 が悪化する。
 
-**#207 / #208 は develop 済み**（PR #230 / #232）。#231 / #234 が残り。
+**#207 / #208 / #231 は develop 済み**（PR #230 / #232 / #236）。#234 が残り（作業中）。
+
+**#234 の判断**: 到着行は **NEXT BUS カードと時刻表リストの両方**を正式名にする。
+同じ便の到着地が画面の2箇所で違う名前になるのを避けるため。**既定の4停留所の
+見え方も変わる**（`本部棟 着` → `科技大本部棟 着`）ことを承知で受け入れる。
+行き先（`destinationLabelOf` の `→ 本部棟`）と見出しの `terminusLabel` は
+**短縮名のまま**（issue の表で別途判断としているもの）。`Flexible` + ellipsis の
+防御は入れず、**拡大設定で実際にどこが壊れるかを #237 で見てから決める**。
 
 **#207 / #208 の2件で1つの解**。どちらも v1.3.0 の #177 / #204 が作った穴を塞ぐが、**役割が違う**。
 乗車地を選べるようにしたものの、`shortLabel` を持つのは既定の4停留所だけで、

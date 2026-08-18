@@ -246,6 +246,14 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
     );
   }
 
+  /// 到着行。**NEXT BUS カード（`next_bus_display.dart`）と同じものを出す。**
+  ///
+  /// 降りる停留所を確かめる場所なので、短縮名ではなく正式名を引く（#234）。
+  /// 同じ便の到着地が画面の2箇所で違う名前になるのを避けるため、あちらと
+  /// 揃えている。字の大きさ（12px / 14px）も同じ。
+  ///
+  /// この行は左に 8px ぶん寄っているのでカードより狭い。**最長の13文字が
+  /// 375px で収まることは `long_stop_names_test.dart` で見ている。**
   List<Widget> _buildArrivalRows() {
     final colors = context.appColors;
     final order = widget.bus.arrivals.keys.toList();
@@ -256,7 +264,7 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${widget.stopMaster.labelOf(key)} 着',
+                    '${widget.stopMaster.officialLabelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 12,

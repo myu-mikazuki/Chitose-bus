@@ -289,7 +289,7 @@ void main() {
             stopId: 'chitose')),
       );
 
-      expect(find.text('研究棟 着'), findsOneWidget);
+      expect(find.text('科技大研究棟 着'), findsOneWidget);
       // arrivalTime may equal busTime when both are capped at 23:58 (late-night run),
       // so use findsAtLeastNWidgets(1) instead of findsOneWidget.
       expect(find.text(arrivalTime), findsAtLeastNWidgets(1));

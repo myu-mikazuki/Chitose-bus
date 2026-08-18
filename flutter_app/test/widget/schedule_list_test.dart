@@ -235,13 +235,13 @@ void main() {
       );
 
       // タップ前は到着情報が非表示
-      expect(find.text('研究棟 着'), findsNothing);
+      expect(find.text('科技大研究棟 着'), findsNothing);
 
       await tester.tap(find.text(busTime));
       await tester.pump();
 
       // タップ後は到着情報が表示
-      expect(find.text('研究棟 着'), findsOneWidget);
+      expect(find.text('科技大研究棟 着'), findsOneWidget);
       expect(find.text(arrivalTime), findsAtLeastNWidgets(1));
     });
 
@@ -271,12 +271,12 @@ void main() {
       // 1回目タップ → 展開
       await tester.tap(find.text(busTime));
       await tester.pump();
-      expect(find.text('研究棟 着'), findsOneWidget);
+      expect(find.text('科技大研究棟 着'), findsOneWidget);
 
       // 2回目タップ → 折りたたみ
       await tester.tap(find.text(busTime));
       await tester.pump();
-      expect(find.text('研究棟 着'), findsNothing);
+      expect(find.text('科技大研究棟 着'), findsNothing);
     });
 
     group('ベルアイコン', () {
@@ -511,7 +511,7 @@ void main() {
       await tester.tap(find.text(busTime));
       await tester.pump();
 
-      expect(find.text('研究棟 着'), findsNothing);
+      expect(find.text('科技大研究棟 着'), findsNothing);
     });
 
     group('講時タグ', () {
