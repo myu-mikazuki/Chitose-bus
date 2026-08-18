@@ -13,8 +13,8 @@
 | — | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（タブに出す） | **develop 済み**・v1.3.1 で出す |
 | — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
 | — | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | **develop 済み**・v1.3.1 で出す |
-| 1 | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | 次 |
-| 2 | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | #234 の後 |
+| — | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
+| 1 | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | 次 |
 | 3 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
 | 4 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
 | 5 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
@@ -75,6 +75,8 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 | [#223](https://github.com/myu-mikazuki/Chitose-bus/issues/223) | 残っていたスタブを helpers へ寄せる | #225 |
 | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける | #230 |
 | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | 見出しにいま見ている停留所の正式名を出す | #232 |
+| [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | #236 |
+| [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | 到着行に正式名を出す | #238 |
 
 - **#195** — PR #217 は base が `chore/issue-195-format` になっていたため閉じ、
   #221 で develop に直接入れ直した。経路が変わっただけで中身は同じ
@@ -86,6 +88,9 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
   タブは正式名のまま残る（元の問題がそのまま）
 - **#208** — 置き場所は issue の図（独立した1行）ではなく**見出しと同じ行**にした。
   独立行は縦が 35px 増え、短い画面で `_StopTab` が溢れるため（#124）
+- **#234** — 時刻表リストの到着行も揃えた。行き先（`destinationLabelOf`）と
+  タブは短縮名のまま。**既定の4停留所の見え方が変わる**（`本部棟 着` →
+  `科技大本部棟 着`）
 
 ---
 
@@ -107,7 +112,7 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 **入れる順序**: #231 → #234。#234 は到着地の名前を長くする（`古泉 着` →
 `古泉循環器内科クリニック前 着`）ので、先に入れると #231 が悪化する。
 
-**#207 / #208 / #231 は develop 済み**（PR #230 / #232 / #236）。#234 が残り（作業中）。
+**4件とも develop 済み**（PR #230 / #232 / #236 / #238）。v1.3.1 の範囲はこれで揃った。
 
 **#234 の判断**: 到着行は **NEXT BUS カードと時刻表リストの両方**を正式名にする。
 同じ便の到着地が画面の2箇所で違う名前になるのを避けるため。**既定の4停留所の
