@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-08-17
+最終更新: 2026-08-18
 
 ---
 
@@ -10,19 +10,39 @@
 
 | 順 | Issue | 内容 | 状態 |
 |----|-------|------|------|
-| — | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（タブに出す） | **v1.3.1 で出す** |
-| — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **v1.3.1 で出す** |
-| 1 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
-| 2 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 3 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
-| 4 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| — | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（タブに出す） | **develop 済み**・v1.3.1 で出す |
+| — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
+| 1 | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | 次 |
+| 2 | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | #231 の後 |
+| 3 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
+| 4 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
+| 5 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
+| 6 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| 7 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
 
 **v1.3.0 はリリース済み**（2026-08-16・審査提出済み）。次は **v1.3.1** で、
-#177 が作った「タブの名前が読みにくい」問題を潰す2件を出す。**タブに短縮名、
+#177 が長い停留所名を画面に出せるようにした結果できた穴を、4件まとめて塞ぐ。**タブに短縮名、
 NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 #146（臨時便）は応答に便を追加するため、旧アプリへの影響を確認する必要がある。
 
-**着手中のものは無い**（2026-08-17 時点でオープンな PR は無し）。次に触るのは #207 / #208。
+**#207 / #208 は develop にマージ済み**（2026-08-18・PR #230 / #232）。
+
+そこから派生して2件を切り、**どちらも v1.3.1 に入れることにした**。
+**#208 の作業中に見つかったもので、順番に依存がある。**
+
+- **[#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231)** — NEXT BUS の到着行が 375px で 10px はみ出す。#177 で長い停留所名が
+  出るようになって以来の既存バグ。既存の幅テストがカード自体を描いておらず素通りしていた
+- **[#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234)** — 到着行を短縮名から正式名に戻す。#207 で31件すべてに `shortLabel` が
+  付いた結果、**幅が足りている到着行にまで短縮名が及んだ**（`古泉循環器内科クリニック前 着`
+  → `古泉 着`）
+
+**#231 → #234 の順で入れること。** #234 は名前を長くするので、先に入れると #231 が悪化する。
+
+**[#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) だけ期限がある。** iOS の最低要件が 14.0 のままで、
+**2027年春以降は App Store Connect へのアップロード・申請ができなくなる**
+（ITMS-90068）。いまは警告だけで通るので順序は最後にしてあるが、**期限を過ぎると
+リリース経路そのものが止まる**ので、それまでのどこかのリリースに必ず載せる。
+アプリのコードには触れないが、ビルド設定の変更なのでリリースとして出す必要がある。
 
 ---
 
@@ -40,12 +60,19 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 | [#219](https://github.com/myu-mikazuki/Chitose-bus/issues/219) | Fake ViewModel を `test/helpers` へ寄せる | #222 |
 | [#220](https://github.com/myu-mikazuki/Chitose-bus/issues/220) | タブの残り2状態（便が無い / 未取得）に golden を足す | #224 |
 | [#223](https://github.com/myu-mikazuki/Chitose-bus/issues/223) | 残っていたスタブを helpers へ寄せる | #225 |
+| [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける | #230 |
+| [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | 見出しにいま見ている停留所の正式名を出す | #232 |
 
 - **#195** — PR #217 は base が `chore/issue-195-format` になっていたため閉じ、
   #221 で develop に直接入れ直した。経路が変わっただけで中身は同じ
 - **#168** — 直ったのは**リポジトリの `appsscript.json` だけ**で、本番 GAS への反映は
   リリース時。下の「判断の指針」にある dev デプロイの手作業運用はまだ続く
 - **#214** — 「リリース作業に入る前に直しておく」ものだったので、v1.3.1 の準備はこれで済んだ
+- **#207** — **リポジトリの `gas/Code.gs` が直っただけで、本番 GAS は未デプロイ。**
+  v1.3.1 のリリース手順に本番デプロイを必ず入れること。忘れるとアプリ側だけ出て、
+  タブは正式名のまま残る（元の問題がそのまま）
+- **#208** — 置き場所は issue の図（独立した1行）ではなく**見出しと同じ行**にした。
+  独立行は縦が 35px 増え、短い画面で `_StopTab` が溢れるため（#124）
 
 ---
 
@@ -57,8 +84,19 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 |-------|------|
 | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（**タブに出す**） |
 | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す |
+| [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す |
+| [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す |
 
-**2件で1つの解**。どちらも v1.3.0 の #177 / #204 が作った穴を塞ぐが、**役割が違う**。
+**4件とも同じ穴を塞ぐ。** #207 / #208 は「どの停留所を見ているか」、
+#231 / #234 は「どこで降りるか」で、どちらも **v1.3.0 の #177 が長い停留所名を
+画面に出せるようにした結果**として出てきた。名前まわりをまとめて片付ける。
+
+**入れる順序**: #231 → #234。#234 は到着地の名前を長くする（`古泉 着` →
+`古泉循環器内科クリニック前 着`）ので、先に入れると #231 が悪化する。
+
+**#207 / #208 は develop 済み**（PR #230 / #232）。#231 / #234 が残り。
+
+**#207 / #208 の2件で1つの解**。どちらも v1.3.0 の #177 / #204 が作った穴を塞ぐが、**役割が違う**。
 乗車地を選べるようにしたものの、`shortLabel` を持つのは既定の4停留所だけで、
 新しく選べる停留所ほど正式名が長い（「古泉循環器内科クリニック前」など）。上限 5 まで
 使うほどタブのラベルは読みにくくなる。v1.3.0 のリリースノートにも既知の問題として
