@@ -70,7 +70,19 @@ class _NextBusCard extends StatelessWidget {
   final DateTime now;
   final List<BusStop> stopMaster;
 
-  /// 到着行。**時刻表リスト（`schedule_list.dart`）と同じ字の大きさにする。**
+  /// 到着行。**降りる停留所を確かめる場所なので正式名を出す**（#234）。
+  /// 字の大きさは**時刻表リスト（`schedule_list.dart`）と揃える**（#231）。
+  ///
+  /// `labelOf`（= `shortLabel ?? label`）はタブの幅が無いために作った短縮名を
+  /// 返す。#207 で31件すべてに `shortLabel` が付いた結果、**幅が足りている
+  /// この行にまで短縮名が及んでいた**（`古泉循環器内科クリニック前 着` →
+  /// `古泉 着`）。短縮名は現地の停留所の表記とは別物なので、ここで突き合わせ
+  /// られない。**既定の4停留所の見え方も変わる**（`本部棟 着` →
+  /// `科技大本部棟 着`）が、それを承知で正式名に寄せている。
+  ///
+  /// 正式名は最長でも13文字（`古泉循環器内科クリニック前` /
+  /// `オフィス・アルカディア入口`）で、下の幅の実測はその13文字で採ってある。
+  /// **短縮名から正式名に変えても最長は伸びない。**
   ///
   /// 名前 13px / 時刻 18px では、短縮名を持たない停留所名（`オフィス・
   /// アルカディア入口 着`）が 375px で **10px はみ出していた**（#231）。
@@ -90,7 +102,7 @@ class _NextBusCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${stopMaster.labelOf(key)} 着',
+                    '${stopMaster.officialLabelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 12,

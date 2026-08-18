@@ -7,6 +7,7 @@ import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/stop_selection_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
+import 'package:kagi_bus/presentation/views/widgets/schedule_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_theme.dart';
@@ -77,6 +78,22 @@ const _result = ScheduleResult(
   ),
 );
 
+/// 時刻表リストの行を開く。
+///
+/// **`find.text('09:00').first` では開かない。** NEXT BUS カードが同じ時刻を
+/// 出しているため、そちらを叩いてしまう。リスト側を名指しする。
+Future<void> _expandScheduleRow(WidgetTester tester) async {
+  final row = find.descendant(
+    of: find.byType(ScheduleList),
+    matching: find.text('09:00'),
+  );
+  // 狭い幅では行が画面外にあり、そのまま叩くと外れる
+  await tester.ensureVisible(row);
+  await tester.pumpAndSettle();
+  await tester.tap(row);
+  await tester.pumpAndSettle();
+}
+
 Widget _wrap(List<String> stopIds) => ProviderScope(
       overrides: [
         scheduleViewModelProvider
@@ -108,7 +125,7 @@ void main() {
 
     // #231。到着行は `spaceBetween` に素の Text を2つ並べるだけなので、
     // 名前が伸びると縮まずに溢れる。**幅の主張はここでしかできない**
-    // （既定の4停留所は短縮名が短く、溢れる長さにならない）。
+    // （既定の4停留所は正式名でも6文字までで、溢れる長さにならない）。
     //
     // 「タブが overflow しない（狭い端末）」では拾えなかった。あちらは
     // 停留所を4つ選ぶため `_retuneTabs` が既定の先頭 `chitose` を追いかけ、
@@ -124,7 +141,8 @@ void main() {
     //
     // 名前側を `Flexible` + ellipsis にすれば「切れるが溢れない」形にできるが、
     // #208 で「見出しの停留所名は削らずに正式名を出す」と決めた直後に到着行を
-    // 省略し始めると噛み合わないため見送っている（PR #236）。
+    // 省略し始めると噛み合わないため見送っている（PR #236）。**拡大設定で
+    // どこが壊れるかを先に可視化してから決める**（#237）。
     for (final width in [375.0, 360.0]) {
       testWidgets('NEXT BUS の到着行が overflow しない（幅 $width・#231）', (tester) async {
         tester.view.physicalSize = Size(width * 2, 1334);
@@ -135,8 +153,26 @@ void main() {
         await tester.pumpWidget(_wrap(['koizumi']));
         await tester.pumpAndSettle();
 
-        // 短縮名を持たない到着地。overflow はテストが失敗として拾う
+        // 実データの最長13文字。overflow はテストが失敗として拾う
         expect(find.text('オフィス・アルカディア入口 着'), findsOneWidget);
+      });
+
+      // #234 で時刻表リストの到着行も正式名にしたため、こちらにも最長の名前が
+      // 出るようになった。**カードより 8px 狭い**（`left: 8` の分）ので、
+      // カードが通っても自動では通らない。
+      testWidgets('時刻表リストの到着行が overflow しない（幅 $width・#234）', (tester) async {
+        tester.view.physicalSize = Size(width * 2, 1334);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(_wrap(['koizumi']));
+        await tester.pumpAndSettle();
+
+        await _expandScheduleRow(tester);
+
+        // カードとリストの2箇所に出る
+        expect(find.text('オフィス・アルカディア入口 着'), findsNWidgets(2));
       });
     }
 
@@ -166,13 +202,34 @@ void main() {
       expect(find.text('千歳豊友会病院前 着'), findsWidgets);
     });
 
-    testWidgets('短縮名があればそちらを出す（既定の4停留所の見え方は不変）', (tester) async {
+    // #234 で意図を反転させた。以前は「短縮名があればそちらを出す（既定の4
+    // 停留所の見え方は不変）」を固定していた。
+    //
+    // #207 で31件すべてに `shortLabel` が付いたことで、**幅が足りている到着行に
+    // まで短縮名が及んだ**（`古泉循環器内科クリニック前 着` → `古泉 着`）。
+    // 短縮名はタブで見分けがつくことだけを狙って削ってあり、現地の停留所の
+    // 表記とは別物なので、降りる場所を確かめる行には使わない。
+    //
+    // **既定の4停留所の見え方が変わることを承知で受け入れている**
+    // （`本部棟 着` → `科技大本部棟 着`）。
+    testWidgets('到着行は短縮名があっても正式名を出す（#234）', (tester) async {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();
 
-      // 科技大本部棟 ではなく 本部棟
-      expect(find.text('本部棟 着'), findsOneWidget);
-      expect(find.text('科技大本部棟 着'), findsNothing);
+      // 本部棟 ではなく 科技大本部棟
+      expect(find.text('科技大本部棟 着'), findsOneWidget);
+      expect(find.text('本部棟 着'), findsNothing);
+    });
+
+    testWidgets('時刻表リストの到着行も正式名を出す（#234）', (tester) async {
+      await tester.pumpWidget(_wrap(['koizumi']));
+      await tester.pumpAndSettle();
+
+      await _expandScheduleRow(tester);
+
+      // NEXT BUS カードと時刻表リストで同じ便の到着地が違う名前にならないこと
+      expect(find.text('科技大本部棟 着'), findsNWidgets(2));
+      expect(find.text('本部棟 着'), findsNothing);
     });
 
     testWidgets('stopMaster に無い ID は ID をそのまま出す', (tester) async {
