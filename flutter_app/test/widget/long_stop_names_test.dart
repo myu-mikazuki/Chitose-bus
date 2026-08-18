@@ -10,6 +10,7 @@ import 'package:kagi_bus/presentation/views/home_screen.dart';
 import 'package:kagi_bus/presentation/views/widgets/schedule_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/fake_view_models.dart';
 import '../helpers/test_theme.dart';
 
 /// 既定の4停留所の外を選んだときの表示を守る（#177）。
@@ -19,25 +20,6 @@ import '../helpers/test_theme.dart';
 ///
 /// overflow はテストが自動で失敗として拾うので、「例外なく pump できること」
 /// 自体が検査になっている。
-
-class _FakeScheduleViewModel extends ScheduleViewModel {
-  _FakeScheduleViewModel(this._result);
-  final ScheduleResult _result;
-
-  @override
-  Future<ScheduleResult> build() async => _result;
-
-  @override
-  Future<void> refresh() async {}
-}
-
-class _FakeStopSelectionNotifier extends StopSelectionNotifier {
-  _FakeStopSelectionNotifier(this._initial);
-  final StopSelection _initial;
-
-  @override
-  Future<StopSelection> build() async => _initial;
-}
 
 /// 停留所名の fixture は `test/helpers/test_theme.dart` の [kLongStopMaster]。
 /// **`text_scaler_test.dart` と共有している**ので、実データが伸びたときに
@@ -85,9 +67,9 @@ Future<void> _expandScheduleRow(WidgetTester tester) async {
 Widget _wrap(List<String> stopIds) => ProviderScope(
       overrides: [
         scheduleViewModelProvider
-            .overrideWith(() => _FakeScheduleViewModel(_result)),
+            .overrideWith(() => FakeScheduleViewModel(_result)),
         stopSelectionProvider.overrideWith(
-          () => _FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
+          () => FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
         ),
         // 2024-01-01 は年末年始（12/31〜1/3）で全便運休になり、便が1つも出ない
         countdownOverride(now: DateTime(2024, 6, 17, 8, 0)),
@@ -259,9 +241,9 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           scheduleViewModelProvider
-              .overrideWith(() => _FakeScheduleViewModel(result)),
+              .overrideWith(() => FakeScheduleViewModel(result)),
           stopSelectionProvider.overrideWith(
-            () => _FakeStopSelectionNotifier(
+            () => FakeStopSelectionNotifier(
                 const StopSelection(stopIds: ['koizumi'])),
           ),
           countdownOverride(now: DateTime(2024, 6, 17, 8, 0)),
