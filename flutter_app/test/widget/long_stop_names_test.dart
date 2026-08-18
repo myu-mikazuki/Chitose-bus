@@ -38,7 +38,12 @@ class _FakeStopSelectionNotifier extends StopSelectionNotifier {
   Future<StopSelection> build() async => _initial;
 }
 
-/// 実データで最も長い部類の停留所名。短縮名を持たない
+/// 実データで最も長い部類の停留所名。短縮名を持たない。
+///
+/// **幅のテストはこの fixture が実データの最長に追随している前提で立っている。**
+/// いまの最長は13文字（`オフィス・アルカディア入口` / `古泉循環器内科クリニック前`）。
+/// GAS の `stopMaster` にこれより長い名前が入ると、**テストは緑のまま本番だけ
+/// 壊れる**ので、停留所が増えたらここも見直すこと（#231 / PR #236 のレビュー指摘）。
 const _master = [
   BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
   BusStop(id: 'koizumi', label: '古泉循環器内科クリニック前'),
@@ -109,6 +114,17 @@ void main() {
     // 停留所を4つ選ぶため `_retuneTabs` が既定の先頭 `chitose` を追いかけ、
     // その停留所を発つ便が無いので `_StopHasNoBus` が出てカード自体が
     // 描かれない。1停留所だけ選ばせるとカードに辿り着く。
+    //
+    // **この2幅までしか守れていない（既知）。** 直し方が「字を小さくする」
+    // なので構造的な保証ではなく、次の2つは依然として溢れる:
+    //
+    // - **320px 級の端末**（iPhone SE 第1世代など）
+    // - **文字を大きくする設定**（`TextScaler`）。比率が変わらないので
+    //   字を小さくしても同じ倍率で同じように溢れる
+    //
+    // 名前側を `Flexible` + ellipsis にすれば「切れるが溢れない」形にできるが、
+    // #208 で「見出しの停留所名は削らずに正式名を出す」と決めた直後に到着行を
+    // 省略し始めると噛み合わないため見送っている（PR #236）。
     for (final width in [375.0, 360.0]) {
       testWidgets('NEXT BUS の到着行が overflow しない（幅 $width・#231）', (tester) async {
         tester.view.physicalSize = Size(width * 2, 1334);
