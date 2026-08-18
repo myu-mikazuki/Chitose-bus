@@ -101,6 +101,29 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    // #231。到着行は `spaceBetween` に素の Text を2つ並べるだけなので、
+    // 名前が伸びると縮まずに溢れる。**幅の主張はここでしかできない**
+    // （既定の4停留所は短縮名が短く、溢れる長さにならない）。
+    //
+    // 「タブが overflow しない（狭い端末）」では拾えなかった。あちらは
+    // 停留所を4つ選ぶため `_retuneTabs` が既定の先頭 `chitose` を追いかけ、
+    // その停留所を発つ便が無いので `_StopHasNoBus` が出てカード自体が
+    // 描かれない。1停留所だけ選ばせるとカードに辿り着く。
+    for (final width in [375.0, 360.0]) {
+      testWidgets('NEXT BUS の到着行が overflow しない（幅 $width・#231）', (tester) async {
+        tester.view.physicalSize = Size(width * 2, 1334);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(_wrap(['koizumi']));
+        await tester.pumpAndSettle();
+
+        // 短縮名を持たない到着地。overflow はテストが失敗として拾う
+        expect(find.text('オフィス・アルカディア入口 着'), findsOneWidget);
+      });
+    }
+
     testWidgets('見出しの停留所名は削らずに正式名を出す', (tester) async {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();

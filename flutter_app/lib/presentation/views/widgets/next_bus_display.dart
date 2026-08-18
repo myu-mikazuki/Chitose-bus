@@ -70,6 +70,16 @@ class _NextBusCard extends StatelessWidget {
   final DateTime now;
   final List<BusStop> stopMaster;
 
+  /// 到着行。**時刻表リスト（`schedule_list.dart`）と同じ字の大きさにする。**
+  ///
+  /// 名前 13px / 時刻 18px では、短縮名を持たない停留所名（`オフィス・
+  /// アルカディア入口 着`）が 375px で **10px はみ出していた**（#231）。
+  /// この Row は `spaceBetween` に素の `Text` を2つ並べるだけなので、
+  /// 名前が伸びると縮まずに溢れる。
+  ///
+  /// 同じ「◯◯ 着 ＋ 時刻」を出す時刻表リストが元から 12px / 14px で、
+  /// そちらは溢れていない。**2箇所で字の大きさを変える理由が無い**ので揃えた。
+  /// 375px で 300px 中 265px、360px でも収まる。
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
     final order = entry.arrivals.keys.toList();
@@ -83,7 +93,7 @@ class _NextBusCard extends StatelessWidget {
                     '${stopMaster.labelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
-                      fontSize: 13,
+                      fontSize: 12,
                       letterSpacing: 1,
                     ),
                   ),
@@ -91,7 +101,7 @@ class _NextBusCard extends StatelessWidget {
                     entry.arrivals[key]!,
                     style: TextStyle(
                       color: colors.textSecondary,
-                      fontSize: 18,
+                      fontSize: 14,
                       letterSpacing: 2,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
