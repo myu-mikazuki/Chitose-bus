@@ -101,6 +101,16 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('見出しの停留所名は削らずに正式名を出す', (tester) async {
+      await tester.pumpWidget(_wrap(['koizumi']));
+      await tester.pumpAndSettle();
+
+      // タブでは1〜2文字しか読めない名前を、ここでは丸ごと出す（#208）。
+      // find.text だけでは ellipsis で切れていても通るので、省略の有無まで見る
+      expect(find.text('古泉循環器内科クリニック前 発'), findsOneWidget);
+      expectNotTruncated(tester, '古泉循環器内科クリニック前 発');
+    });
+
     testWidgets('到着地のラベルが null にならない', (tester) async {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();
