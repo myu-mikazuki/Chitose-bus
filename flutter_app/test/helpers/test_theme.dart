@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kagi_bus/core/theme/app_theme.dart';
@@ -36,3 +38,25 @@ const kTestStopMaster = [
   BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
   BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
 ];
+
+/// [text] がその場で**省略されずに**出ていることを見る。
+///
+/// `find.text` は `Text.data` を照合するので、`ellipsis` で `古泉循環器…` に
+/// 切れていても通ってしまう。幅が足りているかを主張したいテストはこちらを使う
+/// （#208 の PR #232 レビュー指摘）。
+///
+/// `maxLines` が null でも、`softWrap: false` + `ellipsis` で1行に収まらなければ
+/// `didExceedMaxLines` が true になる。
+///
+/// **幅は実機と一致しない。** テストにはフォントが無く、1文字 = 1em の代替
+/// フォントで測るため、欧文は実機よりかなり幅を食う（`NEXT BUS` が 82px →
+/// 120px）。実データで最も長い名前を 375px で通す、といった**限界の主張には
+/// 使えない**。構造が壊れて幅が潰れたことを拾うのが役目。
+void expectNotTruncated(WidgetTester tester, String text) {
+  final paragraph = tester.renderObject<RenderParagraph>(find.text(text));
+  expect(
+    paragraph.didExceedMaxLines,
+    isFalse,
+    reason: '「$text」が省略されている（幅が足りていない）',
+  );
+}

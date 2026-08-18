@@ -722,8 +722,8 @@ TextStyle _sectionTitleStyle(BuildContext context) => TextStyle(
 /// 置き方を採る。
 ///
 /// 使うのは**一番上の見出しだけ**。同じ停留所を2度書いても情報は増えない。
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, required this.boardingLabel});
+class _StopSectionHeader extends StatelessWidget {
+  const _StopSectionHeader({required this.title, required this.boardingLabel});
 
   final String title;
 
@@ -736,6 +736,11 @@ class _SectionHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
+        // **`title` に `Flexible` を付けないこと。** 名前側が `Expanded`（tight）
+        // なので、両方 flex にすると自由幅が 1:1 に割られ、`title` が使い残した
+        // ぶんは名前へ回らない。375px で名前に使える幅は **211px → 165.5px**
+        // まで落ちる（実測）。`title` は 'NEXT BUS' / 'SCHEDULE' の固定文字列で、
+        // 縮むべきは名前のほうではない
         Text(title, style: _sectionTitleStyle(context)),
         const SizedBox(width: 12),
         // 375px なら実データで最も長い名前（オフィス・アルカディア入口）まで
@@ -961,7 +966,7 @@ class _StopTabState extends State<_StopTab> {
             children: [
               // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
               if (widget.dayType == null) ...[
-                _SectionHeader(
+                _StopSectionHeader(
                   title: 'NEXT BUS',
                   boardingLabel:
                       widget.stopMaster.officialLabelOf(widget.stopId),
@@ -993,7 +998,7 @@ class _StopTabState extends State<_StopTab> {
               ] else
                 // 当日以外のダイヤ表示では NEXT BUS ごと消える。一番上の見出しは
                 // こちらになるので、乗車地はここに乗せる
-                _SectionHeader(
+                _StopSectionHeader(
                   title: 'SCHEDULE',
                   boardingLabel:
                       widget.stopMaster.officialLabelOf(widget.stopId),

@@ -614,7 +614,7 @@ void main() {
         await pump(tester);
 
         // 本文は正式名。短縮名だけでは指す停留所が曖昧になる
-        expect(find.text('千歳駅前 発'), findsOneWidget);
+        expectNotTruncated(tester, '千歳駅前 発');
         // タブは短縮名のまま。ここを正式名にすると幅が足りない
         expect(
           find.descendant(
@@ -660,7 +660,7 @@ void main() {
         await pump(tester);
 
         expect(find.text('NEXT BUS'), findsOneWidget);
-        expect(find.text('千歳駅前 発'), findsOneWidget);
+        expectNotTruncated(tester, '千歳駅前 発');
       });
 
       testWidgets('stopMaster に無い停留所は ID のまま出す', (tester) async {
