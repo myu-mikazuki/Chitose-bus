@@ -264,7 +264,10 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   ///
   /// **最長の13文字が 375px で収まることは `long_stop_names_test.dart` で
   /// 見ている。**いちばん狭いカードが通るので、こちらも通る。
-  /// シートの `EdgeInsets.all(16)` を増やすとこの前提が崩れる（303px の側）。
+  /// **前提が崩れる向きは2つある**（#239 のレビュー指摘）。シートの
+  /// `EdgeInsets.all(16)` を**増やす**か、カード側の余白を**減らす**か。
+  /// どちらでも最狭が入れ替わるので、幅を守る場所を決めるときは
+  /// 3経路とも測り直すこと（#237）。
   List<Widget> _buildArrivalRows() {
     final colors = context.appColors;
     final order = widget.bus.arrivals.keys.toList();
