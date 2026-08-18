@@ -239,6 +239,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('来週のダイヤ'), findsOneWidget);
       await _expandRow(tester, '09:40');
+      // **数えないと素通りする。**`_expandRow` は行があることしか見ておらず、
+      // タップが外れても警告止まりなので、シートの到着行が描かれないまま
+      // 緑で通ってしまう。カード1 ＋ ホームのリスト1 ＋ シート1 で3つ
+      expect(find.text('オフィス・アルカディア入口 着'), findsNWidgets(3));
     });
 
     // タブは #177 で `Flexible` + ellipsis の枝を用意してあるが、**その枝を
