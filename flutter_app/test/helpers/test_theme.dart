@@ -60,3 +60,26 @@ void expectNotTruncated(WidgetTester tester, String text) {
     reason: '「$text」が省略されている（幅が足りていない）',
   );
 }
+
+/// 既定の4停留所の外まで含む、**実データで最も長い部類**の停留所名。
+///
+/// **幅のテストはこの fixture が実データの最長に追随している前提で立っている。**
+/// いまの最長は13文字（`オフィス・アルカディア入口` / `古泉循環器内科クリニック前`）。
+/// GAS の `stopMaster` にこれより長い名前が入ると、**テストは緑のまま本番だけ
+/// 壊れる**ので、停留所が増えたらここも見直すこと（#231 / PR #236 のレビュー指摘）。
+///
+/// **短縮名は実データどおり全件に付ける。**付けないと `officialLabelOf` を
+/// `labelOf` に戻しても同じ長い名前が出て、幅のテストが緑のまま通る（#234）。
+/// #207 で31件すべてに `shortLabel` が付いた以上、短縮名の無い停留所は
+/// 実データに存在しない。値は `gas/Code.gs` の `STOP_MASTER` と同じもの。
+///
+/// `long_stop_names_test.dart` と `text_scaler_test.dart` が共有する。
+/// **2箇所に置くと片方だけ実データから遅れる**ので、増やすときもここに足すこと。
+const kLongStopMaster = [
+  BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+  BusStop(id: 'koizumi', label: '古泉循環器内科クリニック前', shortLabel: '古泉'),
+  BusStop(id: 'arcadia', label: 'オフィス・アルカディア入口', shortLabel: 'O･A入口'),
+  BusStop(id: 'hoyukai', label: '千歳豊友会病院前', shortLabel: '豊友会'),
+  BusStop(id: 'osatsu', label: '長都駅東口', shortLabel: '長都駅'),
+  BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+];
