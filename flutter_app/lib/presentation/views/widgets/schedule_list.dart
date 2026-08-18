@@ -252,8 +252,19 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
   /// 同じ便の到着地が画面の2箇所で違う名前になるのを避けるため、あちらと
   /// 揃えている。字の大きさ（12px / 14px）も同じ。
   ///
-  /// この行は左に 8px ぶん寄っているのでカードより狭い。**最長の13文字が
-  /// 375px で収まることは `long_stop_names_test.dart` で見ている。**
+  /// **この行はカードより広い。**`left: 8` だけ見ると狭そうだが、カード側は
+  /// 外の `Padding(16)` とカード自身の `horizontal: 20` を持っている。
+  /// 375px で実測すると、到着行の幅は経路ごとにこうなる:
+  ///
+  /// | 経路 | 幅 |
+  /// |---|---|
+  /// | NEXT BUS カード | **300px**（いちばん狭い） |
+  /// | 来週ダイヤの BottomSheet（`_showUpcomingSchedule`） | 303px |
+  /// | ホームの時刻表リスト | 335px |
+  ///
+  /// **最長の13文字が 375px で収まることは `long_stop_names_test.dart` で
+  /// 見ている。**いちばん狭いカードが通るので、こちらも通る。
+  /// シートの `EdgeInsets.all(16)` を増やすとこの前提が崩れる（303px の側）。
   List<Widget> _buildArrivalRows() {
     final colors = context.appColors;
     final order = widget.bus.arrivals.keys.toList();

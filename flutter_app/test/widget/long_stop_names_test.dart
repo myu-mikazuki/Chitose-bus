@@ -39,18 +39,23 @@ class _FakeStopSelectionNotifier extends StopSelectionNotifier {
   Future<StopSelection> build() async => _initial;
 }
 
-/// 実データで最も長い部類の停留所名。短縮名を持たない。
+/// 実データで最も長い部類の停留所名。**短縮名は実データどおり全件に付ける。**
 ///
 /// **幅のテストはこの fixture が実データの最長に追随している前提で立っている。**
 /// いまの最長は13文字（`オフィス・アルカディア入口` / `古泉循環器内科クリニック前`）。
 /// GAS の `stopMaster` にこれより長い名前が入ると、**テストは緑のまま本番だけ
 /// 壊れる**ので、停留所が増えたらここも見直すこと（#231 / PR #236 のレビュー指摘）。
+///
+/// 短縮名は #234 のレビュー指摘で足した。**付けないと `officialLabelOf` を
+/// `labelOf` に戻しても同じ長い名前が出て、幅のテストが緑のまま通る。**
+/// #207 で31件すべてに `shortLabel` が付いた以上、短縮名の無い停留所は
+/// 実データに存在しない。値は `gas/Code.gs` の `STOP_MASTER` と同じもの。
 const _master = [
   BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
-  BusStop(id: 'koizumi', label: '古泉循環器内科クリニック前'),
-  BusStop(id: 'arcadia', label: 'オフィス・アルカディア入口'),
-  BusStop(id: 'hoyukai', label: '千歳豊友会病院前'),
-  BusStop(id: 'osatsu', label: '長都駅東口'),
+  BusStop(id: 'koizumi', label: '古泉循環器内科クリニック前', shortLabel: '古泉'),
+  BusStop(id: 'arcadia', label: 'オフィス・アルカディア入口', shortLabel: 'O･A入口'),
+  BusStop(id: 'hoyukai', label: '千歳豊友会病院前', shortLabel: '豊友会'),
+  BusStop(id: 'osatsu', label: '長都駅東口', shortLabel: '長都駅'),
   BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
 ];
 
@@ -143,8 +148,20 @@ void main() {
     // #208 で「見出しの停留所名は削らずに正式名を出す」と決めた直後に到着行を
     // 省略し始めると噛み合わないため見送っている（PR #236）。**拡大設定で
     // どこが壊れるかを先に可視化してから決める**（#237）。
+    // **到着行が出る3経路のうち、いちばん狭いのはカード**（375px で実測）。
+    //
+    // | 経路 | 到着行の幅（375px） |
+    // |---|---|
+    // | NEXT BUS カード | **300px**（外の `Padding(16)` ＋ カードの `horizontal: 20` ＋ 枠線 1.5） |
+    // | 来週ダイヤの BottomSheet | 303px（シートの `all(16)` ＋ 行の `horizontal: 16` ＋ `left: 8`） |
+    // | ホームの時刻表リスト | 335px（`Padding` の外にあるので `375 - 32 - 8`） |
+    //
+    // つまり**カードが通ればリストも通る**。下のリストのテストはその意味で
+    // 冗長だが、リスト側の余白が変わったときに気づけるので残す。
+    // 当初は「リストの方が 8px 狭い」と書いていたが逆だった（#234 のレビュー指摘）。
     for (final width in [375.0, 360.0]) {
-      testWidgets('NEXT BUS の到着行が overflow しない（幅 $width・#231）', (tester) async {
+      testWidgets('NEXT BUS の到着行が overflow しない（幅 $width・#231 / #234）',
+          (tester) async {
         tester.view.physicalSize = Size(width * 2, 1334);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(tester.view.resetPhysicalSize);
@@ -153,13 +170,15 @@ void main() {
         await tester.pumpWidget(_wrap(['koizumi']));
         await tester.pumpAndSettle();
 
-        // 実データの最長13文字。overflow はテストが失敗として拾う
+        // 実データの最長13文字。**この停留所は短縮名（`O･A入口`）を持つ**ので、
+        // `officialLabelOf` を `labelOf` に戻すとここが落ちる。いちばん狭い
+        // 経路で #234 の主張と幅の主張を同時に押さえている
         expect(find.text('オフィス・アルカディア入口 着'), findsOneWidget);
       });
 
       // #234 で時刻表リストの到着行も正式名にしたため、こちらにも最長の名前が
-      // 出るようになった。**カードより 8px 狭い**（`left: 8` の分）ので、
-      // カードが通っても自動では通らない。
+      // 出るようになった。**上の表のとおりカードより広いので、カードが通れば
+      // ここも通る。**余白が変わったときの検知として残している。
       testWidgets('時刻表リストの到着行が overflow しない（幅 $width・#234）', (tester) async {
         tester.view.physicalSize = Size(width * 2, 1334);
         tester.view.devicePixelRatio = 2.0;
@@ -195,8 +214,7 @@ void main() {
       expect(find.text('オフィス・アルカディア入口 着'), findsOneWidget);
 
       // 時刻表の行を開く
-      await tester.tap(find.text('09:00').first);
-      await tester.pumpAndSettle();
+      await _expandScheduleRow(tester);
 
       expect(find.textContaining('null'), findsNothing);
       expect(find.text('千歳豊友会病院前 着'), findsWidgets);
