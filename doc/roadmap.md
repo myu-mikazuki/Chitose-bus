@@ -14,12 +14,17 @@
 | — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
 | — | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | **develop 済み**・v1.3.1 で出す |
 | — | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
-| 1 | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | 次 |
-| 3 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
-| 4 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 5 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
-| 6 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
-| 7 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
+| — | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | **develop 済み**・v1.3.1 で出す |
+| 1 | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | #237 から派生 |
+| 2 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが 375px では等倍でも省略されている | #237 から派生 |
+| 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.1 で `_StopTab` の中身が縦に溢れる | #237 から派生 |
+| 4 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.15 で横に溢れる（3経路とも） | #237 から派生 |
+| 5 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 1.2 で横に溢れる | #237 から派生 |
+| 6 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
+| 7 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
+| 8 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
+| 9 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| 10 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
 
 **v1.3.0 はリリース済み**（2026-08-16・審査提出済み）。次は **v1.3.1** で、
 #177 が長い停留所名を画面に出せるようにした結果できた穴を、4件まとめて塞ぐ。**タブに短縮名、
@@ -50,6 +55,59 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 「#234 で到着行を共通化するならそこで一度に決められる」と #234 に譲っている。
 #237 は `flutter_app/test` を触るので main への直行はできないが、
 **v1.3.1 を止めるものではない**（検知までで、直しは別 issue に切る）。
+**#237 は develop 済み**（2026-08-18・PR #244）。
+
+### #237 で分かったこと（375×667 実測）
+
+**いま拡大に耐えるのは倍率 1.05 まで。** Android の「大」が 1.15 なので、
+**拡大設定を1段でも上げた時点でどこかが溢れる。**
+
+| 場所 | 軸 | 溢れ始める倍率 | 名前に依存 | 直し |
+|---|---|---|---|---|
+| `_StopTab` の Column | 縦 | **1.1** | しない | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
+| NEXT BUS カードの到着行（300px） | 横 | 1.15 | する | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
+| 来週シートの到着行（303px）※ | 横 | 1.15 | する | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
+| 来週シートの行ヘッダ（311px）※ | 横 | 1.2 | しない | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+| ホームの時刻表リストの到着行（335px） | 横 | 1.25 | する | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
+| タブ（4タブ） | 横 | **1.4** | しない | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) |
+| ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | しない | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+
+※ **来週シートは本番では開けない。**GAS が `upcoming: null` を直書きしており、
+カレンダーアイコンも出ない（`_showUpcomingSheet` の TODO(#202)）。
+**#241 / #242 の実害はホーム側だけ**で、シートの2行は #202 で復活させたときに
+効いてくる。コード上いちばん狭い部類なのでテストには含めてある。
+
+**issue #237 の一覧に無かったものが4つ出た。**
+
+- **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) — 縦の溢れが先に来る。**#237 は「幅が詰まっている場所」を
+  想定していたが、実機並みの高さ（667px）では横より縦が先に負ける
+- **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) — 行ヘッダは停留所名と無関係に溢れる。**時刻・講義タグ・
+  行き先・`◀ NEXT`・ベルを固定幅で並べていて縮む余地が無い。既定の4停留所でも同じ
+- **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) — タブは `Flexible` + ellipsis があるのに溢れる。**`_buildTab` の
+  `TextPainter` に `textScaler` を渡しておらず、拡大時は等倍の幅で「横並びで
+  収まる」と誤判定して**縮小経路を外す**
+- **[#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) — 節の見出しは 375px では等倍でも切れている。**`Expanded` +
+  ellipsis なので**溢れずに黙って切れる**＝ overflow では原理的に拾えず、#237 の
+  網には入っていない。#208 の「削らずに正式名を出す」を守るテストが
+  **画面幅を設定しておらず、既定の 800px で通っていた**ために気づかれていなかった。
+  **拡大設定の話ですらない**（倍率 1.0 で落ちる）
+
+**順序は「壊れる順」ではなく「直す安さと確かさの順」。**いちばん先に壊れるのは
+#240（1.1・縦）だが、#243 は `TextPainter` に1行足すだけで直り、#245 は
+**そもそも守れているつもりだったものが守れていない**ので先に置いている。
+#240 / #241 は見え方の判断（どこを削るか・スクロールさせるか）が要るぶん重い。
+
+**この倍率は実機の倍率ではない。**テストにはフォントが無く、欧文と数字は実機より
+かなり幅を食う（`expectNotTruncated` と同じ制約）。とくに行ヘッダは `◀ NEXT` と
+`09:00` が効くので、実機で崩れ始める倍率はもっと上のはず。**#242 の優先度が
+いちばん低いのはそのため。**
+
+**上の表はテストで固定していない。**置いたテストは「その倍率までは通る」しか
+主張しておらず、1段上で本当に溢れるかは見ていない（上限側も主張すると直した
+瞬間に赤くなるため）。**#240〜#243 を直したら、定数と一緒にこの表も測り直すこと。**
+
+**直しは v1.3.1 に載せない。**#237 の判断どおり、検知までを v1.3.1 に入れて
+直しは次以降に回す。
 
 **[#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) だけ期限がある。** iOS の最低要件が 14.0 のままで、
 **2027年春以降は App Store Connect へのアップロード・申請ができなくなる**
@@ -77,6 +135,7 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | 見出しにいま見ている停留所の正式名を出す | #232 |
 | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | #236 |
 | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | 到着行に正式名を出す | #238 |
+| [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定で壊れる場所を検知する | #244 |
 
 - **#195** — PR #217 は base が `chore/issue-195-format` になっていたため閉じ、
   #221 で develop に直接入れ直した。経路が変わっただけで中身は同じ
@@ -104,15 +163,18 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す |
 | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す |
 | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す |
+| [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定で壊れる場所を検知する（テストのみ） |
 
-**4件とも同じ穴を塞ぐ。** #207 / #208 は「どの停留所を見ているか」、
+**上の4件は同じ穴を塞ぐ。** #207 / #208 は「どの停留所を見ているか」、
 #231 / #234 は「どこで降りるか」で、どちらも **v1.3.0 の #177 が長い停留所名を
 画面に出せるようにした結果**として出てきた。名前まわりをまとめて片付ける。
 
 **入れる順序**: #231 → #234。#234 は到着地の名前を長くする（`古泉 着` →
 `古泉循環器内科クリニック前 着`）ので、先に入れると #231 が悪化する。
 
-**4件とも develop 済み**（PR #230 / #232 / #236 / #238）。v1.3.1 の範囲はこれで揃った。
+**4件とも develop 済み**（PR #230 / #232 / #236 / #238）。
+**#237（拡大設定の検知）も入れて5件**（PR #244）。テストだけなので出すものの
+見え方は変わらないが、v1.3.1 のリリースノートには載る。
 
 **#234 の判断**: 到着行は **NEXT BUS カードと時刻表リストの両方**を正式名にする。
 同じ便の到着地が画面の2箇所で違う名前になるのを避けるため。**既定の4停留所の

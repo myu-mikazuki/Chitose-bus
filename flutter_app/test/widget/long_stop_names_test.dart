@@ -10,6 +10,7 @@ import 'package:kagi_bus/presentation/views/home_screen.dart';
 import 'package:kagi_bus/presentation/views/widgets/schedule_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/fake_view_models.dart';
 import '../helpers/test_theme.dart';
 
 /// 既定の4停留所の外を選んだときの表示を守る（#177）。
@@ -20,48 +21,12 @@ import '../helpers/test_theme.dart';
 /// overflow はテストが自動で失敗として拾うので、「例外なく pump できること」
 /// 自体が検査になっている。
 
-class _FakeScheduleViewModel extends ScheduleViewModel {
-  _FakeScheduleViewModel(this._result);
-  final ScheduleResult _result;
-
-  @override
-  Future<ScheduleResult> build() async => _result;
-
-  @override
-  Future<void> refresh() async {}
-}
-
-class _FakeStopSelectionNotifier extends StopSelectionNotifier {
-  _FakeStopSelectionNotifier(this._initial);
-  final StopSelection _initial;
-
-  @override
-  Future<StopSelection> build() async => _initial;
-}
-
-/// 実データで最も長い部類の停留所名。**短縮名は実データどおり全件に付ける。**
-///
-/// **幅のテストはこの fixture が実データの最長に追随している前提で立っている。**
-/// いまの最長は13文字（`オフィス・アルカディア入口` / `古泉循環器内科クリニック前`）。
-/// GAS の `stopMaster` にこれより長い名前が入ると、**テストは緑のまま本番だけ
-/// 壊れる**ので、停留所が増えたらここも見直すこと（#231 / PR #236 のレビュー指摘）。
-///
-/// 短縮名は #234 のレビュー指摘で足した。**付けないと `officialLabelOf` を
-/// `labelOf` に戻しても同じ長い名前が出て、幅のテストが緑のまま通る。**
-/// #207 で31件すべてに `shortLabel` が付いた以上、短縮名の無い停留所は
-/// 実データに存在しない。値は `gas/Code.gs` の `STOP_MASTER` と同じもの。
-const _master = [
-  BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
-  BusStop(id: 'koizumi', label: '古泉循環器内科クリニック前', shortLabel: '古泉'),
-  BusStop(id: 'arcadia', label: 'オフィス・アルカディア入口', shortLabel: 'O･A入口'),
-  BusStop(id: 'hoyukai', label: '千歳豊友会病院前', shortLabel: '豊友会'),
-  BusStop(id: 'osatsu', label: '長都駅東口', shortLabel: '長都駅'),
-  BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
-];
-
+/// 停留所名の fixture は `test/helpers/test_theme.dart` の [kLongStopMaster]。
+/// **`text_scaler_test.dart` と共有している**ので、実データが伸びたときに
+/// 片方だけ古くならないよう向こうに置いてある。
 const _result = ScheduleResult(
   data: ScheduleResponse(
-    stopMaster: _master,
+    stopMaster: kLongStopMaster,
     updatedAt: '2024-01-01',
     current: BusTimetable(
       validFrom: '2024-01-01',
@@ -102,9 +67,9 @@ Future<void> _expandScheduleRow(WidgetTester tester) async {
 Widget _wrap(List<String> stopIds) => ProviderScope(
       overrides: [
         scheduleViewModelProvider
-            .overrideWith(() => _FakeScheduleViewModel(_result)),
+            .overrideWith(() => FakeScheduleViewModel(_result)),
         stopSelectionProvider.overrideWith(
-          () => _FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
+          () => FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
         ),
         // 2024-01-01 は年末年始（12/31〜1/3）で全便運休になり、便が1つも出ない
         countdownOverride(now: DateTime(2024, 6, 17, 8, 0)),
@@ -257,7 +222,7 @@ void main() {
       // GAS から停留所が消えても null にはしない
       const result = ScheduleResult(
         data: ScheduleResponse(
-          stopMaster: _master,
+          stopMaster: kLongStopMaster,
           updatedAt: '2024-01-01',
           current: BusTimetable(
             validFrom: '2024-01-01',
@@ -276,9 +241,9 @@ void main() {
       await tester.pumpWidget(ProviderScope(
         overrides: [
           scheduleViewModelProvider
-              .overrideWith(() => _FakeScheduleViewModel(result)),
+              .overrideWith(() => FakeScheduleViewModel(result)),
           stopSelectionProvider.overrideWith(
-            () => _FakeStopSelectionNotifier(
+            () => FakeStopSelectionNotifier(
                 const StopSelection(stopIds: ['koizumi'])),
           ),
           countdownOverride(now: DateTime(2024, 6, 17, 8, 0)),
