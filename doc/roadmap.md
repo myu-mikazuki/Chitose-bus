@@ -62,9 +62,12 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 **実機では等倍（1.0）で壊れる場所は無い。**Android の「大」が 1.15、「最大」が 1.3。
 **「最大」にすると NEXT BUS の到着行が実際に溢れる。**
 
+**どちらの列も「溢れ始める（切れ始める）倍率」。**テストが踏むのはその1段下なので、
+`text_scaler_test.dart` の定数とは一致しない。
+
 | 場所 | 軸 | テスト用フォント | **実フォント** | 直し |
 |---|---|---|---|---|
-| 節の見出し（`◯◯ 発`）が**切れる** | — | 1.0 | **1.15** | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) |
+| 節の見出し（`◯◯ 発`）が**切れる** | 横 | 1.0 | **1.15** | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) |
 | NEXT BUS カードの到着行（300px） | 横 | 1.15 | **1.3** | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
 | タブ（4タブ） | 横 | 1.4 | **1.4** | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) |
 | `_StopTab` の Column（375×667） | 縦 | 1.1 | **1.5** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
@@ -86,6 +89,9 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 >
 > 実フォントでも Android の Noto Sans CJK / iOS のヒラギノとは完全には一致しない。
 > CJK は全角固定なので停留所名の幅はほぼ同じで、ずれるのは欧文・数字のほう。
+>
+> **測り直す手順は [`doc/text-scale-measurement.md`](text-scale-measurement.md)。**
+> `flutter_app/test/tools/text_scale_probe_test.dart` にフォントを差して走らせる。
 
 **issue #237 の一覧に無かったものが4つ出た。**
 
@@ -124,6 +130,11 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 **#241 は v1.3.2 の主題にする。**「拡大設定に耐える」をまとめて片付けるなら、
 名前を省略してよい場所の線引きを先に決めること。
 
+**上の順序表の 2〜5 は「実害の大きい順」。**実フォントの倍率順（#245 1.15 →
+#241 1.3 → #240 1.5 → #242 2.0）ではない。**#241 を先頭に置くのは、
+Android「最大」で実際に崩れる唯一のもの**だから。#245 はより低い倍率で届くが
+**ellipsis で切れるだけで崩れない**ので下げてある。
+
 **[#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) だけ期限がある。** iOS の最低要件が 14.0 のままで、
 **2027年春以降は App Store Connect へのアップロード・申請ができなくなる**
 （ITMS-90068）。いまは警告だけで通るので順序は最後にしてあるが、**期限を過ぎると
@@ -151,7 +162,6 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | #236 |
 | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | 到着行に正式名を出す | #238 |
 | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定で壊れる場所を検知する | #244 |
-| [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | 未着手 |
 
 - **#195** — PR #217 は base が `chore/issue-195-format` になっていたため閉じ、
   #221 で develop に直接入れ直した。経路が変わっただけで中身は同じ
