@@ -101,12 +101,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           // （場所取りは幅が決まっているので計測しない）
           final double textWidth;
           if (label == null) {
-            textWidth = _StopLabelPlaceholder.width;
+            // **場所取りも同じ倍率で測ること**（#243）。名前側だけ拡大を見ると、
+            // 拡大時に**名前が届いた瞬間に並べ方が切り替わって星が跳ぶ**
+            // （[_StopLabelPlaceholder.width] の注記にある事故そのもの）。
+            // 描く側も同じ倍率で伸ばしてある
+            textWidth = MediaQuery.textScalerOf(context)
+                .scale(_StopLabelPlaceholder.width);
           } else {
             final textStyle = DefaultTextStyle.of(context).style;
             textWidth = (TextPainter(
               text: TextSpan(text: label, style: textStyle),
               textDirection: TextDirection.ltr,
+              // **文字を大きくする設定を渡すこと**（#243）。既定は
+              // `TextScaler.noScaling` なので、渡さないと**常に等倍で測る**。
+              // 拡大時は下の `stackFits` / `rowFits` が「収まる」と誤判定し、
+              // **`Flexible` + ellipsis を持つ縮小経路を外して**タブが溢れる。
+              // 375px・4タブで倍率 1.4 から実際に溢れていた
+              textScaler: MediaQuery.textScalerOf(context),
             )..layout())
                 .width;
           }
@@ -773,6 +784,10 @@ class _StopLabelPlaceholder extends StatelessWidget {
   /// **見た目を整える値ではなく、並べ方を名前と揃えるための値。** タブは
   /// この幅で中央寄せ / 横並び / 縮小を決めるので、名前とずらすと画面幅に
   /// よっては名前が届いた瞬間に並べ方が切り替わり、星が跳ぶ。
+  ///
+  /// **等倍のときの値。**名前の側は文字を大きくする設定で伸びるので、
+  /// こちらも同じ倍率で伸ばす（#243）。伸ばさないと拡大時だけ両者がずれ、
+  /// 上に書いた「星が跳ぶ」が起きる。
   static const width = 42.0;
 
   @override
@@ -782,7 +797,9 @@ class _StopLabelPlaceholder extends StatelessWidget {
     return Semantics(
       label: '読み込み中',
       child: Container(
-        width: width,
+        // 文字ではないので `TextScaler` は自動では効かない。名前と同じ幅で
+        // 並べ方を決めている以上、描く側も手で合わせる（#243）
+        width: MediaQuery.textScalerOf(context).scale(width),
         height: 10,
         decoration: BoxDecoration(
           color: context.appColors.textDisabled,
