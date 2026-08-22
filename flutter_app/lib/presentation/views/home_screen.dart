@@ -104,9 +104,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             // **場所取りも同じ倍率で測ること**（#243）。名前側だけ拡大を見ると、
             // 拡大時に**名前が届いた瞬間に並べ方が切り替わって星が跳ぶ**
             // （[_StopLabelPlaceholder.width] の注記にある事故そのもの）。
-            // 描く側も同じ倍率で伸ばしてある
-            textWidth = MediaQuery.textScalerOf(context)
-                .scale(_StopLabelPlaceholder.width);
+            // **描く側と同じ関数を呼ぶ**ので、片方だけ直す事故が起きない
+            textWidth = _StopLabelPlaceholder.scaledWidth(context);
           } else {
             final textStyle = DefaultTextStyle.of(context).style;
             textWidth = (TextPainter(
@@ -785,10 +784,28 @@ class _StopLabelPlaceholder extends StatelessWidget {
   /// この幅で中央寄せ / 横並び / 縮小を決めるので、名前とずらすと画面幅に
   /// よっては名前が届いた瞬間に並べ方が切り替わり、星が跳ぶ。
   ///
-  /// **等倍のときの値。**名前の側は文字を大きくする設定で伸びるので、
-  /// こちらも同じ倍率で伸ばす（#243）。伸ばさないと拡大時だけ両者がずれ、
-  /// 上に書いた「星が跳ぶ」が起きる。
+  /// **等倍のときの値。**拡大設定を掛けた幅は [scaledWidth] で取る。
   static const width = 42.0;
+
+  /// 文字を大きくする設定を掛けた場所取りの幅（#243）。
+  ///
+  /// **`_buildTab` の計測と、下の描画の両方がこれを呼ぶ。** 名前の側は
+  /// `TextScaler` で伸びるのに場所取りが伸びないと、拡大時だけ両者がずれて
+  /// [width] の注記にある「星が跳ぶ」が起きる。**2箇所に同じ計算を書くと
+  /// 片方だけ直す事故が起きる**ので、定義はここ1つ。
+  ///
+  /// **`TextScaler.scale()` に 42.0 を渡してはいけない。** あれは
+  /// 「素のフォントサイズ → 拡大後のフォントサイズ」を返すもので、任意の長さを
+  /// 倍率で伸ばす関数ではない。**Android 14 以降の非線形スケーリングでは倍率が
+  /// 元のフォントサイズごとに違う**（大きい字ほど伸びを抑える曲線）ため、
+  /// `scale(42)` は 42pt の字の曲線を引いてしまい、実際のラベル（14px）に
+  /// 掛かる倍率とは別物になる。**ラベル自身の字の大きさから比率を出すこと。**
+  /// `TextScaler.linear` では一致するので、**テストは緑のまま実機だけずれる。**
+  static double scaledWidth(BuildContext context) {
+    final fontSize = DefaultTextStyle.of(context).style.fontSize ?? 14.0;
+    final ratio = MediaQuery.textScalerOf(context).scale(fontSize) / fontSize;
+    return width * ratio;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -799,7 +816,7 @@ class _StopLabelPlaceholder extends StatelessWidget {
       child: Container(
         // 文字ではないので `TextScaler` は自動では効かない。名前と同じ幅で
         // 並べ方を決めている以上、描く側も手で合わせる（#243）
-        width: MediaQuery.textScalerOf(context).scale(width),
+        width: scaledWidth(context),
         height: 10,
         decoration: BoxDecoration(
           color: context.appColors.textDisabled,
