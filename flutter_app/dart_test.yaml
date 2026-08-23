@@ -1,0 +1,8 @@
+# `@Tags` で使うタグの宣言。宣言が無いと
+# 「A tag was used that wasn't specified in dart_test.yaml」と警告が出る。
+tags:
+  # 実フォントを差して測るための計測用（`test/tools/`）。
+  # `--dart-define=JP_FONT` が無ければ skip するので、CI では走らない。
+  # 手順は doc/text-scale-measurement.md
+  probe:
+    skip: false

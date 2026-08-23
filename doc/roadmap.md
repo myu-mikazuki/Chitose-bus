@@ -15,11 +15,11 @@
 | — | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | **develop 済み**・v1.3.1 で出す |
 | — | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
 | — | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | **develop 済み**・v1.3.1 で出す |
-| 1 | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | **v1.3.1 に入れる** |
-| 2 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.3 で横に溢れる | v1.3.2 |
-| 3 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | v1.3.2 |
-| 4 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | v1.3.2 |
-| 5 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | v1.3.2 |
+| — | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | **develop 済み**・v1.3.1 で出す |
+| 1 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.3 で横に溢れる | v1.3.2 |
+| 2 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | v1.3.2 |
+| 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | v1.3.2 |
+| 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | v1.3.2 |
 | 6 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
 | 7 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
 | 8 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
@@ -69,7 +69,7 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 |---|---|---|---|---|
 | 節の見出し（`◯◯ 発`）が**切れる** | 横 | 1.0 | **1.15** | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) |
 | NEXT BUS カードの到着行（300px） | 横 | 1.15 | **1.3** | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
-| タブ（4タブ） | 横 | 1.4 | **1.4** | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) |
+| ~~タブ（4タブ）~~ | 横 | ~~1.4~~ | ~~1.4~~ | **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) で解消** |
 | `_StopTab` の Column（375×667） | 縦 | 1.1 | **1.5** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
 | ホームの時刻表リストの到着行（335px） | 横 | 1.25 | **1.5** | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
 | ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | **2.0** | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
@@ -95,9 +95,10 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 
 **issue #237 の一覧に無かったものが4つ出た。**
 
-- **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) — タブは `Flexible` + ellipsis があるのに溢れる。**`_buildTab` の
-  `TextPainter` に `textScaler` を渡しておらず、拡大時は等倍の幅で「横並びで
-  収まる」と誤判定して**縮小経路を外す**
+- **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) — タブは `Flexible` + ellipsis があるのに溢れていた**（**解消済み**）。
+  `_buildTab` の `TextPainter` に `textScaler` を渡しておらず、拡大時は等倍の幅で
+  「横並びで収まる」と誤判定して**縮小経路を外していた**。渡すようにしたので
+  **溢れなくなり、限界は「読めなくなる」（2.5 で `古…`）に変わった**
 - **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) — 行ヘッダは停留所名と無関係に溢れる。**時刻・講義タグ・
   行き先・`◀ NEXT`・ベルを固定幅で並べていて縮む余地が無い。既定の4停留所でも同じ
 - **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) — 縦にも溢れる。**issue は「幅が詰まっている場所」を想定していた
@@ -105,15 +106,19 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
   overflow では原理的に拾えないため #237 の網に入っていない。#208 の
   「削らずに正式名を出す」は**等倍では守れている**
 
-### v1.3.1 に入れるのは #243 だけ
+### v1.3.1 に入れるのは #243 だけ（**対応済み**）
 
 **理由は「実機で等倍が無傷だった」こと。** 拡大設定を触っていないユーザーには
 いま何も起きていないので、v1.3.1 を止める理由が無い。
 
-**#243 を入れる**のは、これだけが**判断を伴わない純粋な論理バグ**だから。
+**#243 を入れた**のは、これだけが**判断を伴わない純粋な論理バグ**だから。
 `TextPainter` に `textScaler` を渡す1行で、`Flexible` + ellipsis の枝が
-**既にあるのに外れている**状態が直る。見え方の判断も要らない（拡大時に
+**既にあるのに外れている**状態が直った。見え方の判断も要らない（拡大時に
 タブが 11px + ellipsis に落ちるのは、溢れるより明確に良い）。
+
+**直した結果、タブは 3.0 まで溢れない**（確認した範囲）。**限界は「溢れる」から
+「読めなくなる」に変わり**、2.5 で `古泉` が `古…` になる。読めなくなるほうを
+どうするかは、**タブの短縮名の話**（#207）であって拡大の話ではないので追わない。
 
 **残り4件を入れない理由:**
 
@@ -162,6 +167,7 @@ Android「最大」で実際に崩れる唯一のもの**だから。#245 はよ
 | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | #236 |
 | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | 到着行に正式名を出す | #238 |
 | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定で壊れる場所を検知する | #244 |
+| [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | #247 |
 
 - **#195** — PR #217 は base が `chore/issue-195-format` になっていたため閉じ、
   #221 で develop に直接入れ直した。経路が変わっただけで中身は同じ
@@ -203,7 +209,7 @@ Android「最大」で実際に崩れる唯一のもの**だから。#245 はよ
 **#237（拡大設定の検知）も入れて5件**（PR #244）。テストだけなので出すものの
 見え方は変わらないが、v1.3.1 のリリースノートには載る。
 
-**#243（タブの幅計算）を6件目として入れる**（未着手）。#237 の実測から出た
+**#243（タブの幅計算）を6件目として入れる**（develop 済み）。#237 の実測から出た
 派生5件のうち、**判断を伴わない純粋な論理バグはこれだけ**。残り4件は
 [上の節](#v131-に入れるのは-243-だけ)のとおり v1.3.2 に回す。
 

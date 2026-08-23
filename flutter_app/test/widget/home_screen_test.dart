@@ -350,6 +350,65 @@ void main() {
         });
       }
 
+      // **拡大設定でも同じことが言えること**（#243）。
+      //
+      // 名前側の幅は `TextScaler` で伸びるが、場所取りは文字ではないので
+      // **自動では伸びない**。片方だけ伸ばすと拡大時にだけ両者がずれ、
+      // 上と同じ「名前が届いた瞬間に並べ方が切り替わって星が跳ぶ」が起きる。
+      // 計測（`_buildTab`）と描画（`_StopLabelPlaceholder`）が同じ
+      // `scaledWidth()` を呼ぶので、そこが崩れたらここが赤くなる。
+      //
+      // **幅は「並べ方が割れる窓」を狙って選んである。** 拡大すると中央寄せ ⇄
+      // 横並びの境目も動くので、等倍の一覧（360〜492）をそのまま使っても
+      // **両方とも縮小経路に落ちて差が出ない**（375px・1.3 では 2px 程度で、
+      // 許容の 6px に収まってしまう）。1.3 では場所取りを伸ばさないと
+      // **500〜530px で 7〜11px 跳ぶ**ので、そこを踏む。
+      //
+      // **`scaledWidth()` の拡大を外すと実際に赤くなることを確かめてある。**
+      // 倍率を変えるときはこの窓も測り直すこと（窓の外だと素通りする）。
+      //
+      // 1.3 までしか上げないのは、1.5 で時刻表リストの行ヘッダが先に溢れ
+      // （#242）、星とは無関係の理由で赤くなるため。#242 が直ったら上げてよい
+      // （`text_scaler_test.dart` の表を参照）。
+      for (final logicalWidth in [500.0, 530.0]) {
+        testWidgets('名前に入れ替わっても星が動かない（拡大 1.3・幅 $logicalWidth・#243）',
+            (tester) async {
+          tester.view.physicalSize = Size(logicalWidth * 2, 1334);
+          tester.view.devicePixelRatio = 2.0;
+          addTearDown(tester.view.reset);
+
+          final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                scheduleViewModelProvider.overrideWith(() => scheduleVM),
+                countdownOverride(),
+              ],
+              child: MaterialApp(
+                theme: buildTestTheme(),
+                builder: (context, child) => MediaQuery(
+                  data: MediaQuery.of(context)
+                      .copyWith(textScaler: const TextScaler.linear(1.3)),
+                  child: child!,
+                ),
+                home: const HomeScreen(),
+              ),
+            ),
+          );
+          await tester.pump();
+
+          final before =
+              tester.getTopLeft(find.byIcon(Icons.star_border).first).dx;
+
+          scheduleVM.complete();
+          await tester.pump();
+
+          final after =
+              tester.getTopLeft(find.byIcon(Icons.star_border).first).dx;
+          expect(after, closeTo(before, 6));
+        });
+      }
+
       // 上限（StopSelection.maxStops）そのものの妥当性を、数字ではなく描画で
       // 押さえる。375px で実測すると、ラベルに残るのは 5タブで 27.0px、
       // 6タブで 14.5px。6 では「…」だけになり、**どのタブかを名前では選べない**。
