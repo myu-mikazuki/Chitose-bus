@@ -235,14 +235,55 @@ void main() {
       );
 
       // タップ前は到着情報が非表示
-      expect(find.text('科技大研究棟 着'), findsNothing);
+      // #241: 到着行の既定表示は短縮名（`labelOf`）に戻した。
+      // `kenkyuto` の短縮名は '研究棟'（`kTestStopMaster` 参照）
+      expect(find.text('研究棟 着'), findsNothing);
 
       await tester.tap(find.text(busTime));
       await tester.pump();
 
-      // タップ後は到着情報が表示
-      expect(find.text('科技大研究棟 着'), findsOneWidget);
+      // タップ後は到着情報が表示（既定は短縮名）
+      expect(find.text('研究棟 着'), findsOneWidget);
+      expect(find.text('科技大研究棟 着'), findsNothing);
       expect(find.text(arrivalTime), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('到着行をさらにタップすると正式名が1行下に出る（#241）', (tester) async {
+      final busTime = safeFutureHhmm(60);
+      final arrivalTime = safeFutureHhmm(80);
+      final timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-03-31',
+        schedules: [
+          BusEntry(
+            time: busTime,
+            boardingStopId: 'chitose',
+            destination: '千歳科技大',
+            arrivals: {'kenkyuto': arrivalTime},
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        _wrap(ScheduleList(
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
+      );
+
+      // 1. 行をタップして到着情報を展開
+      await tester.tap(find.text(busTime));
+      await tester.pump();
+      expect(find.text('研究棟 着'), findsOneWidget);
+
+      // 2. 到着行そのものをタップして正式名を出す
+      await tester.tap(find.text('研究棟 着'));
+      await tester.pump();
+      expect(find.text('科技大研究棟'), findsOneWidget);
+
+      // 3. 親の行はタップの巻き添えで閉じていない
+      // （閉じていれば '研究棟 着' 自体が消えるはず）
+      expect(find.text('研究棟 着'), findsOneWidget);
     });
 
     testWidgets('arrivalsがある行を2回タップ: 到着情報がトグル非表示になる', (tester) async {
@@ -268,15 +309,15 @@ void main() {
             stopId: 'chitose')),
       );
 
-      // 1回目タップ → 展開
+      // 1回目タップ → 展開（既定は短縮名・#241）
       await tester.tap(find.text(busTime));
       await tester.pump();
-      expect(find.text('科技大研究棟 着'), findsOneWidget);
+      expect(find.text('研究棟 着'), findsOneWidget);
 
       // 2回目タップ → 折りたたみ
       await tester.tap(find.text(busTime));
       await tester.pump();
-      expect(find.text('科技大研究棟 着'), findsNothing);
+      expect(find.text('研究棟 着'), findsNothing);
     });
 
     group('ベルアイコン', () {
@@ -511,7 +552,7 @@ void main() {
       await tester.tap(find.text(busTime));
       await tester.pump();
 
-      expect(find.text('科技大研究棟 着'), findsNothing);
+      expect(find.text('研究棟 着'), findsNothing);
     });
 
     group('講時タグ', () {

@@ -7,6 +7,7 @@ import '../../../domain/entities/lecture_period.dart';
 import '../../viewmodels/display_settings_viewmodel.dart';
 import '../../viewmodels/notification_viewmodel.dart';
 import '../../viewmodels/schedule_viewmodel.dart';
+import 'arrival_row.dart';
 
 class ScheduleList extends ConsumerStatefulWidget {
   const ScheduleList({
@@ -246,55 +247,29 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
     );
   }
 
-  /// 到着行。**NEXT BUS カード（`next_bus_display.dart`）と同じものを出す。**
+  /// 到着行。**中身は `ArrivalRow`（`arrival_row.dart`）に切り出した。**
   ///
-  /// 降りる停留所を確かめる場所なので、短縮名ではなく正式名を引く（#234）。
-  /// 同じ便の到着地が画面の2箇所で違う名前になるのを避けるため、あちらと
-  /// 揃えている。字の大きさ（12px / 14px）も同じ。
+  /// NEXT BUS カード（`next_bus_display.dart`）と同じ Row が複製されていて、
+  /// #231 → #234 → #241 と3回続けて両方を直す羽目になったため、1箇所に
+  /// まとめた（#241）。既定表示・タップで正式名を出す判断の経緯・
+  /// 3経路の幅の実測（300 / 303 / 335px）は `ArrivalRow` のドキュメント
+  /// コメントを見ること。
   ///
-  /// **この行はカードより広い。**`left: 8` だけ見ると狭そうだが、カード側は
-  /// 外の `Padding(16)` とカード自身の `horizontal: 20` を持っている。
-  /// 375px で実測すると、到着行の幅は経路ごとにこうなる:
-  ///
-  /// | 経路 | 幅 |
-  /// |---|---|
-  /// | NEXT BUS カード | **300px**（いちばん狭い） |
-  /// | 来週ダイヤの BottomSheet（`_showUpcomingSchedule`） | 303px |
-  /// | ホームの時刻表リスト | 335px |
-  ///
-  /// **最長の13文字が 375px で収まることは `long_stop_names_test.dart` で
-  /// 見ている。**いちばん狭いカードが通るので、こちらも通る。
-  /// **前提が崩れる向きは2つある**（#239 のレビュー指摘）。シートの
-  /// `EdgeInsets.all(16)` を**増やす**か、カード側の余白を**減らす**か。
-  /// どちらでも最狭が入れ替わるので、幅を守る場所を決めるときは
-  /// 3経路とも測り直すこと（#237）。
+  /// **この行の展開・折りたたみは2段になっている。** 親の `_ScheduleRow`
+  /// （このファイル）はタップで到着行そのものを出し入れする（`_expanded`）。
+  /// 到着行が出たあと、行ごとにさらにタップすると `ArrivalRow` 自身の
+  /// `_expanded` が正式名を出し入れする。**内側のタップは外側まで貫通しない**
+  /// （Flutter のジェスチャーアリーナで内側の `GestureDetector` が勝つ）ので、
+  /// 到着行をタップしても親の行が閉じることはない。
   List<Widget> _buildArrivalRows() {
-    final colors = context.appColors;
     final order = widget.bus.arrivals.keys.toList();
     return order
         .map((key) => Padding(
               padding: const EdgeInsets.only(top: 4, left: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${widget.stopMaster.officialLabelOf(key)} 着',
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 12,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  Text(
-                    widget.bus.arrivals[key]!,
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 14,
-                      letterSpacing: 2,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ],
+              child: ArrivalRow(
+                stopId: key,
+                time: widget.bus.arrivals[key]!,
+                stopMaster: widget.stopMaster,
               ),
             ))
         .toList();

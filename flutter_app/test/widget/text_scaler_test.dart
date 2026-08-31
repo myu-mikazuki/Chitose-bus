@@ -7,6 +7,7 @@ import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/stop_selection_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
+import 'package:kagi_bus/presentation/views/widgets/next_bus_display.dart';
 import 'package:kagi_bus/presentation/views/widgets/schedule_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,19 +32,24 @@ import '../helpers/test_theme.dart';
 ///
 /// | 場所 | 軸 | テスト用フォント | **実フォント** | 名前に依存 | 直し |
 /// |---|---|---|---|---|---|
-/// | 節の見出し（`◯◯ 発`）が**切れる** | 横 | 1.0 | **1.15** | する | #245 |
-/// | NEXT BUS カードの到着行（300px） | 横 | 1.15 | **1.3** | する | #241 |
+/// | 節の見出し（`◯◯ 発`）が**切れる** | 横 | 1.0 | **1.15** | する | #245（未着手） |
+/// | ~~NEXT BUS カードの到着行（300px）~~ | 横 | ~~1.15~~ | ~~1.3~~ | ~~する~~ | **#241 で解消** |
 /// | ~~タブ（`Tab` の中の `Row`・4タブ）~~ | 横 | ~~1.4~~ | ~~1.4~~ | しない | **#243 で解消** |
-/// | `_StopTab` の Column（375×667） | 縦 | 1.1 | **1.5** | しない | #240 |
-/// | ホームの時刻表リストの到着行（335px） | 横 | 1.25 | **1.5** | する | #241 |
-/// | ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | **2.0** | しない | #242 |
-/// | 来週シートの到着行（303px）／行ヘッダ（311px） | 横 | 1.15 / 1.2 | 未計測 | — | #241 / #242 |
+/// | `_StopTab` の Column（375×667） | 縦 | 1.1 | **1.5** | しない | #240（未着手） |
+/// | ~~ホームの時刻表リストの到着行（335px）~~ | 横 | ~~1.25~~ | ~~1.5~~ | ~~する~~ | **#241 で解消** |
+/// | ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | **2.0** | しない | #242（未着手） |
+/// | ~~来週シートの到着行（303px）~~ | 横 | ~~1.15~~ | ~~未計測~~ | ~~する~~ | **#241 で解消** |
+/// | 来週シートの行ヘッダ（311px） | 横 | **1.18** | 未計測 | しない | #242（未着手） |
 ///
-/// **実機では等倍（1.0）で壊れる場所は無い。**Android の「大」が 1.15、「最大」が
-/// 1.3 なので、**「最大」にすると NEXT BUS の到着行が実際に溢れる**。「大」の
-/// 時点では見出しが ellipsis で切れるだけで、崩れはしない。
+/// **実機では等倍（1.0）で壊れる場所は無い。**
 ///
-/// **タブ（#243）は解消済み**。表には経緯として残してある。
+/// **到着行（#241）とタブ（#243）は解消済み。**表には経緯として残してある。
+/// **到着行は「溢れる」の主張自体が意味を失った**——既定表示を短縮名
+/// （最長5文字）に戻し、正式名はタップで折り返し可能な形にしたので、
+/// もう「名前に依存して溢れる」場所ではない。**入れ替わりで、来週シートの
+/// 行ヘッダ（#242・未着手）が `_arrivalLimit` を主張するテストの中で
+/// いちばん先に負けるようになった**（1.18・詳しくは `_arrivalLimit` の
+/// ドキュメントコメント）。ホームの行ヘッダ（343px）はまだ余裕がある。
 ///
 /// issue の一覧に無かったものが4つ出た（#237 は検知までしか持たない）。
 ///
@@ -59,6 +65,15 @@ import '../helpers/test_theme.dart';
 ///   （#242）。時刻・講義タグ・行き先・`◀ NEXT`・ベルを固定幅で並べていて
 ///   縮む余地が無いため、既定の4停留所でも同じ倍率で溢れる
 /// - **縦にも溢れる**（#240）。issue は「幅が詰まっている場所」を想定していた
+/// - **到着行は解消済み**（#241）。#231 → #234 と2回続けて字を小さくする／
+///   正式名にする、と対症療法を重ねていたが、拡大設定そのものには効いて
+///   いなかった。既定を短縮名に戻し、正式名をタップで出す形にしたことで、
+///   幅の問題が構造的に消えた
+///
+/// **実フォントの列（#241 の到着行・#242 の行ヘッダ）は今回測り直していない。**
+/// このファイルの表とコード上の定数だけを直したので、`98-measurement.md` の
+/// 手順による再計測と `doc/roadmap.md` への反映は別途行うこと
+/// （v1.3.2 実装計画 2-E・今回のスコープ外）。
 ///
 /// ## 測り方（表を測り直すときはこれ）
 ///
@@ -89,8 +104,17 @@ import '../helpers/test_theme.dart';
 const _deviceLimit = 1.05;
 
 /// 縦の余裕を与えたときに、到着行3経路が耐えられる上限。
-/// 1.15 で NEXT BUS の到着行（300px・最狭）が 12px 溢れる（#241）
-const _arrivalLimit = 1.1;
+///
+/// #241 で到着行の既定表示を短縮名（最長5文字）に戻したため、**到着行
+/// そのものはここではもう先に負けない。** 1.18 で溢れるのは
+/// `schedule_list.dart:305` の行ヘッダ（来週シートの311px・時刻・講義タグ・
+/// 行き先・`◀ NEXT`・ベルを並べる Row）で、これは #242（未着手）の対象。
+/// **この定数が示す「到着行の限界」と「実際に赤くなる原因」がここで初めて
+/// ズレた**——直すべきは #242 であって、この PR の範囲ではない。
+/// 高倍率で `ArrivalRow` 自体が溢れないことは、行ヘッダに邪魔されない
+/// `NextBusDisplay` 単体のテスト（下の「到着行の展開は高倍率でも溢れない」）
+/// で別に見ている。
+const _arrivalLimit = 1.17;
 
 /// タブが耐えられる上限（4タブ）。**#243 を直してから溢れなくなった**ので、
 /// いま留めているのは**読めるかどうか**のほう。2.5 で `古泉` が `古…` になる。
@@ -239,8 +263,9 @@ void main() {
       _expectScaleApplied(tester, _deviceLimit);
 
       // ここが赤くなったら縦がいちばん先に負ける（1.1 で `_StopTab` の
-      // Column が 14px 溢れる・#240）。**画面の高さを削る変更を拾うのが役目**
-      expect(find.text('オフィス・アルカディア入口 着'), findsOneWidget);
+      // Column が 14px 溢れる・#240）。**画面の高さを削る変更を拾うのが役目**。
+      // #241 で到着行の既定表示は短縮名に戻したので `O･A入口 着`
+      expect(find.text('O･A入口 着'), findsOneWidget);
 
       // **節見出し（`◯◯ 発`）はここでは見ない。**`Expanded` + ellipsis なので
       // 溢れずに黙って切れる＝ overflow では原理的に拾えないうえ、**375px では
@@ -254,12 +279,13 @@ void main() {
       await tester.pumpAndSettle();
       _expectScaleApplied(tester, _arrivalLimit);
 
-      // 1. NEXT BUS カードの到着行（300px・3経路でいちばん狭い）
-      expect(find.text('オフィス・アルカディア入口 着'), findsOneWidget);
+      // 1. NEXT BUS カードの到着行（300px・3経路でいちばん狭い）。
+      // #241 で既定表示は短縮名に戻したので `O･A入口 着`
+      expect(find.text('O･A入口 着'), findsOneWidget);
 
       // 2. ホームの時刻表リストの到着行（335px・#241）と行ヘッダ（343px・#242）
       await _expandRow(tester, '09:00');
-      expect(find.text('オフィス・アルカディア入口 着'), findsNWidgets(2));
+      expect(find.text('O･A入口 着'), findsNWidgets(2));
 
       // 3. 来週シートの到着行（303px・#241）と行ヘッダ（311px・#242）。
       // **到着行はカード（300px）が最狭**だが、**行ヘッダはこちらが最狭**
@@ -271,7 +297,56 @@ void main() {
       // **数えないと素通りする。**`_expandRow` は行があることしか見ておらず、
       // タップが外れても警告止まりなので、シートの到着行が描かれないまま
       // 緑で通ってしまう。カード1 ＋ ホームのリスト1 ＋ シート1 で3つ
-      expect(find.text('オフィス・アルカディア入口 着'), findsNWidgets(3));
+      expect(find.text('O･A入口 着'), findsNWidgets(3));
+    });
+
+    // #241 の「どの倍率でも溢れない」を主張する場所。`_arrivalLimit` の上の
+    // テストは `HomeScreen` 経由なので、行ヘッダ（#242・未着手）が先に溢れて
+    // 1.18 より上を試せない。ここは `NextBusDisplay` を単体で pump するので
+    // 行ヘッダの制約を受けず、**展開行（`ArrivalRow` がタップで出す正式名の
+    // 行）そのものが高倍率でも溢れないこと**だけを見られる。
+    //
+    // 300px（3経路でいちばん狭い）に、最長13文字の正式名
+    // （`オフィス・アルカディア入口`）を持つ停留所を当てて、2.0 まで見る。
+    // 展開行は `Wrap` にしてあるので、収まらなければ2行目に流れるだけで
+    // 例外にはならない——ここで拾いたいのはそれが本当に効いているかどうか
+    testWidgets('到着行の展開は高倍率でも溢れない（NEXT BUS カード単体・#241）', (tester) async {
+      final timetable = _timetable('2024-01-01', '2024-12-31');
+
+      await tester.pumpWidget(MaterialApp(
+        theme: buildTestTheme(),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(2.0)),
+          child: child!,
+        ),
+        home: ProviderScope(
+          overrides: [countdownOverride(now: DateTime(2024, 6, 17, 8, 0))],
+          child: Scaffold(
+            body: Padding(
+              // NEXT BUS カードの実測どおり、外の Padding(16) を再現する
+              padding: const EdgeInsets.all(16),
+              child: NextBusDisplay(
+                timetable: timetable,
+                stopId: 'koizumi',
+                stopMaster: kLongStopMaster,
+              ),
+            ),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // 既定は短縮名
+      final row = find.text('O･A入口 着');
+      expect(row, findsOneWidget);
+
+      // タップして正式名の行を展開する。ここで overflow していれば
+      // tester が例外として拾う
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+
+      expect(find.text('オフィス・アルカディア入口'), findsOneWidget);
     });
 
     // タブは #177 で `Flexible` + ellipsis の枝を用意してあるが、**その枝を
