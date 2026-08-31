@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-08-18
+最終更新: 2026-08-31
 
 ---
 
@@ -10,12 +10,12 @@
 
 | 順 | Issue | 内容 | 状態 |
 |----|-------|------|------|
-| — | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（タブに出す） | **develop 済み**・v1.3.1 で出す |
-| — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
-| — | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | **develop 済み**・v1.3.1 で出す |
-| — | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | **develop 済み**・v1.3.1 で出す |
-| — | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | **develop 済み**・v1.3.1 で出す |
-| — | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | **develop 済み**・v1.3.1 で出す |
+| — | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（タブに出す） | **release/v1.3.1 に切り出し済み** |
+| — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **release/v1.3.1 に切り出し済み** |
+| — | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | **release/v1.3.1 に切り出し済み** |
+| — | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | **release/v1.3.1 に切り出し済み** |
+| — | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | **release/v1.3.1 に切り出し済み** |
+| — | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | **release/v1.3.1 に切り出し済み** |
 | 1 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.3 で横に溢れる | v1.3.2 |
 | 2 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | v1.3.2 |
 | 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | v1.3.2 |
@@ -26,7 +26,7 @@
 | 9 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
 | 10 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
 
-**v1.3.0 はリリース済み**（2026-08-16・審査提出済み）。次は **v1.3.1** で、
+**v1.3.0 はリリース済み**（2026-08-16 審査提出・2026-08-31 両ストア公開）。次は **v1.3.1** で、
 #177 が長い停留所名を画面に出せるようにした結果できた穴を、4件まとめて塞ぐ。**タブに短縮名、
 NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 #146（臨時便）は応答に便を追加するため、旧アプリへの影響を確認する必要がある。
