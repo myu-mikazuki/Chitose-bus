@@ -77,8 +77,7 @@ void main() {
       final entries = entriesOf([
         _outbound.copyWith(terminus: 'honbuto'),
       ]);
-      expect(entries.map((e) => e.terminusStopId),
-          everyElement('honbuto'));
+      expect(entries.map((e) => e.terminusStopId), everyElement('honbuto'));
     });
 
     test('terminus が無ければ null（未デプロイの GAS・旧キャッシュ）', () {
@@ -122,7 +121,8 @@ void main() {
         ],
       );
 
-      expect(entriesOf([osatsuBound]).map((e) => e.boardingStopId), ['chitose']);
+      expect(
+          entriesOf([osatsuBound]).map((e) => e.boardingStopId), ['chitose']);
     });
 
     test('停留所を1つだけ選ぶと便が残らない', () {
@@ -154,7 +154,8 @@ void main() {
       final fromMorimoto =
           entries.firstWhere((e) => e.boardingStopId == 'morimoto');
       expect(fromMorimoto.time, '07:23');
-      expect(fromMorimoto.arrivals.keys, ['minamiChitose', 'kenkyuto', 'honbuto']);
+      expect(
+          fromMorimoto.arrivals.keys, ['minamiChitose', 'kenkyuto', 'honbuto']);
     });
 
     test('復路の arrivals も通過順（研究棟 → 南千歳 → 千歳駅）', () {
@@ -277,7 +278,8 @@ void main() {
       expect(model.stopMaster[1].boardable, isFalse);
       expect(model.current.trips.single.stops.first.platform, '5番');
 
-      final entries = model.toEntity(coveredStopIds: const []).current.schedules;
+      final entries =
+          model.toEntity(coveredStopIds: const []).current.schedules;
       expect(entries.single.boardingStopId, 'chitose');
       expect(entries.single.arrivals, {'honbuto': '07:45'});
     });

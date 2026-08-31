@@ -82,7 +82,8 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
     final dayType = widget.dayType;
     final buses = dayType == null
-        ? widget.timetable.todayBuses(widget.stopId, destination: widget.destination, now: now)
+        ? widget.timetable.todayBuses(widget.stopId,
+            destination: widget.destination, now: now)
         : widget.timetable.busesFor(
             widget.stopId,
             dayType,
@@ -91,12 +92,12 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
           );
     // 当日以外の表示では NEXT の概念がないため null とする
     final nextBus = dayType == null
-        ? widget.timetable.nextBus(widget.stopId, destination: widget.destination, now: now)
+        ? widget.timetable
+            .nextBus(widget.stopId, destination: widget.destination, now: now)
         : null;
 
     if (buses.isEmpty) {
-      final isSuspended =
-          dayType == null && ServiceCalendar.isSuspended(now);
+      final isSuspended = dayType == null && ServiceCalendar.isSuspended(now);
       return Center(
         child: Text(
           isSuspended ? '年末年始のため全便運休です' : '時刻表データなし',
@@ -118,8 +119,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
 
         final rows = List.generate(buses.length, (index) {
           final bus = buses[index];
-          final isPast =
-              dayType == null && bus.minutesFromNow(now: now) < 0;
+          final isPast = dayType == null && bus.minutesFromNow(now: now) < 0;
           final isNext = index == nextBusIndex;
           return _ScheduleRow(
             key: isNext ? _nextBusKey : null,
@@ -246,16 +246,39 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
     );
   }
 
+  /// 到着行。**NEXT BUS カード（`next_bus_display.dart`）と同じものを出す。**
+  ///
+  /// 降りる停留所を確かめる場所なので、短縮名ではなく正式名を引く（#234）。
+  /// 同じ便の到着地が画面の2箇所で違う名前になるのを避けるため、あちらと
+  /// 揃えている。字の大きさ（12px / 14px）も同じ。
+  ///
+  /// **この行はカードより広い。**`left: 8` だけ見ると狭そうだが、カード側は
+  /// 外の `Padding(16)` とカード自身の `horizontal: 20` を持っている。
+  /// 375px で実測すると、到着行の幅は経路ごとにこうなる:
+  ///
+  /// | 経路 | 幅 |
+  /// |---|---|
+  /// | NEXT BUS カード | **300px**（いちばん狭い） |
+  /// | 来週ダイヤの BottomSheet（`_showUpcomingSchedule`） | 303px |
+  /// | ホームの時刻表リスト | 335px |
+  ///
+  /// **最長の13文字が 375px で収まることは `long_stop_names_test.dart` で
+  /// 見ている。**いちばん狭いカードが通るので、こちらも通る。
+  /// **前提が崩れる向きは2つある**（#239 のレビュー指摘）。シートの
+  /// `EdgeInsets.all(16)` を**増やす**か、カード側の余白を**減らす**か。
+  /// どちらでも最狭が入れ替わるので、幅を守る場所を決めるときは
+  /// 3経路とも測り直すこと（#237）。
   List<Widget> _buildArrivalRows() {
     final colors = context.appColors;
     final order = widget.bus.arrivals.keys.toList();
-    return order.map((key) => Padding(
+    return order
+        .map((key) => Padding(
               padding: const EdgeInsets.only(top: 4, left: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${widget.stopMaster.labelOf(key)} 着',
+                    '${widget.stopMaster.officialLabelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 12,

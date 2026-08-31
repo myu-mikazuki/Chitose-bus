@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kagi_bus/core/theme/app_theme.dart';
@@ -34,5 +36,50 @@ const kTestStopMaster = [
   BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
   BusStop(id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳'),
   BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
+  BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+];
+
+/// [text] がその場で**省略されずに**出ていることを見る。
+///
+/// `find.text` は `Text.data` を照合するので、`ellipsis` で `古泉循環器…` に
+/// 切れていても通ってしまう。幅が足りているかを主張したいテストはこちらを使う
+/// （#208 の PR #232 レビュー指摘）。
+///
+/// `maxLines` が null でも、`softWrap: false` + `ellipsis` で1行に収まらなければ
+/// `didExceedMaxLines` が true になる。
+///
+/// **幅は実機と一致しない。** テストにはフォントが無く、1文字 = 1em の代替
+/// フォントで測るため、欧文は実機よりかなり幅を食う（`NEXT BUS` が 82px →
+/// 120px）。実データで最も長い名前を 375px で通す、といった**限界の主張には
+/// 使えない**。構造が壊れて幅が潰れたことを拾うのが役目。
+void expectNotTruncated(WidgetTester tester, String text) {
+  final paragraph = tester.renderObject<RenderParagraph>(find.text(text));
+  expect(
+    paragraph.didExceedMaxLines,
+    isFalse,
+    reason: '「$text」が省略されている（幅が足りていない）',
+  );
+}
+
+/// 既定の4停留所の外まで含む、**実データで最も長い部類**の停留所名。
+///
+/// **幅のテストはこの fixture が実データの最長に追随している前提で立っている。**
+/// いまの最長は13文字（`オフィス・アルカディア入口` / `古泉循環器内科クリニック前`）。
+/// GAS の `stopMaster` にこれより長い名前が入ると、**テストは緑のまま本番だけ
+/// 壊れる**ので、停留所が増えたらここも見直すこと（#231 / PR #236 のレビュー指摘）。
+///
+/// **短縮名は実データどおり全件に付ける。**付けないと `officialLabelOf` を
+/// `labelOf` に戻しても同じ長い名前が出て、幅のテストが緑のまま通る（#234）。
+/// #207 で31件すべてに `shortLabel` が付いた以上、短縮名の無い停留所は
+/// 実データに存在しない。値は `gas/Code.gs` の `STOP_MASTER` と同じもの。
+///
+/// `long_stop_names_test.dart` と `text_scaler_test.dart` が共有する。
+/// **2箇所に置くと片方だけ実データから遅れる**ので、増やすときもここに足すこと。
+const kLongStopMaster = [
+  BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+  BusStop(id: 'koizumi', label: '古泉循環器内科クリニック前', shortLabel: '古泉'),
+  BusStop(id: 'arcadia', label: 'オフィス・アルカディア入口', shortLabel: 'O･A入口'),
+  BusStop(id: 'hoyukai', label: '千歳豊友会病院前', shortLabel: '豊友会'),
+  BusStop(id: 'osatsu', label: '長都駅東口', shortLabel: '長都駅'),
   BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
 ];

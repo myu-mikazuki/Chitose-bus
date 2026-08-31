@@ -49,23 +49,20 @@ class LocalNotificationService implements NotificationService {
 
   @override
   Future<bool> requestPermission() async {
-    final android = _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
     if (android != null) {
       final granted = await android.requestNotificationsPermission() ?? false;
       if (!granted) return false;
       // Android 12+ では正確なアラーム権限が別途必要。未付与の場合はシステム設定画面を開く。
       // ユーザーが設定画面で許可しなくても通知自体は有効にする（inexact フォールバックあり）。
-      final canExact =
-          await android.canScheduleExactNotifications() ?? false;
+      final canExact = await android.canScheduleExactNotifications() ?? false;
       if (!canExact) await android.requestExactAlarmsPermission();
       return true;
     }
 
-    final ios = _plugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+    final ios = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
     // iOS プラグインが取得できない場合（Web 等）は権限未取得として false を返す。
     return await ios?.requestPermissions(
           alert: true,
@@ -81,7 +78,8 @@ class LocalNotificationService implements NotificationService {
     await initialize();
     final now = DateTime.now();
     final busTime = bus.toDateTimeToday(now: now);
-    final notifyAt = busTime.subtract(Duration(minutes: settings.minutesBefore));
+    final notifyAt =
+        busTime.subtract(Duration(minutes: settings.minutesBefore));
     if (notifyAt.isBefore(now)) return;
 
     final tzNotifyAt = tz.TZDateTime.from(notifyAt, tz.local);
@@ -99,15 +97,18 @@ class LocalNotificationService implements NotificationService {
         presentSound: true,
       ),
     );
-    const interpretation =
-        UILocalNotificationDateInterpretation.absoluteTime;
+    const interpretation = UILocalNotificationDateInterpretation.absoluteTime;
 
     final id = NotificationService.busNotificationId(bus);
     final title = 'バスが出発します';
     final body = '${settings.minutesBefore}分後に ${bus.destination} 行きバスが出発します';
 
     Future<void> schedule(AndroidScheduleMode mode) => _plugin.zonedSchedule(
-          id, title, body, tzNotifyAt, details,
+          id,
+          title,
+          body,
+          tzNotifyAt,
+          details,
           androidScheduleMode: mode,
           uiLocalNotificationDateInterpretation: interpretation,
         );

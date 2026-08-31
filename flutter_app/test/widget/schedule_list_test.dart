@@ -23,7 +23,8 @@ class _FakeDisplaySettingsNotifier extends DisplaySettingsNotifier {
   Future<DisplaySettings> build() async => _settings;
 }
 
-Widget _wrapWithDisplay(Widget child, DisplaySettings settings) => ProviderScope(
+Widget _wrapWithDisplay(Widget child, DisplaySettings settings) =>
+    ProviderScope(
       overrides: [
         countdownOverride(),
         displaySettingsProvider.overrideWith(
@@ -89,8 +90,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       expect(find.text('時刻表データなし'), findsOneWidget);
@@ -103,21 +105,16 @@ void main() {
         validFrom: '2024-01-01',
         validTo: '2024-03-31',
         schedules: [
-          BusEntry(
-              time: t1,
-              boardingStopId: 'chitose',
-              destination: '千歳科技大'),
-          BusEntry(
-              time: t2,
-              boardingStopId: 'chitose',
-              destination: '千歳科技大'),
+          BusEntry(time: t1, boardingStopId: 'chitose', destination: '千歳科技大'),
+          BusEntry(time: t2, boardingStopId: 'chitose', destination: '千歳科技大'),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       // When t1 == t2 (both capped at 23:58 near midnight), two widgets share
@@ -139,16 +136,15 @@ void main() {
         validTo: '2024-03-31',
         schedules: [
           BusEntry(
-              time: nextTime,
-              boardingStopId: 'chitose',
-              destination: '千歳科技大'),
+              time: nextTime, boardingStopId: 'chitose', destination: '千歳科技大'),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       expect(find.text('◀ NEXT'), findsOneWidget);
@@ -168,16 +164,15 @@ void main() {
         validTo: '2024-03-31',
         schedules: [
           BusEntry(
-              time: pastTime,
-              boardingStopId: 'chitose',
-              destination: '千歳科技大'),
+              time: pastTime, boardingStopId: 'chitose', destination: '千歳科技大'),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       final timeText = tester.widget<Text>(find.text(pastTime));
@@ -194,21 +189,16 @@ void main() {
         validFrom: '2024-01-01',
         validTo: '2024-03-31',
         schedules: [
-          BusEntry(
-              time: t1,
-              boardingStopId: 'chitose',
-              destination: '千歳科技大'),
-          BusEntry(
-              time: t2,
-              boardingStopId: 'chitose',
-              destination: '千歳科技大'),
+          BusEntry(time: t1, boardingStopId: 'chitose', destination: '千歳科技大'),
+          BusEntry(time: t2, boardingStopId: 'chitose', destination: '千歳科技大'),
         ],
       );
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       // t2 is neither next nor past → textColor should be 0xFFCCCCCC.
@@ -239,18 +229,19 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       // タップ前は到着情報が非表示
-      expect(find.text('研究棟 着'), findsNothing);
+      expect(find.text('科技大研究棟 着'), findsNothing);
 
       await tester.tap(find.text(busTime));
       await tester.pump();
 
       // タップ後は到着情報が表示
-      expect(find.text('研究棟 着'), findsOneWidget);
+      expect(find.text('科技大研究棟 着'), findsOneWidget);
       expect(find.text(arrivalTime), findsAtLeastNWidgets(1));
     });
 
@@ -272,19 +263,20 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       // 1回目タップ → 展開
       await tester.tap(find.text(busTime));
       await tester.pump();
-      expect(find.text('研究棟 着'), findsOneWidget);
+      expect(find.text('科技大研究棟 着'), findsOneWidget);
 
       // 2回目タップ → 折りたたみ
       await tester.tap(find.text(busTime));
       await tester.pump();
-      expect(find.text('研究棟 着'), findsNothing);
+      expect(find.text('科技大研究棟 着'), findsNothing);
     });
 
     group('ベルアイコン', () {
@@ -295,13 +287,14 @@ void main() {
           validTo: '2024-12-31',
           schedules: [
             BusEntry(
-                time: busTime,
-                boardingStopId: 'chitose',
-                destination: '千歳科技大'),
+                time: busTime, boardingStopId: 'chitose', destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
+          ScheduleList(
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
@@ -316,13 +309,14 @@ void main() {
           validTo: '2024-12-31',
           schedules: [
             BusEntry(
-                time: busTime,
-                boardingStopId: 'chitose',
-                destination: '千歳科技大'),
+                time: busTime, boardingStopId: 'chitose', destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
+          ScheduleList(
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose'),
           NotificationSettings(enabled: false),
         ));
         await tester.pump();
@@ -344,7 +338,10 @@ void main() {
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
+          ScheduleList(
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
@@ -356,9 +353,7 @@ void main() {
       testWidgets('選択済み便: 斜線なしベル(0xFF888888)が表示される', (tester) async {
         final busTime = safeFutureHhmm(60);
         final bus = BusEntry(
-            time: busTime,
-            boardingStopId: 'chitose',
-            destination: '千歳科技大');
+            time: busTime, boardingStopId: 'chitose', destination: '千歳科技大');
         final key = NotificationSettingsNotifier.busKey(bus);
         final timetable = BusTimetable(
           validFrom: '2024-01-01',
@@ -366,7 +361,10 @@ void main() {
           schedules: [bus],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
+          ScheduleList(
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose'),
           NotificationSettings(enabled: true, scheduledBusKeys: {key}),
         ));
         await tester.pump();
@@ -382,27 +380,27 @@ void main() {
           validTo: '2024-12-31',
           schedules: [
             BusEntry(
-                time: busTime,
-                boardingStopId: 'chitose',
-                destination: '千歳科技大'),
+                time: busTime, boardingStopId: 'chitose', destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
+          ScheduleList(
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose'),
           NotificationSettings(enabled: true),
         ));
         await tester.pump();
 
-        final icon = tester.widget<Icon>(find.byIcon(Icons.notifications_off_outlined));
+        final icon =
+            tester.widget<Icon>(find.byIcon(Icons.notifications_off_outlined));
         expect(icon.color, const Color(0xFF888888));
       });
 
       testWidgets('ベルアイコンをタップ: scheduledBusKeys にキーが追加される', (tester) async {
         final busTime = safeFutureHhmm(60);
         final bus = BusEntry(
-            time: busTime,
-            boardingStopId: 'chitose',
-            destination: '千歳科技大');
+            time: busTime, boardingStopId: 'chitose', destination: '千歳科技大');
         final timetable = BusTimetable(
           validFrom: '2024-01-01',
           validTo: '2024-12-31',
@@ -422,8 +420,9 @@ void main() {
             theme: buildTestTheme(),
             home: Scaffold(
               body: ScheduleList(
-          stopMaster: kTestStopMaster,
-                  timetable: timetable, stopId: 'chitose'),
+                  stopMaster: kTestStopMaster,
+                  timetable: timetable,
+                  stopId: 'chitose'),
             ),
           ),
         ));
@@ -447,13 +446,14 @@ void main() {
           validTo: '2024-12-31',
           schedules: [
             BusEntry(
-                time: busTime,
-                boardingStopId: 'chitose',
-                destination: '千歳科技大'),
+                time: busTime, boardingStopId: 'chitose', destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
+          ScheduleList(
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose'),
           NotificationSettings(enabled: true, minutesBefore: minutesBefore),
         ));
         await tester.pump();
@@ -471,13 +471,14 @@ void main() {
           validTo: '2024-12-31',
           schedules: [
             BusEntry(
-                time: busTime,
-                boardingStopId: 'chitose',
-                destination: '千歳科技大'),
+                time: busTime, boardingStopId: 'chitose', destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
-          ScheduleList(stopMaster: kTestStopMaster, timetable: timetable, stopId: 'chitose'),
+          ScheduleList(
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose'),
           NotificationSettings(enabled: true, minutesBefore: minutesBefore),
         ));
         await tester.pump();
@@ -502,14 +503,15 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-            timetable: timetable, stopId: 'chitose')),
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
       );
 
       await tester.tap(find.text(busTime));
       await tester.pump();
 
-      expect(find.text('研究棟 着'), findsNothing);
+      expect(find.text('科技大研究棟 着'), findsNothing);
     });
 
     group('講時タグ', () {
@@ -528,13 +530,15 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-              timetable: timetable, stopId: 'chitose')),
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose')),
         );
         expect(find.text('1講'), findsOneWidget);
       });
 
-      testWidgets('arrivals[honbuto]=09:00 → "2講" タグが表示される（境界値）', (tester) async {
+      testWidgets('arrivals[honbuto]=09:00 → "2講" タグが表示される（境界値）',
+          (tester) async {
         final timetable = BusTimetable(
           validFrom: '2024-01-01',
           validTo: '2024-03-31',
@@ -549,8 +553,9 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-              timetable: timetable, stopId: 'chitose')),
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose')),
         );
         expect(find.text('2講'), findsOneWidget);
       });
@@ -570,8 +575,9 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-              timetable: timetable, stopId: 'chitose')),
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose')),
         );
         expect(find.text('放課後'), findsOneWidget);
       });
@@ -591,7 +597,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
+              stopMaster: kTestStopMaster,
               timetable: timetable,
               stopId: 'kenkyuto')),
         );
@@ -614,8 +620,9 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-              timetable: timetable, stopId: 'chitose')),
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose')),
         );
         for (final label in ['1講', '2講', '昼休み', '3講', '4講', '5講', '放課後']) {
           expect(find.text(label), findsNothing);
@@ -638,8 +645,9 @@ void main() {
         await tester.pumpWidget(
           _wrapWithDisplay(
             ScheduleList(
-          stopMaster: kTestStopMaster,
-                timetable: timetable, stopId: 'chitose'),
+                stopMaster: kTestStopMaster,
+                timetable: timetable,
+                stopId: 'chitose'),
             const DisplaySettings(showLectureTags: false),
           ),
         );
@@ -664,8 +672,9 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
-              timetable: timetable, stopId: 'chitose')),
+              stopMaster: kTestStopMaster,
+              timetable: timetable,
+              stopId: 'chitose')),
         );
         // NEXT行であることを確認
         expect(find.text('◀ NEXT'), findsOneWidget);
@@ -703,7 +712,7 @@ void main() {
       testWidgets('weekday 指定: weekendOnly の便が表示されない', (tester) async {
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: mixedTimetable,
             stopId: 'chitose',
             dayType: DayType.weekday,
@@ -718,7 +727,7 @@ void main() {
       testWidgets('weekendHoliday 指定: weekdayOnly の便が表示されない', (tester) async {
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: mixedTimetable,
             stopId: 'chitose',
             dayType: DayType.weekendHoliday,
@@ -735,7 +744,7 @@ void main() {
         // dayType 指定時は NEXT の概念がない
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: mixedTimetable,
             stopId: 'chitose',
             dayType: DayType.weekday,
@@ -760,7 +769,7 @@ void main() {
         );
         await tester.pumpWidget(
           _wrap(ScheduleList(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: timetable,
             stopId: 'chitose',
             dayType: DayType.weekday,
@@ -778,14 +787,12 @@ void main() {
           validTo: '2024-12-31',
           schedules: [
             BusEntry(
-                time: busTime,
-                boardingStopId: 'chitose',
-                destination: '千歳科技大'),
+                time: busTime, boardingStopId: 'chitose', destination: '千歳科技大'),
           ],
         );
         await tester.pumpWidget(_wrapWithNotification(
           ScheduleList(
-          stopMaster: kTestStopMaster,
+            stopMaster: kTestStopMaster,
             timetable: timetable,
             stopId: 'chitose',
             dayType: DayType.weekday,
@@ -834,7 +841,7 @@ void main() {
               body: SizedBox(
                 height: 200,
                 child: ScheduleList(
-          stopMaster: kTestStopMaster,
+                    stopMaster: kTestStopMaster,
                     timetable: timetable,
                     stopId: 'chitose'),
               ),

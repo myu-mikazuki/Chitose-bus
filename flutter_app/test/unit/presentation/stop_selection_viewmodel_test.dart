@@ -72,7 +72,8 @@ void main() {
       expect(container.read(stopSelectionProvider).value, next);
 
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getStringList('stop_selection_ids'), ['chitose', 'morimoto']);
+      expect(
+          prefs.getStringList('stop_selection_ids'), ['chitose', 'morimoto']);
     });
 
     test('select: 時刻表が取り直される（?stops= が変わるため）', () async {
@@ -94,8 +95,8 @@ void main() {
       await container.read(stopSelectionProvider.future);
       await container.read(scheduleViewModelProvider.future);
 
-      final reversed =
-          StopSelection(stopIds: StopSelection.defaultStopIds.reversed.toList());
+      final reversed = StopSelection(
+          stopIds: StopSelection.defaultStopIds.reversed.toList());
       await container.read(stopSelectionProvider.notifier).select(reversed);
       await container.read(scheduleViewModelProvider.future);
 

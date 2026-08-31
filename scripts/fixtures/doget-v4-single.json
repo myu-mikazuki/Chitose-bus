@@ -3,67 +3,83 @@
  "stopMaster": [
   {
    "id": "osatsu",
-   "label": "長都駅東口"
+   "label": "長都駅東口",
+   "shortLabel": "長都駅"
   },
   {
    "id": "arcs",
-   "label": "アークス前"
+   "label": "アークス前",
+   "shortLabel": "アークス"
   },
   {
    "id": "isamai7",
-   "label": "勇舞7丁目"
+   "label": "勇舞7丁目",
+   "shortLabel": "勇舞7"
   },
   {
    "id": "isamaiPark",
-   "label": "勇舞公園前"
+   "label": "勇舞公園前",
+   "shortLabel": "勇舞公園"
   },
   {
    "id": "isamaiJhs",
-   "label": "勇舞中学校前"
+   "label": "勇舞中学校前",
+   "shortLabel": "勇舞中"
   },
   {
    "id": "isamai2",
-   "label": "勇舞2丁目"
+   "label": "勇舞2丁目",
+   "shortLabel": "勇舞2"
   },
   {
    "id": "alice",
-   "label": "アリスこども園前"
+   "label": "アリスこども園前",
+   "shortLabel": "アリス"
   },
   {
    "id": "hokuyoHs",
-   "label": "北陽高校前"
+   "label": "北陽高校前",
+   "shortLabel": "北陽高"
   },
   {
    "id": "hokuyo3",
-   "label": "北陽3丁目"
+   "label": "北陽3丁目",
+   "shortLabel": "北陽3"
   },
   {
    "id": "hokko6",
-   "label": "北光6丁目"
+   "label": "北光6丁目",
+   "shortLabel": "北光6"
   },
   {
    "id": "fuji4",
-   "label": "富士4丁目"
+   "label": "富士4丁目",
+   "shortLabel": "富士4"
   },
   {
    "id": "shinano4",
-   "label": "信濃4丁目"
+   "label": "信濃4丁目",
+   "shortLabel": "信濃4"
   },
   {
    "id": "yao",
-   "label": "矢尾外科胃腸科前"
+   "label": "矢尾外科胃腸科前",
+   "shortLabel": "矢尾"
   },
   {
    "id": "hoyukai",
-   "label": "千歳豊友会病院前"
+   "label": "千歳豊友会病院前",
+   "shortLabel": "豊友会"
   },
   {
    "id": "hokuei2",
-   "label": "北栄2丁目"
+   "label": "北栄2丁目",
+   "shortLabel": "北栄2"
   },
   {
    "id": "aeon",
-   "label": "イオン千歳店前"
+   "label": "イオン千歳店前",
+   "shortLabel": "イオン"
   },
   {
    "id": "chitose",
@@ -72,27 +88,33 @@
   },
   {
    "id": "morimoto",
-   "label": "もりもと本店前"
+   "label": "もりもと本店前",
+   "shortLabel": "もりもと"
   },
   {
    "id": "koizumi",
-   "label": "古泉循環器内科クリニック前"
+   "label": "古泉循環器内科クリニック前",
+   "shortLabel": "古泉"
   },
   {
    "id": "shiyakusho",
-   "label": "市役所前"
+   "label": "市役所前",
+   "shortLabel": "市役所"
   },
   {
    "id": "asahicho4",
-   "label": "朝日町4丁目"
+   "label": "朝日町4丁目",
+   "shortLabel": "朝日4"
   },
   {
    "id": "asahicho7",
-   "label": "朝日町7丁目"
+   "label": "朝日町7丁目",
+   "shortLabel": "朝日7"
   },
   {
    "id": "arcadia",
-   "label": "オフィス・アルカディア入口"
+   "label": "オフィス・アルカディア入口",
+   "shortLabel": "O･A入口"
   },
   {
    "id": "minamiChitose",
@@ -101,19 +123,23 @@
   },
   {
    "id": "airCargo",
-   "label": "エアカーゴ前"
+   "label": "エアカーゴ前",
+   "shortLabel": "カーゴ"
   },
   {
    "id": "domestic28",
-   "label": "空港国内線28番"
+   "label": "空港国内線28番",
+   "shortLabel": "国内28"
   },
   {
    "id": "domestic1",
-   "label": "空港国内線1番"
+   "label": "空港国内線1番",
+   "shortLabel": "国内1"
   },
   {
    "id": "international85",
-   "label": "空港国際線85番"
+   "label": "空港国際線85番",
+   "shortLabel": "国際85"
   },
   {
    "id": "kenkyuto",
@@ -128,6 +154,7 @@
   {
    "id": "rapidus",
    "label": "ラピダス前",
+   "shortLabel": "ラピダス",
    "boardable": false
   }
  ],

@@ -14,43 +14,19 @@ import 'package:kagi_bus/presentation/views/home_screen.dart';
 import 'package:kagi_bus/presentation/views/widgets/offline_cache_banner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/fake_view_models.dart';
 import '../helpers/test_theme.dart';
 
 // ---------------------------------------------------------------------------
 // Fake ViewModels
+//
+// 決まった結果を返す / ロード中 / 投げる、の3つは helpers/ にある
+// （FakeScheduleViewModel・FakeLoadingScheduleViewModel・
+// FakeErrorScheduleViewModel、#219 #223）
+//
+// ここに残しているのは**非同期の進み方そのものを操るもの**だけ。共有版は
+// どれも「build() が何を返すか」しか変えられないので、途中経過は作れない。
 // ---------------------------------------------------------------------------
-
-class _FakeScheduleViewModel extends ScheduleViewModel {
-  _FakeScheduleViewModel(this._result);
-
-  final ScheduleResult _result;
-  bool refreshCalled = false;
-
-  @override
-  Future<ScheduleResult> build() async => _result;
-
-  @override
-  Future<void> refresh() async {
-    refreshCalled = true;
-  }
-}
-
-class _LoadingViewModel extends ScheduleViewModel {
-  @override
-  Future<ScheduleResult> build() async {
-    // Never completes → keeps state as AsyncLoading
-    await Completer<void>().future;
-    throw Exception('unreachable');
-  }
-}
-
-class _ErrorViewModel extends ScheduleViewModel {
-  _ErrorViewModel(this._error);
-  final Object _error;
-
-  @override
-  Future<ScheduleResult> build() async => throw _error;
-}
 
 class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
   final FavoriteTab _initial;
@@ -75,6 +51,9 @@ class _FakeFavoriteTabNotifier extends FavoriteTabNotifier {
 
 /// スケジュールの解決を外部から制御できる VM。
 /// favoriteTabProvider が先に解決した後に scheduleAsync が解決するシナリオを再現する。
+///
+/// **helpers に寄せられない。** 共有版は解決済みかロード中かのどちらかで、
+/// 「いつ解決するか」を外から決められない（#223）。
 class _DelayedScheduleViewModel extends ScheduleViewModel {
   _DelayedScheduleViewModel(this._result);
 
@@ -95,6 +74,9 @@ class _DelayedScheduleViewModel extends ScheduleViewModel {
 
 /// refresh() が本物と同じく AsyncLoading を入れる VM。
 /// 入れたきり解決しないので、更新中のままの画面を確かめられる。
+///
+/// **helpers に寄せられない。** 共有版の `refresh()` は呼ばれたことを数えるだけで
+/// state を触らない。ここが要るのは**更新中という途中の state** そのもの（#223）。
 class _RefreshableViewModel extends ScheduleViewModel {
   _RefreshableViewModel(this._result);
   final ScheduleResult _result;
@@ -108,31 +90,6 @@ class _RefreshableViewModel extends ScheduleViewModel {
   }
 
   void fail() => state = AsyncError(Exception('test error'), StackTrace.empty);
-}
-
-/// 選択を外から差し替えられる VM。設定画面での操作を再現する。
-/// 本物の select() は scheduleViewModelProvider を invalidate するため使わない。
-class _FakeStopSelectionNotifier extends StopSelectionNotifier {
-  _FakeStopSelectionNotifier(this._initial);
-  final StopSelection _initial;
-
-  @override
-  Future<StopSelection> build() async => _initial;
-
-  void set(StopSelection selection) => state = AsyncData(selection);
-}
-
-/// Error VM that also tracks refresh() calls.
-class _TrackingErrorViewModel extends ScheduleViewModel {
-  bool refreshCalled = false;
-
-  @override
-  Future<ScheduleResult> build() async => throw Exception('test error');
-
-  @override
-  Future<void> refresh() async {
-    refreshCalled = true;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -212,7 +169,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            scheduleViewModelProvider.overrideWith(() => _LoadingViewModel()),
+            scheduleViewModelProvider
+                .overrideWith(() => FakeLoadingScheduleViewModel()),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -228,7 +186,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider.overrideWith(
-                () => _ErrorViewModel(Exception('test error'))),
+                () => FakeErrorScheduleViewModel(Exception('test error'))),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -241,7 +199,7 @@ void main() {
     });
 
     testWidgets('error状態で「再試行」タップ: refreshが呼ばれる', (tester) async {
-      final vm = _TrackingErrorViewModel();
+      final vm = FakeErrorScheduleViewModel(Exception('test error'));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -265,7 +223,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider
-                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -287,7 +245,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              scheduleViewModelProvider.overrideWith(() => _LoadingViewModel()),
+              scheduleViewModelProvider
+                  .overrideWith(() => FakeLoadingScheduleViewModel()),
               countdownOverride(),
             ],
             child:
@@ -391,6 +350,65 @@ void main() {
         });
       }
 
+      // **拡大設定でも同じことが言えること**（#243）。
+      //
+      // 名前側の幅は `TextScaler` で伸びるが、場所取りは文字ではないので
+      // **自動では伸びない**。片方だけ伸ばすと拡大時にだけ両者がずれ、
+      // 上と同じ「名前が届いた瞬間に並べ方が切り替わって星が跳ぶ」が起きる。
+      // 計測（`_buildTab`）と描画（`_StopLabelPlaceholder`）が同じ
+      // `scaledWidth()` を呼ぶので、そこが崩れたらここが赤くなる。
+      //
+      // **幅は「並べ方が割れる窓」を狙って選んである。** 拡大すると中央寄せ ⇄
+      // 横並びの境目も動くので、等倍の一覧（360〜492）をそのまま使っても
+      // **両方とも縮小経路に落ちて差が出ない**（375px・1.3 では 2px 程度で、
+      // 許容の 6px に収まってしまう）。1.3 では場所取りを伸ばさないと
+      // **500〜530px で 7〜11px 跳ぶ**ので、そこを踏む。
+      //
+      // **`scaledWidth()` の拡大を外すと実際に赤くなることを確かめてある。**
+      // 倍率を変えるときはこの窓も測り直すこと（窓の外だと素通りする）。
+      //
+      // 1.3 までしか上げないのは、1.5 で時刻表リストの行ヘッダが先に溢れ
+      // （#242）、星とは無関係の理由で赤くなるため。#242 が直ったら上げてよい
+      // （`text_scaler_test.dart` の表を参照）。
+      for (final logicalWidth in [500.0, 530.0]) {
+        testWidgets('名前に入れ替わっても星が動かない（拡大 1.3・幅 $logicalWidth・#243）',
+            (tester) async {
+          tester.view.physicalSize = Size(logicalWidth * 2, 1334);
+          tester.view.devicePixelRatio = 2.0;
+          addTearDown(tester.view.reset);
+
+          final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                scheduleViewModelProvider.overrideWith(() => scheduleVM),
+                countdownOverride(),
+              ],
+              child: MaterialApp(
+                theme: buildTestTheme(),
+                builder: (context, child) => MediaQuery(
+                  data: MediaQuery.of(context)
+                      .copyWith(textScaler: const TextScaler.linear(1.3)),
+                  child: child!,
+                ),
+                home: const HomeScreen(),
+              ),
+            ),
+          );
+          await tester.pump();
+
+          final before =
+              tester.getTopLeft(find.byIcon(Icons.star_border).first).dx;
+
+          scheduleVM.complete();
+          await tester.pump();
+
+          final after =
+              tester.getTopLeft(find.byIcon(Icons.star_border).first).dx;
+          expect(after, closeTo(before, 6));
+        });
+      }
+
       // 上限（StopSelection.maxStops）そのものの妥当性を、数字ではなく描画で
       // 押さえる。375px で実測すると、ラベルに残るのは 5タブで 27.0px、
       // 6タブで 14.5px。6 では「…」だけになり、**どのタブかを名前では選べない**。
@@ -413,7 +431,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(ScheduleResult(
+                () => FakeScheduleViewModel(ScheduleResult(
                   data: ScheduleResponse(
                     stopMaster: extendedMaster,
                     updatedAt: '2024-01-01',
@@ -422,7 +440,7 @@ void main() {
                 )),
               ),
               stopSelectionProvider.overrideWith(
-                () => _FakeStopSelectionNotifier(StopSelection(
+                () => FakeStopSelectionNotifier(StopSelection(
                   stopIds: extendedMaster
                       .take(StopSelection.maxStops)
                       .map((s) => s.id)
@@ -491,7 +509,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(
+                () => FakeScheduleViewModel(
                   ScheduleResult(
                     data: ScheduleResponse(
                       stopMaster:
@@ -520,7 +538,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(_mockResponseWithUpcoming)),
+                () => FakeScheduleViewModel(_mockResponseWithUpcoming)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -537,7 +555,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(_mockResponseWithUpcoming)),
+                () => FakeScheduleViewModel(_mockResponseWithUpcoming)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -552,7 +570,7 @@ void main() {
     });
 
     testWidgets('リフレッシュボタンタップ: refreshが呼ばれる', (tester) async {
-      final vm = _FakeScheduleViewModel(_mockResponse);
+      final vm = FakeScheduleViewModel(_mockResponse);
 
       await tester.pumpWidget(
         ProviderScope(
@@ -579,7 +597,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider
-                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
             countdownOverride(now: saturday),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -599,7 +617,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider
-                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -618,7 +636,7 @@ void main() {
         ProviderScope(
           overrides: [
             scheduleViewModelProvider
-                .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
             countdownOverride(),
           ],
           child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
@@ -630,16 +648,118 @@ void main() {
       expect(find.textContaining('有効期間'), findsNothing);
     });
 
+    /// 本文に出す「いま見ている停留所」（#208）。
+    ///
+    /// タブは短縮名（#207）でもさらに省略される（375px・5タブでラベルに残るのは
+    /// 27px）。**タブが短くなるほど本文の正式名が要る**ので、タブと本文で
+    /// 違う名前が出ていること自体がこの群の主題。
+    group('いま見ている停留所の名前', () {
+      Future<void> pump(WidgetTester tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+      }
+
+      testWidgets('本文には正式名を出す（タブは短縮名のまま）', (tester) async {
+        await pump(tester);
+
+        // 本文は正式名。短縮名だけでは指す停留所が曖昧になる
+        expectNotTruncated(tester, '千歳駅前 発');
+        // タブは短縮名のまま。ここを正式名にすると幅が足りない
+        expect(
+          find.descendant(
+            of: find.byType(TabBar),
+            matching: find.text('千歳駅'),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('タブを切り替えると追随する', (tester) async {
+        await pump(tester);
+
+        await tester.tap(find.descendant(
+          of: find.byType(TabBar),
+          matching: find.text('研究棟'),
+        ));
+        await tester.pumpAndSettle();
+
+        expect(find.text('科技大研究棟 発'), findsOneWidget);
+        expect(find.text('千歳駅前 発'), findsNothing);
+      });
+
+      testWidgets('当日以外のダイヤ表示でも残る（NEXT BUS ごと消さない）', (tester) async {
+        await pump(tester);
+
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+
+        // NEXT BUS は消えるが、タブが省略されるのは同じなので名前は要る
+        expect(find.text('NEXT BUS'), findsNothing);
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+      });
+
+      testWidgets('狭い端末でも見出しと同じ行に収まる', (tester) async {
+        // iPhone SE 相当。見出し（NEXT BUS）と同居させているので、名前が
+        // 伸びると行が溢れる。overflow はテストが失敗として拾う
+        tester.view.physicalSize = const Size(750, 1334);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await pump(tester);
+
+        expect(find.text('NEXT BUS'), findsOneWidget);
+        expectNotTruncated(tester, '千歳駅前 発');
+      });
+
+      testWidgets('stopMaster に無い停留所は ID のまま出す', (tester) async {
+        // 取得はできているのに引けない = GAS から消えた停留所。
+        // 本文だけ空白にすると、どこの時刻表かが分からなくなる
+        final result = ScheduleResult(
+          data: ScheduleResponse(
+            stopMaster: const [],
+            updatedAt: '2024-01-01',
+            current: _emptyTimetable,
+          ),
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              scheduleViewModelProvider
+                  .overrideWith(() => FakeScheduleViewModel(result)),
+              countdownOverride(),
+            ],
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('chitose 発'), findsOneWidget);
+      });
+    });
+
     group('当日以外のダイヤ表示', () {
       testWidgets('表示モード切替アイコンが表示される', (tester) async {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -653,10 +773,11 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -710,10 +831,11 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(result)),
+                  .overrideWith(() => FakeScheduleViewModel(result)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -739,10 +861,11 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -759,18 +882,18 @@ void main() {
     });
 
     group('お気に入りタブ', () {
-      testWidgets('お気に入り未設定: タブ4つ全てに star_border アイコンが表示される',
-          (tester) async {
+      testWidgets('お気に入り未設定: タブ4つ全てに star_border アイコンが表示される', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -786,11 +909,12 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -805,11 +929,12 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -827,11 +952,12 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -843,18 +969,18 @@ void main() {
         expect(favNotifier.lastToggleStopId, equals('kenkyuto'));
       });
 
-      testWidgets('タブ2がお気に入り未設定でタブ2に切り替え: → 本部棟・→ 千歳駅の選択肢が見える',
-          (tester) async {
+      testWidgets('タブ2がお気に入り未設定でタブ2に切り替え: → 本部棟・→ 千歳駅の選択肢が見える', (tester) async {
         final favNotifier = _FakeFavoriteTabNotifier(const FavoriteTab());
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -875,11 +1001,12 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -888,19 +1015,19 @@ void main() {
         expect(find.text('→ 千歳駅'), findsOneWidget);
       });
 
-      testWidgets('タブ2がお気に入り: star 1個 + star_border 3個が表示される',
-          (tester) async {
+      testWidgets('タブ2がお気に入り: star 1個 + star_border 3個が表示される', (tester) async {
         final favNotifier =
             _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -914,8 +1041,7 @@ void main() {
       // scheduleAsync が遅れて解決して TabBarView が初めて作られるシナリオ。
       // find.text() はツリー存在のみ確認するため、サイズ 0 のバグを見逃す。
       // tester.getSize() で実際にレンダリングされた高さを検証する。
-      testWidgets(
-          'SegmentedButton のサイズが 0 でない（build より前に index が変更される再現）',
+      testWidgets('SegmentedButton のサイズが 0 でない（build より前に index が変更される再現）',
           (tester) async {
         final scheduleVM = _DelayedScheduleViewModel(_mockResponse);
 
@@ -924,7 +1050,8 @@ void main() {
             overrides: [
               scheduleViewModelProvider.overrideWith(() => scheduleVM),
               favoriteTabProvider.overrideWith(
-                () => _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto')),
+                () => _FakeFavoriteTabNotifier(
+                    const FavoriteTab(stopId: 'kenkyuto')),
               ),
               countdownOverride(),
             ],
@@ -950,19 +1077,19 @@ void main() {
         expect(size.height, greaterThan(0));
       });
 
-      testWidgets('タブ2がお気に入りで起動後: 千歳駅タブをタップするとタブ切り替えできる',
-          (tester) async {
+      testWidgets('タブ2がお気に入りで起動後: 千歳駅タブをタップするとタブ切り替えできる', (tester) async {
         final favNotifier =
             _FakeFavoriteTabNotifier(const FavoriteTab(stopId: 'kenkyuto'));
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               favoriteTabProvider.overrideWith(() => favNotifier),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -985,14 +1112,15 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               stopSelectionProvider.overrideWith(
-                () => _FakeStopSelectionNotifier(
+                () => FakeStopSelectionNotifier(
                     const StopSelection(stopIds: ['honbuto', 'chitose'])),
               ),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -1008,16 +1136,17 @@ void main() {
       });
 
       testWidgets('停留所を足すとタブが増え、見ていた停留所のまま残る', (tester) async {
-        final selection = _FakeStopSelectionNotifier(StopSelection.initial);
+        final selection = FakeStopSelectionNotifier(StopSelection.initial);
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               stopSelectionProvider.overrideWith(() => selection),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -1028,8 +1157,13 @@ void main() {
         expect(find.text('→ 本部棟'), findsOneWidget);
 
         // 設定で先頭に停留所を足す = index がずれる
-        selection.set(const StopSelection(
-            stopIds: ['morimoto', 'chitose', 'minamiChitose', 'kenkyuto', 'honbuto']));
+        selection.setSelection(const StopSelection(stopIds: [
+          'morimoto',
+          'chitose',
+          'minamiChitose',
+          'kenkyuto',
+          'honbuto'
+        ]));
         await tester.pumpAndSettle();
 
         expect(find.byType(Tab), findsNWidgets(5));
@@ -1038,16 +1172,17 @@ void main() {
       });
 
       testWidgets('見ていた停留所が外されたら先頭のタブに戻る', (tester) async {
-        final selection = _FakeStopSelectionNotifier(StopSelection.initial);
+        final selection = FakeStopSelectionNotifier(StopSelection.initial);
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               stopSelectionProvider.overrideWith(() => selection),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pumpAndSettle();
@@ -1056,7 +1191,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('→ 本部棟'), findsOneWidget);
 
-        selection.set(const StopSelection(stopIds: ['chitose', 'honbuto']));
+        selection
+            .setSelection(const StopSelection(stopIds: ['chitose', 'honbuto']));
         await tester.pumpAndSettle();
 
         expect(find.byType(Tab), findsNWidgets(2));
@@ -1105,10 +1241,11 @@ void main() {
       Widget wrap(ScheduleResult result) => ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(result)),
+                  .overrideWith(() => FakeScheduleViewModel(result)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           );
 
       testWidgets('終点を出す。途中で足した停留所には引きずられない', (tester) async {
@@ -1137,7 +1274,7 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider.overrideWith(
-                () => _FakeScheduleViewModel(ScheduleResult(
+                () => FakeScheduleViewModel(ScheduleResult(
                   data: ScheduleResponse(
                     stopMaster: _stopMaster,
                     updatedAt: '2024-01-01',
@@ -1151,15 +1288,16 @@ void main() {
                 )),
               ),
               stopSelectionProvider.overrideWith(
-                () => _FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
+                () =>
+                    FakeStopSelectionNotifier(StopSelection(stopIds: stopIds)),
               ),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           );
 
-      testWidgets('引ける便が無ければ、次にどうするかを出す（無言の空白にしない）',
-          (tester) async {
+      testWidgets('引ける便が無ければ、次にどうするかを出す（無言の空白にしない）', (tester) async {
         await tester.pumpWidget(wrapOne(const [], ['chitose']));
         await tester.pumpAndSettle();
 
@@ -1180,7 +1318,10 @@ void main() {
             terminusStopId: 'honbuto',
             arrivals: {'honbuto': '08:55'},
           ),
-        ], ['chitose', 'honbuto']));
+        ], [
+          'chitose',
+          'honbuto'
+        ]));
         await tester.pumpAndSettle();
 
         expect(find.text('NEXT BUS'), findsOneWidget);
@@ -1206,15 +1347,16 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(result)),
+                  .overrideWith(() => FakeScheduleViewModel(result)),
               if (stopIds != null)
                 stopSelectionProvider.overrideWith(
-                  () => _FakeStopSelectionNotifier(
+                  () => FakeStopSelectionNotifier(
                       StopSelection(stopIds: stopIds)),
                 ),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           );
 
       testWidgets('持っている停留所は今までどおり時刻を出す', (tester) async {
@@ -1245,12 +1387,12 @@ void main() {
       });
 
       testWidgets('「再試行」で取り直す', (tester) async {
-        final vm = _FakeScheduleViewModel(cachedCovering(['kenkyuto']));
+        final vm = FakeScheduleViewModel(cachedCovering(['kenkyuto']));
         await tester.pumpWidget(ProviderScope(
           overrides: [
             scheduleViewModelProvider.overrideWith(() => vm),
             stopSelectionProvider.overrideWith(
-              () => _FakeStopSelectionNotifier(
+              () => FakeStopSelectionNotifier(
                   const StopSelection(stopIds: ['kenkyuto', 'morimoto'])),
             ),
             countdownOverride(),
@@ -1291,10 +1433,11 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(cachedResult)),
+                  .overrideWith(() => FakeScheduleViewModel(cachedResult)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();
@@ -1309,10 +1452,11 @@ void main() {
           ProviderScope(
             overrides: [
               scheduleViewModelProvider
-                  .overrideWith(() => _FakeScheduleViewModel(_mockResponse)),
+                  .overrideWith(() => FakeScheduleViewModel(_mockResponse)),
               countdownOverride(),
             ],
-            child: MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
+            child:
+                MaterialApp(theme: buildTestTheme(), home: const HomeScreen()),
           ),
         );
         await tester.pump();

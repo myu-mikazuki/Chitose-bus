@@ -1,14 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
 import '../../domain/entities/bus_schedule.dart';
+import '../viewmodels/banner_ad_viewmodel.dart';
 import '../viewmodels/favorite_tab_viewmodel.dart';
 import '../viewmodels/schedule_viewmodel.dart';
 import '../viewmodels/stop_selection_viewmodel.dart';
@@ -104,12 +101,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           // （場所取りは幅が決まっているので計測しない）
           final double textWidth;
           if (label == null) {
-            textWidth = _StopLabelPlaceholder.width;
+            // **場所取りも同じ倍率で測ること**（#243）。名前側だけ拡大を見ると、
+            // 拡大時に**名前が届いた瞬間に並べ方が切り替わって星が跳ぶ**
+            // （[_StopLabelPlaceholder.width] の注記にある事故そのもの）。
+            // **描く側と同じ関数を呼ぶ**ので、片方だけ直す事故が起きない
+            textWidth = _StopLabelPlaceholder.scaledWidth(context);
           } else {
             final textStyle = DefaultTextStyle.of(context).style;
             textWidth = (TextPainter(
               text: TextSpan(text: label, style: textStyle),
               textDirection: TextDirection.ltr,
+              // **文字を大きくする設定を渡すこと**（#243）。既定は
+              // `TextScaler.noScaling` なので、渡さないと**常に等倍で測る**。
+              // 拡大時は下の `stackFits` / `rowFits` が「収まる」と誤判定し、
+              // **`Flexible` + ellipsis を持つ縮小経路を外して**タブが溢れる。
+              // 375px・4タブで倍率 1.4 から実際に溢れていた
+              textScaler: MediaQuery.textScalerOf(context),
             )..layout())
                 .width;
           }
@@ -204,9 +211,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // （平日に土日祝ダイヤを確認する、が主なユースケースのため）
     final now = DateTime.now();
     final today = DayType.fromDate(now);
-    dayNotifier.state = today == DayType.weekday
-        ? DayType.weekendHoliday
-        : DayType.weekday;
+    dayNotifier.state =
+        today == DayType.weekday ? DayType.weekendHoliday : DayType.weekday;
     // 期別は当日のものを初期値とする（主目的は曜日ダイヤの確認のため）
     seasonNotifier.state = SeasonType.fromDate(now);
   }
@@ -410,8 +416,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               bottom: 0,
               left: 0,
               right: 0,
-              child: _BannerAdWidget(
-                onDismissed: () => setState(() => _bannerDismissed = true),
+              child: ref.read(bannerAdBuilderProvider)(
+                () => setState(() => _bannerDismissed = true),
               ),
             ),
         ],
@@ -436,13 +442,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, 'reset'),
-              child: const Text('リセット',
-                  style: TextStyle(color: AppColors.error)),
+              child:
+                  const Text('リセット', style: TextStyle(color: AppColors.error)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, 'change'),
-              child: const Text('変更',
-                  style: TextStyle(color: AppColors.warning)),
+              child:
+                  const Text('変更', style: TextStyle(color: AppColors.warning)),
             ),
           ],
         ),
@@ -528,7 +534,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('千歳駅発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('千歳駅発',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -537,7 +547,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 destination: BusDestination.campus,
               ),
               const SizedBox(height: 16),
-              const Text('南千歳発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('南千歳発',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -546,7 +560,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 destination: BusDestination.campus,
               ),
               const SizedBox(height: 16),
-              const Text('研究棟発 → 本部棟', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('研究棟発 → 本部棟',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -555,7 +573,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 destination: BusDestination.campus,
               ),
               const SizedBox(height: 16),
-              const Text('研究棟発 → 千歳駅', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('研究棟発 → 千歳駅',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -564,7 +586,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 destination: BusDestination.station,
               ),
               const SizedBox(height: 16),
-              const Text('本部棟発', style: TextStyle(color: AppColors.primary, fontSize: 12, letterSpacing: 3)),
+              const Text('本部棟発',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      letterSpacing: 3)),
               const SizedBox(height: 8),
               ScheduleList(
                 stopMaster: stopMaster,
@@ -686,6 +712,67 @@ class _StopHasNoBus extends StatelessWidget {
   }
 }
 
+/// 節の見出し（`NEXT BUS` `TODAY'S SCHEDULE` `SCHEDULE`）の文字。
+TextStyle _sectionTitleStyle(BuildContext context) => TextStyle(
+      color: context.appColors.textTertiary,
+      fontSize: 12,
+      letterSpacing: 3,
+    );
+
+/// 節の見出しと、いま見ている停留所の**正式名**を1行に並べる（#208）。
+///
+/// タブは短縮名（#207）でもさらに省略される。375px・上限の5タブではラベルに
+/// 27px しか残らず、どれも1字＋`…` に切れるため、**タブだけでは見ている停留所を
+/// 確定できない**。ここは幅が足りるので、`labelOf`（= `shortLabel ?? label`）では
+/// なく [BusStopLookup.officialLabelOf] を引く。
+///
+/// **見出しと同じ行に置く。** 独立した1行にすると縦が 35px 増え、短い画面
+/// （800x600）で `_StopTab` の Column が溢れる。この画面は NEXT BUS のサイズが
+/// そのまま下を押す作りで縦の余裕がほとんど無い（#124）ため、行を増やさずに済む
+/// 置き方を採る。
+///
+/// 使うのは**一番上の見出しだけ**。同じ停留所を2度書いても情報は増えない。
+class _StopSectionHeader extends StatelessWidget {
+  const _StopSectionHeader({required this.title, required this.boardingLabel});
+
+  final String title;
+
+  /// 乗車地の正式名。`◯◯ 発` の形で出す
+  final String boardingLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        // **`title` に `Flexible` を付けないこと。** 名前側が `Expanded`（tight）
+        // なので、両方 flex にすると自由幅が 1:1 に割られ、`title` が使い残した
+        // ぶんは名前へ回らない。375px で名前に使える幅は **211px → 165.5px**
+        // まで落ちる（実測）。`title` は 'NEXT BUS' / 'SCHEDULE' の固定文字列で、
+        // 縮むべきは名前のほうではない
+        Text(title, style: _sectionTitleStyle(context)),
+        const SizedBox(width: 12),
+        // 375px なら実データで最も長い名前（オフィス・アルカディア入口）まで
+        // 収まる。文字を大きくする設定や、より狭い画面のための ellipsis
+        Expanded(
+          child: Text(
+            '$boardingLabel 発',
+            textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+            style: TextStyle(
+              color: context.appColors.textPrimary,
+              fontSize: 14,
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// 停留所名が届くまでタブに置くもの。
 class _StopLabelPlaceholder extends StatelessWidget {
   const _StopLabelPlaceholder();
@@ -696,7 +783,29 @@ class _StopLabelPlaceholder extends StatelessWidget {
   /// **見た目を整える値ではなく、並べ方を名前と揃えるための値。** タブは
   /// この幅で中央寄せ / 横並び / 縮小を決めるので、名前とずらすと画面幅に
   /// よっては名前が届いた瞬間に並べ方が切り替わり、星が跳ぶ。
+  ///
+  /// **等倍のときの値。**拡大設定を掛けた幅は [scaledWidth] で取る。
   static const width = 42.0;
+
+  /// 文字を大きくする設定を掛けた場所取りの幅（#243）。
+  ///
+  /// **`_buildTab` の計測と、下の描画の両方がこれを呼ぶ。** 名前の側は
+  /// `TextScaler` で伸びるのに場所取りが伸びないと、拡大時だけ両者がずれて
+  /// [width] の注記にある「星が跳ぶ」が起きる。**2箇所に同じ計算を書くと
+  /// 片方だけ直す事故が起きる**ので、定義はここ1つ。
+  ///
+  /// **`TextScaler.scale()` に 42.0 を渡してはいけない。** あれは
+  /// 「素のフォントサイズ → 拡大後のフォントサイズ」を返すもので、任意の長さを
+  /// 倍率で伸ばす関数ではない。**Android 14 以降の非線形スケーリングでは倍率が
+  /// 元のフォントサイズごとに違う**（大きい字ほど伸びを抑える曲線）ため、
+  /// `scale(42)` は 42pt の字の曲線を引いてしまい、実際のラベル（14px）に
+  /// 掛かる倍率とは別物になる。**ラベル自身の字の大きさから比率を出すこと。**
+  /// `TextScaler.linear` では一致するので、**テストは緑のまま実機だけずれる。**
+  static double scaledWidth(BuildContext context) {
+    final fontSize = DefaultTextStyle.of(context).style.fontSize ?? 14.0;
+    final ratio = MediaQuery.textScalerOf(context).scale(fontSize) / fontSize;
+    return width * ratio;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -705,7 +814,9 @@ class _StopLabelPlaceholder extends StatelessWidget {
     return Semantics(
       label: '読み込み中',
       child: Container(
-        width: width,
+        // 文字ではないので `TextScaler` は自動では効かない。名前と同じ幅で
+        // 並べ方を決めている以上、描く側も手で合わせる（#243）
+        width: scaledWidth(context),
         height: 10,
         decoration: BoxDecoration(
           color: context.appColors.textDisabled,
@@ -743,8 +854,8 @@ class _StopNotFetched extends StatelessWidget {
             const SizedBox(height: 16),
             TextButton(
               onPressed: onRetry,
-              child: const Text('再試行',
-                  style: TextStyle(color: AppColors.primary)),
+              child:
+                  const Text('再試行', style: TextStyle(color: AppColors.primary)),
             ),
           ],
         ),
@@ -889,7 +1000,11 @@ class _StopTabState extends State<_StopTab> {
             children: [
               // 当日以外のダイヤ表示では NEXT BUS の概念がないため非表示
               if (widget.dayType == null) ...[
-                Text('NEXT BUS', style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
+                _StopSectionHeader(
+                  title: 'NEXT BUS',
+                  boardingLabel:
+                      widget.stopMaster.officialLabelOf(widget.stopId),
+                ),
                 const SizedBox(height: 8),
                 // IndexedStack で両方向の NextBusDisplay を常時保持し、
                 // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
@@ -912,8 +1027,16 @@ class _StopTabState extends State<_StopTab> {
                   ),
                 ),
                 const SizedBox(height: 24),
-              ],
-              Text(widget.dayType == null ? "TODAY'S SCHEDULE" : 'SCHEDULE', style: TextStyle(color: context.appColors.textTertiary, fontSize: 12, letterSpacing: 3)),
+                // 乗車地は上の NEXT BUS 側に出ているので、ここでは繰り返さない
+                Text("TODAY'S SCHEDULE", style: _sectionTitleStyle(context)),
+              ] else
+                // 当日以外のダイヤ表示では NEXT BUS ごと消える。一番上の見出しは
+                // こちらになるので、乗車地はここに乗せる
+                _StopSectionHeader(
+                  title: 'SCHEDULE',
+                  boardingLabel:
+                      widget.stopMaster.officialLabelOf(widget.stopId),
+                ),
               const SizedBox(height: 8),
             ],
           ),
@@ -950,84 +1073,8 @@ class _StopTabState extends State<_StopTab> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Text(
             '更新: ${widget.updatedAt}',
-            style: TextStyle(color: context.appColors.textDisabled, fontSize: 11),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-
-class _BannerAdWidget extends StatefulWidget {
-  const _BannerAdWidget({required this.onDismissed});
-
-  final VoidCallback onDismissed;
-
-  @override
-  State<_BannerAdWidget> createState() => _BannerAdWidgetState();
-}
-
-class _BannerAdWidgetState extends State<_BannerAdWidget> {
-  BannerAd? _bannerAd;
-
-  static String get _adUnitId {
-    if (Platform.isAndroid) {
-      return AppConstants.admobAndroidAdUnitId;
-    } else {
-      return AppConstants.admobIosAdUnitId;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _bannerAd = BannerAd(
-      adUnitId: _adUnitId,
-      request: const AdRequest(),
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) => setState(() {}),
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-          setState(() => _bannerAd = null);
-        },
-      ),
-    )..load();
-  }
-
-  @override
-  void dispose() {
-    _bannerAd?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_bannerAd == null) return const SizedBox.shrink();
-    return Stack(
-      alignment: Alignment.topRight,
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: _bannerAd!.size.height.toDouble(),
-          child: AdWidget(ad: _bannerAd!),
-        ),
-        GestureDetector(
-          onTap: widget.onDismissed,
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.black54,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, size: 16, color: Colors.white),
-              ),
-            ),
+            style:
+                TextStyle(color: context.appColors.textDisabled, fontSize: 11),
           ),
         ),
       ],

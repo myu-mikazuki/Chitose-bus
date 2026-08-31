@@ -15,16 +15,14 @@ void main() {
     };
     for (final e in cases.entries) {
       final entry = BusEntry(
-          time: '07:20',
-          boardingStopId: e.key.$1,
-          destination: e.key.$2);
+          time: '07:20', boardingStopId: e.key.$1, destination: e.key.$2);
       expect(entry.notificationKey, e.value, reason: '${e.key}');
     }
   });
 
   test('該当が無い停留所は 乗車地_行き先_時刻 になる', () {
-    const entry = BusEntry(
-        time: '07:23', boardingStopId: 'morimoto', destination: '科技大');
+    const entry =
+        BusEntry(time: '07:23', boardingStopId: 'morimoto', destination: '科技大');
     expect(entry.notificationKey, 'morimoto_科技大_07:23');
   });
 }

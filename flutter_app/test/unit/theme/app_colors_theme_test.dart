@@ -98,14 +98,16 @@ void main() {
       expect(AppTheme.dark().extension<AppColorsTheme>(), isNotNull);
     });
 
-    test('light() の scaffoldBackgroundColor は AppColorsTheme.light.background', () {
+    test('light() の scaffoldBackgroundColor は AppColorsTheme.light.background',
+        () {
       expect(
         AppTheme.light().scaffoldBackgroundColor,
         AppColorsTheme.light.background,
       );
     });
 
-    test('dark() の scaffoldBackgroundColor は AppColorsTheme.dark.background', () {
+    test('dark() の scaffoldBackgroundColor は AppColorsTheme.dark.background',
+        () {
       expect(
         AppTheme.dark().scaffoldBackgroundColor,
         AppColorsTheme.dark.background,

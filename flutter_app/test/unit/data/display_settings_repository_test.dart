@@ -22,7 +22,8 @@ void main() {
       expect(loaded.showLectureTags, isFalse);
     });
 
-    test('save(false) → save(true) して load: showLectureTags=true で上書きされる', () async {
+    test('save(false) → save(true) して load: showLectureTags=true で上書きされる',
+        () async {
       final repo = DisplaySettingsRepository();
       await repo.save(const DisplaySettings(showLectureTags: false));
       await repo.save(const DisplaySettings(showLectureTags: true));

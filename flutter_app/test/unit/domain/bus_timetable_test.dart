@@ -217,8 +217,7 @@ void main() {
           ],
         );
 
-        final result =
-            timetable.todayBuses('chitose', now: saturday);
+        final result = timetable.todayBuses('chitose', now: saturday);
         expect(result.length, 1);
         expect(result.first.time, '10:00');
       });

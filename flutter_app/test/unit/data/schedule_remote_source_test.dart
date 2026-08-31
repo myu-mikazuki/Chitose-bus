@@ -70,7 +70,8 @@ void main() {
   /// バイト列で渡す（実際の GAS も UTF-8 で返す）
   void respondOk() {
     when(() => mockClient.get(any())).thenAnswer(
-      (_) async => http.Response.bytes(utf8.encode(jsonEncode(_validJson)), 200),
+      (_) async =>
+          http.Response.bytes(utf8.encode(jsonEncode(_validJson)), 200),
     );
   }
 
@@ -91,7 +92,8 @@ void main() {
         (_) async => http.Response('Not Found', 404),
       );
 
-      expect(() => source.fetchSchedule(StopSelection.initial), throwsException);
+      expect(
+          () => source.fetchSchedule(StopSelection.initial), throwsException);
     });
 
     test('throws Exception when body contains "error" key', () async {
@@ -100,7 +102,8 @@ void main() {
         (_) async => http.Response(errorJson, 200),
       );
 
-      expect(() => source.fetchSchedule(StopSelection.initial), throwsException);
+      expect(
+          () => source.fetchSchedule(StopSelection.initial), throwsException);
     });
 
     test('throws FormatException on malformed JSON body', () async {
@@ -119,7 +122,8 @@ void main() {
         (_) async => http.Response('Internal Server Error', 500),
       );
 
-      expect(() => source.fetchSchedule(StopSelection.initial), throwsException);
+      expect(
+          () => source.fetchSchedule(StopSelection.initial), throwsException);
     });
 
     test('v=4 と選択した停留所を付けて GET する', () async {

@@ -55,6 +55,10 @@ class NextBusDisplay extends ConsumerWidget {
 ///
 /// 終点が分からない供給元（未デプロイの GAS・#177 以前のキャッシュ）だけ
 /// destination をそのまま出す。
+/// **ここは短縮名のまま**（#234）。到着行を `officialLabelOf` に変えたときも
+/// 揃えていない。行き先は「どこ行きか」が分かればよく、降りる停留所を現地の
+/// 表記と突き合わせる到着行とは用途が違う。結果として同じカードに
+/// `→ 本部棟` と `科技大本部棟 着` が並ぶが、承知のうえ。
 String destinationLabelOf(BusEntry entry, List<BusStop> stopMaster) {
   final terminus = entry.terminusStopId;
   return terminus != null ? stopMaster.labelOf(terminus) : entry.destination;
@@ -70,19 +74,46 @@ class _NextBusCard extends StatelessWidget {
   final DateTime now;
   final List<BusStop> stopMaster;
 
+  /// 到着行。**降りる停留所を確かめる場所なので正式名を出す**（#234）。
+  /// 字の大きさは**時刻表リスト（`schedule_list.dart`）と揃える**（#231）。
+  ///
+  /// `labelOf`（= `shortLabel ?? label`）はタブの幅が無いために作った短縮名を
+  /// 返す。#207 で31件すべてに `shortLabel` が付いた結果、**幅が足りている
+  /// この行にまで短縮名が及んでいた**（`古泉循環器内科クリニック前 着` →
+  /// `古泉 着`）。短縮名は現地の停留所の表記とは別物なので、ここで突き合わせ
+  /// られない。**既定の4停留所の見え方も変わる**（`本部棟 着` →
+  /// `科技大本部棟 着`）が、それを承知で正式名に寄せている。
+  ///
+  /// 正式名は最長でも13文字（`古泉循環器内科クリニック前` /
+  /// `オフィス・アルカディア入口`）で、下の幅の実測はその13文字で採ってある。
+  /// **短縮名から正式名に変えても最長は伸びない。**
+  ///
+  /// **到着行が出る3経路のうち、この 300px がいちばん狭い**（375px で実測）。
+  /// 時刻表リストはホームで 335px、来週ダイヤのシート経由で 303px。
+  /// 幅の主張はここで押さえれば足りる。
+  ///
+  /// 名前 13px / 時刻 18px では、短縮名を持たない停留所名（`オフィス・
+  /// アルカディア入口 着`）が 375px で **10px はみ出していた**（#231）。
+  /// この Row は `spaceBetween` に素の `Text` を2つ並べるだけなので、
+  /// 名前が伸びると縮まずに溢れる。
+  ///
+  /// 同じ「◯◯ 着 ＋ 時刻」を出す時刻表リストが元から 12px / 14px で、
+  /// そちらは溢れていない。**2箇所で字の大きさを変える理由が無い**ので揃えた。
+  /// 375px で 300px 中 265px、360px でも収まる。
   List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
     final colors = context.appColors;
     final order = entry.arrivals.keys.toList();
-    return order.map((key) => Padding(
+    return order
+        .map((key) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${stopMaster.labelOf(key)} 着',
+                    '${stopMaster.officialLabelOf(key)} 着',
                     style: TextStyle(
                       color: colors.textSecondary,
-                      fontSize: 13,
+                      fontSize: 12,
                       letterSpacing: 1,
                     ),
                   ),
@@ -90,7 +121,7 @@ class _NextBusCard extends StatelessWidget {
                     entry.arrivals[key]!,
                     style: TextStyle(
                       color: colors.textSecondary,
-                      fontSize: 18,
+                      fontSize: 14,
                       letterSpacing: 2,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),

@@ -12,7 +12,12 @@ class FavoriteTabRepository {
   ///
   /// StopSelection.defaultStopIds は「現在の既定選択」で、将来並びを変えうる。
   /// それを参照すると、変えた瞬間に旧番号 0 が別の停留所へ移行されてしまう。
-  static const _legacyTabOrder = ['chitose', 'minamiChitose', 'kenkyuto', 'honbuto'];
+  static const _legacyTabOrder = [
+    'chitose',
+    'minamiChitose',
+    'kenkyuto',
+    'honbuto'
+  ];
 
   Future<FavoriteTab> load() async {
     final prefs = await SharedPreferences.getInstance();

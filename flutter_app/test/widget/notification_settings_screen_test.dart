@@ -27,7 +27,8 @@ Widget _wrap(NotificationSettings settings) => ProviderScope(
           () => _FakeNotificationSettingsNotifier(settings),
         ),
       ],
-      child: MaterialApp(theme: buildTestTheme(), home: const NotificationSettingsScreen()),
+      child: MaterialApp(
+          theme: buildTestTheme(), home: const NotificationSettingsScreen()),
     );
 
 void main() {

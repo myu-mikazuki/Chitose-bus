@@ -113,7 +113,8 @@ void main() {
       // v=3 時代のキャッシュは形式そのものが違うので、こちらでは読ませない
       // （loadLegacy が読む）
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('schedule_cache_json', '{"updatedAt":"2024-01-01"}');
+      await prefs.setString(
+          'schedule_cache_json', '{"updatedAt":"2024-01-01"}');
 
       expect(await source.load(), isNull);
     });

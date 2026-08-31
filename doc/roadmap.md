@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-08-16
+最終更新: 2026-08-31
 
 ---
 
@@ -10,24 +10,262 @@
 
 | 順 | Issue | 内容 | 状態 |
 |----|-------|------|------|
-| — | [#158](https://github.com/myu-mikazuki/Chitose-bus/issues/158) | 祝日ダイヤの判定 | ✅ 完了・デプロイ済み |
-| — | [#165](https://github.com/myu-mikazuki/Chitose-bus/issues/165) | Google Play へのアップロードを自動化 | ✅ 完了（次回リリースで初回検証） |
-| — | [#198](https://github.com/myu-mikazuki/Chitose-bus/issues/198) | CI の Flutter を `pubspec.yaml` で固定（PR #199） | ✅ 完了（develop） |
-| — | [#177](https://github.com/myu-mikazuki/Chitose-bus/issues/177) | 任意のバス停を乗車地として選べるようにする | ✅ 完了（develop）・**v1.3.0 で出す** |
-| — | [#204](https://github.com/myu-mikazuki/Chitose-bus/issues/204) | 乗車地に選べる停留所数の上限（**5件**） | ✅ 完了（develop・PR #206）・**v1.3.0 で出す** |
-| — | [#201](https://github.com/myu-mikazuki/Chitose-bus/issues/201) | 旧形式でキャッシュが空に上書きされる | ✅ 完了（develop・PR #210）・**v1.3.0 で出す** |
-| 1 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | 次 |
-| 2 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 3 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブにも対応 | |
-| 4 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| — | [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（タブに出す） | **release/v1.3.1 に切り出し済み** |
+| — | [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す | **release/v1.3.1 に切り出し済み** |
+| — | [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | **release/v1.3.1 に切り出し済み** |
+| — | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | **release/v1.3.1 に切り出し済み** |
+| — | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | **release/v1.3.1 に切り出し済み** |
+| — | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | **release/v1.3.1 に切り出し済み** |
+| 1 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.3 で横に溢れる | v1.3.2 |
+| 2 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | v1.3.2 |
+| 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | v1.3.2 |
+| 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | v1.3.2 |
+| 6 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
+| 7 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
+| 8 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
+| 9 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| 10 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
 
-**v1.3.0 に入れるものは3件とも develop に入った。**残るはリリース作業のみ
-（次節「リリース時にやること」）。#146（臨時便）は応答に便を追加するため、
-旧アプリへの影響を確認する必要がある。
+**v1.3.0 はリリース済み**（2026-08-16 審査提出・2026-08-31 両ストア公開）。次は **v1.3.1** で、
+#177 が長い停留所名を画面に出せるようにした結果できた穴を、6件まとめて塞ぐ。**タブに短縮名、
+NEXT BUS カードの上に正式名**、と出し分けるのが方針。
+#146（臨時便）は応答に便を追加するため、旧アプリへの影響を確認する必要がある。
 
-## v1.3.0
+**#207 / #208 は develop にマージ済み**（2026-08-18・PR #230 / #232）。
+
+そこから派生して2件を切り、**どちらも v1.3.1 に入れることにした**。
+**#208 の作業中に見つかったもので、順番に依存がある。**
+
+- **[#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231)** — NEXT BUS の到着行が 375px で 10px はみ出す。#177 で長い停留所名が
+  出るようになって以来の既存バグ。既存の幅テストがカード自体を描いておらず素通りしていた
+- **[#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234)** — 到着行を短縮名から正式名に戻す。#207 で31件すべてに `shortLabel` が
+  付いた結果、**幅が足りている到着行にまで短縮名が及んだ**（`古泉循環器内科クリニック前 着`
+  → `古泉 着`）
+
+**#231 → #234 の順で入れること。** #234 は名前を長くするので、先に入れると #231 が悪化する。
+**#231 は develop 済み**（2026-08-18・PR #236）。
+
+- **[#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237)** — 拡大設定（`TextScaler`）を見るテストが1件も無い。
+  #231 を**字を小さくして**直したが、倍率が同じなら同じように溢れるので拡大設定には効かない。
+  PR #236 のレビュー指摘から切った
+
+**#234 → #237 の順で入れる。** #237 を先に置いても新しい情報は出ない
+（到着行が縮まないことは issue の時点で分かっている）うえ、直後に #234 が
+同じ行を触るので、**#234 が置いたばかりのテストを赤にする**。#237 の issue 本文も
+「#234 で到着行を共通化するならそこで一度に決められる」と #234 に譲っている。
+#237 は `flutter_app/test` を触るので main への直行はできないが、
+**v1.3.1 を止めるものではない**（検知までで、直しは別 issue に切る）。
+**#237 は develop 済み**（2026-08-18・PR #244）。
+
+### #237 で分かったこと（375px 実測）
+
+**実機では等倍（1.0）で壊れる場所は無い。**Android の「大」が 1.15、「最大」が 1.3。
+**「最大」にすると NEXT BUS の到着行が実際に溢れる。**
+
+**どちらの列も「溢れ始める（切れ始める）倍率」。**テストが踏むのはその1段下なので、
+`text_scaler_test.dart` の定数とは一致しない。
+
+| 場所 | 軸 | テスト用フォント | **実フォント** | 直し |
+|---|---|---|---|---|
+| 節の見出し（`◯◯ 発`）が**切れる** | 横 | 1.0 | **1.15** | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) |
+| NEXT BUS カードの到着行（300px） | 横 | 1.15 | **1.3** | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
+| ~~タブ（4タブ）~~ | 横 | ~~1.4~~ | ~~1.4~~ | **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) で解消** |
+| `_StopTab` の Column（375×667） | 縦 | 1.1 | **1.5** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
+| ホームの時刻表リストの到着行（335px） | 横 | 1.25 | **1.5** | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
+| ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | **2.0** | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+| 来週シートの到着行（303px）／行ヘッダ（311px）※ | 横 | 1.15 / 1.2 | 未計測 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) / [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+
+※ **来週シートは本番では開けない。**GAS が `upcoming: null` を直書きしており、
+カレンダーアイコンも出ない（`_showUpcomingSheet` の TODO(#202)）。
+**#241 / #242 の実害はホーム側だけ**で、シートの2行は #202 で復活させたときに効く。
+
+**リリースノートの「既知の問題」に載せる基準は、Android の「最大」（1.3）までに崩れる場所だけ。**
+`_StopTab` の Column（1.5・#240）とホームの行ヘッダ（2.0・#242）は「最大」より上なので載せない。
+
+> [!IMPORTANT]
+> **PR #244 の時点の表は「テスト用フォント」の列しか無く、実機より厳しく出ていた。**
+> `flutter test` にはフォントが無く、欧文と数字が実機よりかなり幅を食う
+> （`NEXT BUS` が 82px → 120px）。とくに**節の見出しは `NEXT BUS` と同じ行に
+> あるため影響が大きく、「375px では等倍でも切れている」と誤って読んでいた。**
+> 実フォント（Meiryo を `FontLoader` で差す）で測り直すと **1.15 まで持つ**。
+> **v1.3.1 に何を入れるかの判断はこの測り直しの後に決めたもの。**
+>
+> 実フォントでも Android の Noto Sans CJK / iOS のヒラギノとは完全には一致しない。
+> CJK は全角固定なので停留所名の幅はほぼ同じで、ずれるのは欧文・数字のほう。
+>
+> **測り直す手順は [`doc/text-scale-measurement.md`](text-scale-measurement.md)。**
+> `flutter_app/test/tools/text_scale_probe_test.dart` にフォントを差して走らせる。
+
+**issue #237 の一覧に無かったものが4つ出た。**
+
+- **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) — タブは `Flexible` + ellipsis があるのに溢れていた**（**解消済み**）。
+  `_buildTab` の `TextPainter` に `textScaler` を渡しておらず、拡大時は等倍の幅で
+  「横並びで収まる」と誤判定して**縮小経路を外していた**。渡すようにしたので
+  **溢れなくなり、限界は「読めなくなる」（2.5 で `古…`）に変わった**
+- **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) — 行ヘッダは停留所名と無関係に溢れる。**時刻・講義タグ・
+  行き先・`◀ NEXT`・ベルを固定幅で並べていて縮む余地が無い。既定の4停留所でも同じ
+- **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) — 縦にも溢れる。**issue は「幅が詰まっている場所」を想定していた
+- **[#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) — 節の見出しは `Expanded` + ellipsis なので溢れずに黙って切れる。**
+  overflow では原理的に拾えないため #237 の網に入っていない。#208 の
+  「削らずに正式名を出す」は**等倍では守れている**
+
+### v1.3.1 に入れるのは #243 だけ（**対応済み**）
+
+**理由は「実機で等倍が無傷だった」こと。** 拡大設定を触っていないユーザーには
+いま何も起きていないので、v1.3.1 を止める理由が無い。
+
+**#243 を入れた**のは、これだけが**判断を伴わない純粋な論理バグ**だから。
+`TextPainter` に `textScaler` を渡す1行で、`Flexible` + ellipsis の枝が
+**既にあるのに外れている**状態が直った。見え方の判断も要らない（拡大時に
+タブが 11px + ellipsis に落ちるのは、溢れるより明確に良い）。
+
+**直した結果、タブは 3.0 まで溢れない**（確認した範囲）。**限界は「溢れる」から
+「読めなくなる」に変わり**、2.5 で `古泉` が `古…` になる。読めなくなるほうを
+どうするかは、**タブの短縮名の話**（#207）であって拡大の話ではないので追わない。
+
+**残り4件を入れない理由:**
+
+- **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241)** — Android「最大」(1.3) で実際に溢れるので**いちばん実害がある**が、
+  直すには**停留所名を省略してよいかの判断**が要る。#236 / #234 で二度先送りした
+  ものと同じ判断で、#208 の「削らない」と噛み合わせる必要がある。**patch
+  リリースで決める話ではない**
+- **[#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245)** — 1.15（Android「大」）で切れるが、**ellipsis で切れるだけで
+  崩れはしない**。#208 の約束と衝突するのは拡大時だけで、等倍では守れている
+- **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240)** — 1.5。直すと画面全体をスクロールさせるか余白を詰めるかの
+  判断が要る
+- **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242)** — 2.0。実フォントで測り直したらいちばん遠かった
+
+**#241 は v1.3.2 の主題にする。**「拡大設定に耐える」をまとめて片付けるなら、
+名前を省略してよい場所の線引きを先に決めること。
+
+**上の順序表の 2〜5 は「実害の大きい順」。**実フォントの倍率順（#245 1.15 →
+#241 1.3 → #240 1.5 → #242 2.0）ではない。**#241 を先頭に置くのは、
+Android「最大」で実際に崩れる唯一のもの**だから。#245 はより低い倍率で届くが
+**ellipsis で切れるだけで崩れない**ので下げてある。
+
+**[#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) だけ期限がある。** iOS の最低要件が 14.0 のままで、
+**2027年春以降は App Store Connect へのアップロード・申請ができなくなる**
+（ITMS-90068）。いまは警告だけで通るので順序は最後にしてあるが、**期限を過ぎると
+リリース経路そのものが止まる**ので、それまでのどこかのリリースに必ず載せる。
+アプリのコードには触れないが、ビルド設定の変更なのでリリースとして出す必要がある。
+
+---
+
+## develop にマージ済み（次のリリースで main へ）
+
+**issue はまだ開いている。**閉じるのは main へマージするとき。
+1件ずつは小さいが、v1.3.1 のリリースノートにはここも載る。
+
+| Issue | 内容 | PR |
+|-------|------|-----|
+| [#168](https://github.com/myu-mikazuki/Chitose-bus/issues/168) | `appsscript.json` に `webapp` 設定を足す | #213 |
+| [#192](https://github.com/myu-mikazuki/Chitose-bus/issues/192) | HomeScreen の golden を足す | #215 |
+| [#195](https://github.com/myu-mikazuki/Chitose-bus/issues/195) | `dart format` を CI に入れる | #216（整形）→ #221（CI） |
+| [#214](https://github.com/myu-mikazuki/Chitose-bus/issues/214) | Play アップロードの `track` → `tracks` | #226 → #227 |
+| [#219](https://github.com/myu-mikazuki/Chitose-bus/issues/219) | Fake ViewModel を `test/helpers` へ寄せる | #222 |
+| [#220](https://github.com/myu-mikazuki/Chitose-bus/issues/220) | タブの残り2状態（便が無い / 未取得）に golden を足す | #224 |
+| [#223](https://github.com/myu-mikazuki/Chitose-bus/issues/223) | 残っていたスタブを helpers へ寄せる | #225 |
+| [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける | #230 |
+| [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | 見出しにいま見ている停留所の正式名を出す | #232 |
+| [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す | #236 |
+| [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | 到着行に正式名を出す | #238 |
+| [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定で壊れる場所を検知する | #244 |
+| [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | #247 |
+
+- **#195** — PR #217 は base が `chore/issue-195-format` になっていたため閉じ、
+  #221 で develop に直接入れ直した。経路が変わっただけで中身は同じ
+- **#168** — 直ったのは**リポジトリの `appsscript.json` だけ**で、本番 GAS への反映は
+  リリース時。下の「判断の指針」にある dev デプロイの手作業運用はまだ続く
+- **#214** — 「リリース作業に入る前に直しておく」ものだったので、v1.3.1 の準備はこれで済んだ
+- **#207** — **リポジトリの `gas/Code.gs` が直っただけで、本番 GAS は未デプロイ。**
+  v1.3.1 のリリース手順に本番デプロイを必ず入れること。忘れるとアプリ側だけ出て、
+  タブは正式名のまま残る（元の問題がそのまま）
+- **#208** — 置き場所は issue の図（独立した1行）ではなく**見出しと同じ行**にした。
+  独立行は縦が 35px 増え、短い画面で `_StopTab` が溢れるため（#124）
+- **#234** — 時刻表リストの到着行も揃えた。行き先（`destinationLabelOf`）と
+  タブは短縮名のまま。**既定の4停留所の見え方が変わる**（`本部棟 着` →
+  `科技大本部棟 着`）
+
+---
+
+## v1.3.1（次）
 
 ### 出すもの
+
+| Issue | 内容 |
+|-------|------|
+| [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける（**タブに出す**） |
+| [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に**正式名**を出す |
+| [#231](https://github.com/myu-mikazuki/Chitose-bus/issues/231) | NEXT BUS の到着行が 375px ではみ出す |
+| [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す |
+| [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定で壊れる場所を検知する（テストのみ） |
+| [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない |
+
+**上の4件は同じ穴を塞ぐ。** #207 / #208 は「どの停留所を見ているか」、
+#231 / #234 は「どこで降りるか」で、どちらも **v1.3.0 の #177 が長い停留所名を
+画面に出せるようにした結果**として出てきた。名前まわりをまとめて片付ける。
+
+**入れる順序**: #231 → #234。#234 は到着地の名前を長くする（`古泉 着` →
+`古泉循環器内科クリニック前 着`）ので、先に入れると #231 が悪化する。
+
+**4件とも develop 済み**（PR #230 / #232 / #236 / #238）。
+**#237（拡大設定の検知）も入れて5件**（PR #244）。テストだけなので出すものの
+見え方は変わらないが、v1.3.1 のリリースノートには載る。
+
+**#243（タブの幅計算）を6件目として入れる**（develop 済み）。#237 の実測から出た
+派生5件のうち、**判断を伴わない純粋な論理バグはこれだけ**。残り4件は
+[上の節](#v131-に入れるのは-243-だけ)のとおり v1.3.2 に回す。
+
+**#234 の判断**: 到着行は **NEXT BUS カードと時刻表リストの両方**を正式名にする。
+同じ便の到着地が画面の2箇所で違う名前になるのを避けるため。**既定の4停留所の
+見え方も変わる**（`本部棟 着` → `科技大本部棟 着`）ことを承知で受け入れる。
+行き先（`destinationLabelOf` の `→ 本部棟`）と見出しの `terminusLabel` は
+**短縮名のまま**（issue の表で別途判断としているもの）。`Flexible` + ellipsis の
+防御は入れず、**拡大設定で実際にどこが壊れるかを #237 で見てから決める**。
+
+**到着行が出る3経路のうち、いちばん狭いのは NEXT BUS カードの 300px**（375px で実測）。
+来週ダイヤの BottomSheet 経由が 303px、ホームの時刻表リストが 335px。
+**#237 で防御を入れる場所を決めるときはこの順で見ること。**
+PR #238 のレビューまで「リストがいちばん狭い」と誤認していた。
+
+**#207 / #208 の2件で1つの解**。どちらも v1.3.0 の #177 / #204 が作った穴を塞ぐが、**役割が違う**。
+乗車地を選べるようにしたものの、`shortLabel` を持つのは既定の4停留所だけで、
+新しく選べる停留所ほど正式名が長い（「古泉循環器内科クリニック前」など）。上限 5 まで
+使うほどタブのラベルは読みにくくなる。v1.3.0 のリリースノートにも既知の問題として
+明記してある。
+
+**名前を2箇所に出し分ける**のが方針:
+
+| 場所 | 出すもの | 理由 |
+|------|---------|------|
+| タブ | **短縮名**（#207） | 幅が無い。5タブで 27.0px しか残らないので、短い名前でないと入らない |
+| NEXT BUS カードの上 | **正式名**（#208） | 幅がある。短縮名だけでは指す停留所が曖昧になるので、ここで確定させる |
+
+- **#207** — 供給元を直す側。`shortLabel` は 31件中4件にしか無い。**GAS のみの変更で
+  済む見込み**なので、アプリのリリースを待たずに届く（[判断の指針](#判断の指針)の
+  「GAS のみで完結する変更はリリース不要」）。先に出してよい
+- **#208** — アプリ側の変更。短縮名は「どの停留所か」を一意に伝えないことがあるため、
+  **本文で正式名を確定させる**。タブを短縮名にする以上、正式名の置き場所が要る
+
+> [!NOTE]
+> **#207 を入れても #208 は不要にならない。**短縮名を全停留所に付けることと、
+> 正式名をどこかに出すことは別の問題で、前者を進めるほど後者が要る。
+>
+> 出す順は #207 が先でよい（GAS のみで即座に届く）。ただし **v1.3.1 は #208 の
+> ためのリリース**なので、#207 だけでリリースを畳まないこと。
+
+### 併せて確認すること
+
+- v1.3.0 で入った**移行用の経路は v1.4.0 で削除する**（[#186](https://github.com/myu-mikazuki/Chitose-bus/issues/186)）。
+  v1.3.1 では消さない
+- ~~[#214](https://github.com/myu-mikazuki/Chitose-bus/issues/214)（`release.yml` の `track` が非推奨）は
+  リリース作業に入る前に直しておく~~ → **対応済み**（PR #226 / #227）
+
+---
+
+## v1.3.0（2026-08-16 リリース済み・審査提出済み）
+
+### 出したもの
 
 | Issue | 内容 |
 |-------|------|
@@ -48,46 +286,74 @@
   最も短い短縮名でも `…` だけになる（5タブなら 27.0px で `研…` まで出る）。
   レビューで上限内の可読性を問われ、当初の 6 から下げた（PR #206）
 
-### リリース時にやること
-
-1. **本番 GAS をデプロイする**（`v=4` に対応していないと新アプリが動かない）
-2. ストアへ提出する
-3. リリースノートに「更新後の初回起動」について記載する — #177 以前のキャッシュは
-   [移行用の経路](https://github.com/myu-mikazuki/Chitose-bus/issues/186)で読めるようにしてあるため、
-   オフラインでも時刻表は出る
+実際には #173（祝日ダイヤ）と #167 / #176（復路の南千歳着）も v1.2.0 から変わっており、
+リリースノートにはそちらも載せた。**ロードマップの「出すもの」は残作業の管理表なので、
+リリースノートの範囲とは一致しない。** リリースノートは `git log v1.2.0..HEAD` を基準に拾う。
 
 移行用の経路は **v1.4.0 で削除する**（[#186](https://github.com/myu-mikazuki/Chitose-bus/issues/186)）。
 
-### 併せて確認すること
+### リリース作業で分かったこと
 
-- [#165](https://github.com/myu-mikazuki/Chitose-bus/issues/165)（Google Play へのアップロード自動化）は
-  **v1.3.0 が初回検証**。リリース作業と自動化そのものの検証が同時に走る
-- [#198](https://github.com/myu-mikazuki/Chitose-bus/issues/198)（PR #199）で Flutter を `3.41.3` に
-  固定した。リリースビルドもこの版になる
-- #177 / #191 / #198 は `Closes` を書いてあるが、**develop へのマージでは閉じない**
-  （デフォルトブランチが main のため）。v1.3.0 の develop → main で自動的に閉じる
+次回のために残す。
 
-### 後回しにしたもの
+- **`v=1` の運行日フィルタが毎日効いていた**（#173 で混入）。v1.1.0 以前の
+  「当日以外のダイヤ」が 0 件になる退行で、リリース PR のレビューで見つかった。
+  `scripts/check_gas_response.js` のフィクスチャが**退行後に採取されていた**ため
+  検知できていない。フィクスチャを採り直すときは、**何が変わるつもりだったのか**を
+  先に決めてから `--update` する
+- **GAS のデプロイは2操作**。「ファイルを入れる」（`clasp push` か貼り付け）と
+  「バージョンを上げる」は別で、**後者だけだと古いコードが新しいバージョン番号で配信される**。
+  番号が上がるので成功に見えるのが罠。確認は**応答そのもの**を見る（`clasp pull` で
+  配信中のコードを読んで手元と `diff` するのが確実）
+- **`clasp push` にはマニフェストの罠がある**。本番の `appsscript.json` には `webapp` が
+  あるのにリポジトリには無く、そのまま push すると本番から消える（#168 / PR #213）
+- **Play へのアップロードは GCP で Android Publisher API を有効化する必要がある**。
+  #165 の初回実行がこれで失敗した。有効化して再実行で成功
+- **`release.yml` の `track` が非推奨**になった（[#214](https://github.com/myu-mikazuki/Chitose-bus/issues/214)・
+  PR #226 / #227 で対応済み）。ついでに分かったこととして、`track` と `tracks` の**どちらも
+  未設定だとアクションの既定は `production`**。Actions は未知の `with:` キーを警告止まりで
+  通すので、キー名を打ち間違えると製品版に上がる
+- **`Closes` はリリース PR の本文に書く。** #177 / #191 / #198 / #201 / #204 は
+  develop へマージした各 PR に書いてあったが、release → main の PR 本文には無かったため
+  **自動で閉じず、手で閉じた**。次回はリリース PR の本文に並べる
+
+---
+
+## 後回しにしているもの
+
+リリースに紐づかない全体の積み残し。
 
 | Issue | 内容 | 後回しの理由 |
 |-------|------|------------|
 | [#172](https://github.com/myu-mikazuki/Chitose-bus/issues/172) | 旧キャッシュで学休期に授業期の便が出る | 「キャッシュデータを表示中」バナーが出るため誤解が緩和される |
-| [#168](https://github.com/myu-mikazuki/Chitose-bus/issues/168) | `appsscript.json` に `webapp` 設定が無い | clasp でデプロイしない限り顕在化しない |
 | [#171](https://github.com/myu-mikazuki/Chitose-bus/issues/171) | ソース側の表記統一 | 表示に影響しない |
-| [#155](https://github.com/myu-mikazuki/Chitose-bus/issues/155) | `doc/spec.md` の GAS 章更新 | |
+| [#155](https://github.com/myu-mikazuki/Chitose-bus/issues/155) | `doc/spec.md` の GAS 章更新 | `?v=4` の節が「GAS 側のみ実装済み」のまま。v1.3.0 で実際に使い始めたので**記述が古い** |
 | [#117](https://github.com/myu-mikazuki/Chitose-bus/issues/117) | 利用規約 | #109 でログ収集を入れる際に同意事項が必要になるため、その段階で再検討 |
-| [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入りの停留所を選択から外しても何も伝えない | #177 が作った隙間だが、実害は星が消えるだけ |
+| [#185](https://github.com/myu-mikazuki/Chitose-bus/issues/185) | エラー画面に生の例外文字列が出る | [#108](https://github.com/myu-mikazuki/Chitose-bus/issues/108)（エラーメッセージ整備）と同じ範囲。まとめて扱うほうがよい |
 | [#190](https://github.com/myu-mikazuki/Chitose-bus/issues/190) | 通知キーが同時刻・別系統の便で衝突する | #177 以前からの不具合で回帰ではない |
-| [#192](https://github.com/myu-mikazuki/Chitose-bus/issues/192) | HomeScreen の golden が無い | 開発側の投資。利用者への影響は無い |
-| [#195](https://github.com/myu-mikazuki/Chitose-bus/issues/195) | `dart format` を CI に入れる | 同上 |
+| [#228](https://github.com/myu-mikazuki/Chitose-bus/issues/228) | お気に入りの停留所を選択から外しても何も伝えない | #177 が作った隙間だが、実害は星が消えるだけ |
 | [#202](https://github.com/myu-mikazuki/Chitose-bus/issues/202) | 「来週のダイヤ」シートが4停留所固定 | `upcoming` が常に null で、シート自体を開けない |
-| [#207](https://github.com/myu-mikazuki/Chitose-bus/issues/207) | 全停留所に `shortLabel` を付ける | #204 の派生。31件中4件しか無く、新しく選べる停留所ほど名前が長い。GAS のみの変更で済む見込み |
-| [#208](https://github.com/myu-mikazuki/Chitose-bus/issues/208) | NEXT BUS カードの上に停留所名を出す | #204 の派生。タブの幅は上限をどう選んでも足りないため、識別を本文にも持たせる |
 | #124 / #83 / #73 / #56 / #2 / #22 / #108 | | 未定 |
+
+#207 / #208 は v1.3.1 へ上げた。#140 は上の「直近の順序」（順3）に入れてあるので、
+この表からは外した。
+
+> [!NOTE]
+> **この表の #140 の行は内容が issue と食い違っていた。**「お気に入りの停留所を選択から
+> 外しても何も伝えない」と書かれていたが、#140 は「研究棟タブの本部棟⇔千歳駅でも
+> お気に入り登録できるようにする」という別の話。書かれていた事象自体はコードで確認でき
+> たので、[#228](https://github.com/myu-mikazuki/Chitose-bus/issues/228) として切り出した。
 
 ---
 
 ## 完了
+
+### v1.3.0（2026-08-16 リリース・審査提出済み）
+
+→ [上の節](#v1302026-08-16-リリース済み審査提出済み)に詳細と、リリース作業で分かったことを残してある。
+
+出したのは #177 / #204 / #201 / #191（乗車地の選択）、#173（祝日ダイヤ）、
+#167 / #176（復路の南千歳着）、#165（Play アップロード自動化・初回検証）、#198（Flutter 固定）。
 
 ### v1.2.0（2026-08-04 リリース・審査通過済み）
 
@@ -113,6 +379,13 @@
 | Issue | 内容 |
 |-------|------|
 | #198 | CI が `build_runner` で止まる → Flutter を `pubspec.yaml` で固定（PR #199） |
+
+> [!IMPORTANT]
+> **条件がかかるのは PR 単体の差分ではなく、develop → main のマージ全体。**
+> #214 は変更自体が `release.yml` と `doc/` だけだったのでこの経路に見えたが、
+> そのとき develop には #192 / #219 などの `flutter_app` の変更が溜まっていたため
+> **使えなかった**（次のリリースに載せた）。判断する前に
+> `git diff --name-only origin/main...origin/develop` を見ること。
 
 ---
 
@@ -147,7 +420,11 @@ GAS 側で吸収できないか先に検討する。
 
 dev への反映は `clasp push --user dev` まで Claude が行い、デプロイのバージョン更新は
 Apps Script の UI で人が行う（`appsscript.json` に `webapp` が無く clasp 経由の
-バージョンが 404 になるため。[#168](https://github.com/myu-mikazuki/Chitose-bus/issues/168) が直るまでの運用）。
+バージョンが 404 になるため）。
+
+[#168](https://github.com/myu-mikazuki/Chitose-bus/issues/168) の修正（PR #213）は
+develop に入っているが、**直ったのはリポジトリ側のマニフェストだけ**で、GAS 側に
+届くのは push した後。**この手作業の運用は、実際に 404 が出なくなるのを確認するまで続ける。**
 
 > リリース時のデプロイ漏れは**新アプリが全く動かない**事故になる。
 > リリース手順の最初に置くこと。

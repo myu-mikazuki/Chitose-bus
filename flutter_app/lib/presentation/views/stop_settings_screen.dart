@@ -107,8 +107,8 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: ctx.appColors.surface,
-        title: const Text('変更を破棄しますか',
-            style: TextStyle(color: AppColors.primary)),
+        title:
+            const Text('変更を破棄しますか', style: TextStyle(color: AppColors.primary)),
         content: Text(
           'バス停の変更はまだ適用されていません。',
           style: TextStyle(color: ctx.appColors.textPrimary),
@@ -116,13 +116,12 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('編集に戻る',
-                style: TextStyle(color: AppColors.primary)),
+            child:
+                const Text('編集に戻る', style: TextStyle(color: AppColors.primary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child:
-                const Text('破棄', style: TextStyle(color: AppColors.error)),
+            child: const Text('破棄', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -204,8 +203,7 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
         // 上限は先に見せる。押せなくなってから知らせると、なぜ足せないのか
         // 分からないまま「追加する」を探すことになる
         _SectionHeader(
-          label:
-              'タブに表示する（${_selected.length} / ${StopSelection.maxStops}）',
+          label: 'タブに表示する（${_selected.length} / ${StopSelection.maxStops}）',
         ),
         Text(
           '長押しで並べ替えられます。並びがそのままタブの並びになります。',
@@ -260,8 +258,7 @@ class _StopSettingsScreenState extends ConsumerState<StopSettingsScreen> {
                       candidates[i].label,
                       style: TextStyle(color: context.appColors.textPrimary),
                     ),
-                    trailing:
-                        const Icon(Icons.add, color: AppColors.primary),
+                    trailing: const Icon(Icons.add, color: AppColors.primary),
                     onTap: () => _add(candidates[i].id),
                   ),
                 ],
@@ -293,8 +290,8 @@ class _PendingNotice extends StatelessWidget {
           Expanded(
             child: Text(
               '「適用」を押すと時刻表を取り直します',
-              style: TextStyle(
-                  color: context.appColors.textPrimary, fontSize: 12),
+              style:
+                  TextStyle(color: context.appColors.textPrimary, fontSize: 12),
             ),
           ),
         ],
@@ -360,9 +357,8 @@ class _SelectedStopTile extends StatelessWidget {
             ),
       trailing: IconButton(
         icon: const Icon(Icons.remove_circle_outline),
-        color: onRemove == null
-            ? context.appColors.textDisabled
-            : AppColors.error,
+        color:
+            onRemove == null ? context.appColors.textDisabled : AppColors.error,
         tooltip: onRemove == null ? '最後の1つは外せません' : '外す',
         onPressed: onRemove,
       ),

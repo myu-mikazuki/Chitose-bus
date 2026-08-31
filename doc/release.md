@@ -38,6 +38,13 @@ PR の一覧）のみで公開される。その場合はワークフローに w
 git checkout main && git pull
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
+
+# main と develop の内容は一致するはずだが、release ブランチのリリース準備
+# コミット（version・release-notes・whatsnew・README）は main にしか無いので
+# develop にもマージバックする（PR 不要・直接マージでよい）
+git checkout develop && git pull
+git merge main
+git push origin develop
 ```
 
 ### 手動でストアに提出する部分
@@ -47,9 +54,23 @@ git push origin vX.Y.Z
 - iOS: App Store Connect で TestFlight のビルドを選択して審査提出
 - Android: **内部テストまで自動**。Play Console から製品版へ手動で昇格
 
-Android を `track: internal` に留めているのは、誤って本番公開されるのを防ぐため。運用が安定したら `release.yml` の `track` を上げるか検討する。
+Android を `tracks: internal` に留めているのは、誤って本番公開されるのを防ぐため。運用が安定したら `release.yml` の `tracks` の指定を広げるか検討する（カンマ区切りで複数トラックを同時に指定できる）。
+
+`tracks` を編集するときは**キー名の綴りに注意**。アクション側は `track` も `tracks` も無い場合に `production` を既定値にするため、打ち間違えると製品版に上がる。GitHub Actions は未知の `with:` キーを警告止まりで通すので、CI では検知できない。
 
 `PLAY_SERVICE_ACCOUNT_JSON` が未設定の場合、アップロードはスキップされ warning が出る（ビルド自体は成功する）。
+
+### Google Play アップロードの前提
+
+サービスアカウントを置いている GCP プロジェクトで、**Google Play Android Developer API**
+を有効にしておく必要がある。無効のままだと最初のアップロードが次のエラーで失敗する。
+
+```
+Google Play Android Developer API has not been used in project <番号>
+before or it is disabled.
+```
+
+一度有効にすれば以降は不要。環境を作り直したときだけ気にすればよい。
 
 ---
 
