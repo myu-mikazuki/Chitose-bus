@@ -143,6 +143,9 @@ void main() {
         // （正式名）は既定では出ず、`O･A入口` のような短縮名（最長5文字）が
         // 出るので、そもそも overflow の的にならない幅になっている
         expect(find.text('O･A入口 着'), findsOneWidget);
+        // `find.text` は ellipsis で切れていても通ってしまうので、
+        // 等倍で省略されていないことも別に確かめる（#208 の PR #232 と同じ観点）
+        expectNotTruncated(tester, 'O･A入口 着');
       });
 
       // #241 で時刻表リストの到着行も既定は短縮名に戻した。**上の表のとおり
