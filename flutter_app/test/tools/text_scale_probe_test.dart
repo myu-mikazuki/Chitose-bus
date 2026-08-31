@@ -15,6 +15,7 @@ import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_viewmodel.dart';
 import 'package:kagi_bus/presentation/viewmodels/stop_selection_viewmodel.dart';
 import 'package:kagi_bus/presentation/views/home_screen.dart';
+import 'package:kagi_bus/presentation/views/widgets/arrival_row.dart';
 import 'package:kagi_bus/presentation/views/widgets/schedule_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -148,6 +149,8 @@ Future<void> _probe(
   FlutterError.onError = (details) => found.add(_describe(details));
 
   var header = '(見出しが見つからない)';
+  // 到着行を展開したことで**新たに**溢れたものだけを分けて出す（#241）
+  var afterArrival = <String>{};
   try {
     await tester.pumpWidget(_wrap(stopIds, scale));
     await tester.pumpAndSettle();
@@ -171,6 +174,21 @@ Future<void> _probe(
       await tester.tap(row.first, warnIfMissed: false);
       await tester.pumpAndSettle();
     }
+
+    // #241 で到着行はタップすると1行下に正式名が出るようになった。
+    // **既定（短縮名）の状態と、開いた状態は別に測る。**開いた行は `Wrap` で
+    // 折り返す作りなので溢れない想定だが、それが本当かはここでしか分からない
+    // **開くのは1行だけ。** 全件を開くと縦の最悪値になるが、実際に
+    // 起きやすいのは「気になった1つを開く」ほう。最悪値を見たいときは
+    // ここを全件ループに変える
+    final before = Set.of(found);
+    final arrivals = find.byType(ArrivalRow);
+    if (arrivals.evaluate().isNotEmpty) {
+      await tester.tap(arrivals.first, warnIfMissed: false);
+    }
+    await tester.pumpAndSettle();
+    afterArrival = found.difference(before);
+    found.removeAll(afterArrival);
   } catch (error) {
     found.add('throw: $error');
   } finally {
@@ -186,6 +204,14 @@ Future<void> _probe(
   for (final line in found) {
     // ignore: avoid_print
     print('     $line');
+  }
+  if (afterArrival.isNotEmpty) {
+    // ignore: avoid_print
+    print('     -- 到着行を開いてから新たに溢れたもの（#241）--');
+    for (final line in afterArrival) {
+      // ignore: avoid_print
+      print('     $line');
+    }
   }
 }
 

@@ -60,27 +60,46 @@ NEXT BUS カードの上に正式名**、と出し分けるのが方針。
 ### #237 で分かったこと（375px 実測）
 
 **実機では等倍（1.0）で壊れる場所は無い。**Android の「大」が 1.15、「最大」が 1.3。
-**「最大」にすると NEXT BUS の到着行が実際に溢れる。**
 
 **どちらの列も「溢れ始める（切れ始める）倍率」。**テストが踏むのはその1段下なので、
 `text_scaler_test.dart` の定数とは一致しない。
 
+**下の実フォントの列は [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) の実装後に測り直したもの**（2026-09-01・Meiryo・375px）。
+
 | 場所 | 軸 | テスト用フォント | **実フォント** | 直し |
 |---|---|---|---|---|
 | 節の見出し（`◯◯ 発`）が**切れる** | 横 | 1.0 | **1.15** | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) |
-| NEXT BUS カードの到着行（300px） | 横 | 1.15 | **1.3** | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
+| ~~NEXT BUS カードの到着行（300px）~~ | 横 | ~~1.15~~ | **2.0 まで無傷** | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
 | ~~タブ（4タブ）~~ | 横 | ~~1.4~~ | ~~1.4~~ | **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) で解消** |
-| `_StopTab` の Column（375×667） | 縦 | 1.1 | **1.5** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
-| ホームの時刻表リストの到着行（335px） | 横 | 1.25 | **1.5** | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) |
+| `_StopTab` の Column（**閉じた状態**） | 縦 | 1.1 | **1.5** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
+| `_StopTab` の Column（**到着行を1つ開く**） | 縦 | — | **1.4** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
+| `_StopTab` の Column（**到着行を全部開く**） | 縦 | — | **1.3** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
+| ~~ホームの時刻表リストの到着行（335px）~~ | 横 | ~~1.25~~ | **2.0 まで無傷** | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
 | ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | **2.0** | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
-| 来週シートの到着行（303px）／行ヘッダ（311px）※ | 横 | 1.15 / 1.2 | 未計測 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) / [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+| ~~来週シートの到着行（303px）~~ | 横 | ~~1.15~~ | ~~未計測~~ | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
+| 来週シートの行ヘッダ（311px）※ | 横 | **1.18** | 未計測 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+
+**#241 で到着行の横は片付いた。**既定を短縮名に戻し、正式名はタップで出す
+折り返し可能な行にしたので、実フォントでは **2.0 まで横の overflow が出ない**
+（開いた状態を含む）。
+
+**代わりに縦（#240）が下がった。**タップで出す行のぶん縦が伸びるため、
+**到着行を1つ開くと 1.5 → 1.4、全部（カード3行＋リスト3行）開くと 1.3**。
+**Android の「最大」にちょうど届く**ので、**#240 の優先度はこの計測で上がった**。
+**リリースノートの「既知の問題」に載せる基準（1.3 まで）にも入る。**
+#241 が作った穴ではなく、**横を塞いだ結果として表に出たもの**（縦は元から 1.5 で
+負けていた）。
 
 ※ **来週シートは本番では開けない。**GAS が `upcoming: null` を直書きしており、
 カレンダーアイコンも出ない（`_showUpcomingSheet` の TODO(#202)）。
-**#241 / #242 の実害はホーム側だけ**で、シートの2行は #202 で復活させたときに効く。
+**#242 の実害はホーム側だけ**で、シートの行ヘッダは #202 で復活させたときに効く。
+実フォント未計測なのは probe がカレンダーアイコンを叩かないため。
 
 **リリースノートの「既知の問題」に載せる基準は、Android の「最大」（1.3）までに崩れる場所だけ。**
-`_StopTab` の Column（1.5・#240）とホームの行ヘッダ（2.0・#242）は「最大」より上なので載せない。
+ホームの行ヘッダ（2.0・#242）は「最大」より上なので載せない。
+**`_StopTab` の Column（#240）は #241 の後に基準の中へ入った** — 閉じたままなら 1.5 だが、
+**到着行を全部開くと 1.3 で縦に溢れる**。v1.3.2 で #240 を直せば消えるので、
+**載せるかどうかはリリース時点で #240 が入っているかで決める。**
 
 > [!IMPORTANT]
 > **PR #244 の時点の表は「テスト用フォント」の列しか無く、実機より厳しく出ていた。**
