@@ -38,6 +38,13 @@ PR の一覧）のみで公開される。その場合はワークフローに w
 git checkout main && git pull
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
+
+# main と develop の内容は一致するはずだが、release ブランチのリリース準備
+# コミット（version・release-notes・whatsnew・README）は main にしか無いので
+# develop にもマージバックする（PR 不要・直接マージでよい）
+git checkout develop && git pull
+git merge main
+git push origin develop
 ```
 
 ### 手動でストアに提出する部分
