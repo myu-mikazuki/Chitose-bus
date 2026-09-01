@@ -83,12 +83,41 @@ BusTimetable _timetable(String validFrom, String validTo) => BusTimetable(
             'honbuto': '09:58'
           },
         ),
+        // #251: 2方向ある停留所（`SegmentedButton` が出る条件）。
+        // `koizumi` だけで測っていたことが #251 を見逃した原因だったので、
+        // ここにも足す。issue の再現データと同じ形（本部棟方面1件・
+        // 千歳駅方面2件）。**`terminusStopId` を省くと再現しないことがある**
+        // ので必ず付ける。
+        BusEntry(
+          time: '09:00',
+          boardingStopId: 'kenkyuto',
+          destination: '本部棟',
+          terminusStopId: 'honbuto',
+          arrivals: {'honbuto': '09:03'},
+        ),
+        BusEntry(
+          time: '09:10',
+          boardingStopId: 'kenkyuto',
+          destination: '千歳駅',
+          terminusStopId: 'chitose',
+          arrivals: {'minamiChitose': '09:20', 'chitose': '09:30'},
+        ),
       ],
     );
 
+/// #251: `kLongStopMaster` に無い `kenkyuto` / `minamiChitose` を足す。
+/// **`kLongStopMaster` 自体は書き換えない**——`long_stop_names_test.dart` と
+/// 共有しており、幅のテストが「実データの最長」の前提で立っているため
+/// （`test_theme.dart` のドキュメント参照）。この probe だけの追加分。
+final _stopMaster = [
+  ...kLongStopMaster,
+  const BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
+  const BusStop(id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳'),
+];
+
 final _result = ScheduleResult(
   data: ScheduleResponse(
-    stopMaster: kLongStopMaster,
+    stopMaster: _stopMaster,
     updatedAt: '2024-01-01',
     current: _timetable('2024-01-01', '2024-12-31'),
     upcoming: _timetable('2025-01-01', '2025-12-31'),
@@ -164,9 +193,14 @@ Future<void> _probe(
     await tester.pumpWidget(_wrap(stopIds, scale));
     await tester.pumpAndSettle();
 
-    // #245: 節見出しは既定で短縮名（`古泉 発`）を出す。`Expanded` + ellipsis で
-    // **溢れずに切れる**ので、overflow ではなく didExceedMaxLines で見る
-    final headerFinder = find.text('古泉 発');
+    // #245: 節見出しは既定で短縮名（`◯◯ 発`）を出す。`Expanded` + ellipsis で
+    // **溢れずに切れる**ので、overflow ではなく didExceedMaxLines で見る。
+    // #251: **`stopIds` を `koizumi` 固定にしない**ため、見出しの短縮名・
+    // 正式名も先頭の停留所から動的に求める（固定文字列だと `koizumi` 以外を
+    // 渡したときに見出しの計測が素通りしてしまう）。
+    final shortLabel = _stopMaster.labelOf(stopIds.first);
+    final officialLabel = _stopMaster.officialLabelOf(stopIds.first);
+    final headerFinder = find.text('$shortLabel 発');
     if (headerFinder.evaluate().isNotEmpty) {
       final paragraph = tester.renderObject<RenderParagraph>(headerFinder);
       header = paragraph.didExceedMaxLines ? '切れている' : '収まっている';
@@ -176,7 +210,7 @@ Future<void> _probe(
       // 正式名側が高倍率でどこまで持つかも測っておく
       await tester.tap(headerFinder);
       await tester.pumpAndSettle();
-      final officialFinder = find.text('古泉循環器内科クリニック前 発');
+      final officialFinder = find.text('$officialLabel 発');
       if (officialFinder.evaluate().isNotEmpty) {
         final officialParagraph =
             tester.renderObject<RenderParagraph>(officialFinder);
@@ -257,6 +291,14 @@ void main() {
     testWidgets('375×$_deviceHeight・1停留所（縦も見る）', (tester) async {
       await _probe(tester, scale,
           stopIds: ['koizumi'], height: _deviceHeight, label: '実機並び');
+    });
+
+    // #251: `koizumi`（1方向）だけで測っていたことが、研究棟タブが等倍でも
+    // 縦に溢れる不具合を見逃した原因だった。`SegmentedButton` が出る
+    // 2方向の停留所（研究棟相当）でも同じ高さで測っておく。
+    testWidgets('375×$_deviceHeight・1停留所・2方向（縦も見る・#251）', (tester) async {
+      await _probe(tester, scale,
+          stopIds: ['kenkyuto'], height: _deviceHeight, label: '実機並び・2方向');
     });
 
     testWidgets('375×$_tallHeight・4停留所（タブを見る）', (tester) async {

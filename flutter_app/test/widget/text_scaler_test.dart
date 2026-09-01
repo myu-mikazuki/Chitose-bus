@@ -51,12 +51,66 @@ import '../helpers/test_theme.dart';
 /// 入れて 1.7 まで上がった**（1.8 で 4.5px 溢れる。二分して確かめた）。
 /// **この欄の数字を信じず、触るときは自分で測り直すこと。**
 ///
-/// > **「実機では等倍（1.0）で壊れる場所は無い」は誤りだった（#251）。**
-/// > **研究棟タブは 375×667・等倍・無操作で 17px 縦に溢れる。**2方向ある
-/// > 停留所は `SegmentedButton` が出て縦を約40px 食うが、**このファイルの
-/// > テストも `text_scale_probe_test.dart` も乗車地を `koizumi`（1方向）でしか
-/// > 採っておらず、その分が勘定に入っていなかった。** v1.3.1 にも存在する。
-/// > **#251 では2方向の停留所を両方のテストに足すこと。**
+/// > **「実機では等倍（1.0）で壊れる場所は無い」は誤りではなかった（#251）。**
+/// > issue #251 は「研究棟タブ（2方向ある停留所・`SegmentedButton` が出る）が
+/// > 375×667・等倍・無操作で 17px 縦に溢れる」と報告していたが、**これは
+/// > 代替フォント（`flutter test` が使う、1文字=1emの箱で描くフォント）
+/// > だけで起きる現象で、実機では再現しなかった。** NEXT BUS カードの時刻
+/// > 表示（`09:00`・64px・太字）が代替フォントでは1行に収め切れず折り返る
+/// > が、実フォント（Meiryo）では折り返らない。実フォントで同じ再現データを
+/// > 測ると 375×667・等倍では overflow が出ず、**高さを 580px まで削って
+/// > 初めてわずかに溢れる**（667px に対して約87px の余裕）。
+/// > **production コードの修正は入れていない**——実機に無い問題のために
+/// > `_StopTab` の必要な高さを実測定数で見積もる仕組みを持ち込むのは、
+/// > レイアウトを変えるたびに定数が古くなる壊れやすさに見合わない。
+/// >
+/// > **見つかった本当の問題は2つ**（#251 の成果として残した）。
+/// >
+/// > 1. **`koizumi`（1方向）だけで測っていたこと。** `SegmentedButton` の
+/// >    有無で縦の条件が変わるのに、#237 の実測もこのファイルのテストも
+/// >    `text_scale_probe_test.dart` も片方しか見ていなかった。→
+/// >    下の「2方向ある停留所でも測る」・probe の `kenkyuto` 追加で解消
+/// > 2. **代替フォントの結果を実機の結論に使ってしまう導線。** 今回の
+/// >    直接の原因。`doc/text-scale-measurement.md` に「リリースの範囲を
+/// >    決める材料にするなら実フォントで測ること」と書いてあったのに、
+/// >    「等倍で壊れる」の結論はそこを通さずに出してしまった。**PR #244 →
+/// >    #246 で一度踏んだのと同じ間違い**（PR #244 は代替フォントの結果を
+/// >    「375px では等倍でも切れている」と誤って読み、PR #246 で実フォント
+/// >    を測って訂正した）。三度目を防ぐため、`doc/text-scale-measurement.md`
+/// >    に「等倍の結論も実フォントで確かめること」を明記した。
+/// >
+/// > **この「実機では等倍で壊れる場所は無い」は、現行の実データ
+/// > （2方向の停留所は到着地が最大2件）を前提にしている。保証された
+/// > ものではない。** レビューで「現在の実データが前提では」と指摘され、
+/// > **到着地の件数を変えて**測り直したところ、前提が崩れる境目が
+/// > 見つかった（研究棟相当・2方向・develop `9bd1d17`）。
+/// >
+/// > | 条件 | 代替フォント | **実フォント（Meiryo）** |
+/// > |---|---|---|
+/// > | 800×600・到着地**2件**（＝現行の実データ） | なし | **なし** |
+/// > | 375×667・到着地2件 | 17px | なし |
+/// > | **800×600・到着地3件** | 16px | **16px 溢れる** |
+/// > | 375×667・到着地3件 | 41px | なし |
+/// >
+/// > **到着地が3件になると、実フォントでも 800×600 で縦に溢れる。**
+/// > **375×667（iPhone SE / 12 mini）では3件でも溢れない**——危ないのは
+/// > **幅が広くて縦が短い画面**（#124 で「短い画面」として気にしてきた
+/// > 800×600 がまさにそれ）。
+/// >
+/// > **`gas/Code.gs` のデータはアプリのリリースを介さず変わる**（#177 で
+/// > そう作った）。いま安全なのは研究棟の到着地がたまたま最大2件だからで、
+/// > 保証されていない。**#253（2026-10-01 の新ダイヤ・108便→168便・
+/// > 新系統あり）が到着地の件数を増やす具体的な引き金になりうる。**
+/// >
+/// > **それでも production は直さない。**理由は2つ。**今日のデータでは
+/// > 崩れない**ことに加えて、**直す作り方自体、今は決め打ちできない。**
+/// > 「入るかどうかで判定する」のが本筋だとすれば、**#253 で実データの形
+/// > （到着地が何件まで増えるか）を見てから設計したほうが無駄がない。**
+/// > 仮定の上に設計するより、実データを見てから設計するほうが筋が良い。
+/// > 実データに存在しない形（3件以上）のために実測定数の仕組みを先回りで
+/// > 持ち込むのは早計と判断した。**#253 で新ダイヤが入って到着地の件数が
+/// > 実際に増えたら、この前提が崩れていないか測り直すこと**
+/// > （`doc/roadmap.md` の #253 の節にも同じ内容を置いてある）。
 ///
 /// 下の表は**拡大設定に関する限界**で、等倍の話（#251）はこの表の外にある。
 /// **`_StopTab` の縦は #240 で解消し、到着行を全部開いた状態でも
@@ -321,6 +375,48 @@ final _headerOnlyResult = ScheduleResult(
   ),
 );
 
+/// 2方向ある停留所（研究棟・issue #251 の再現コードと同じ形）。
+///
+/// **`koizumi` だけで測っていたことが #251 の教訓**（このファイル冒頭の
+/// 「2方向ある停留所でも測る」参照）。`SegmentedButton` が出る条件
+/// （行き先が2つ）を満たす応答を別に持つ。
+///
+/// `gas/Code.gs` の実データどおり、本部棟方面は到着地1件・千歳駅方面は2件
+/// （`minamiChitose` / `chitose`）。`IndexedStack` は最大の子に合わせて
+/// 高さを決めるので、2件のほうが `_StopTab` の縦を決める。
+///
+/// **`terminusStopId` を省くと再現しないことがある**ので必ず付ける
+/// （`terminusLabel()` が `arrivals.keys.lastOrNull` のフォールバックに
+/// 落ち、`SegmentedButton` のラベルが変わって幅・高さが変わるため）。
+const _twoWaySchedules = [
+  BusEntry(
+    time: '09:00',
+    boardingStopId: 'kenkyuto',
+    destination: '本部棟',
+    terminusStopId: 'honbuto',
+    arrivals: {'honbuto': '09:03'},
+  ),
+  BusEntry(
+    time: '09:10',
+    boardingStopId: 'kenkyuto',
+    destination: '千歳駅',
+    terminusStopId: 'chitose',
+    arrivals: {'minamiChitose': '09:20', 'chitose': '09:30'},
+  ),
+];
+
+final _twoWayResult = ScheduleResult(
+  data: ScheduleResponse(
+    stopMaster: kTestStopMaster,
+    updatedAt: '2024-01-01',
+    current: const BusTimetable(
+      validFrom: '2024-01-01',
+      validTo: '2024-12-31',
+      schedules: _twoWaySchedules,
+    ),
+  ),
+);
+
 Widget _wrap(ScheduleResult result, List<String> stopIds, double scale) =>
     ProviderScope(
       overrides: [
@@ -393,6 +489,96 @@ void main() {
   // overflow はテストが自動で失敗として拾うので、「例外なく pump できること」
   // 自体が検査になっている（`long_stop_names_test.dart` と同じ立て方）。
   group('文字拡大設定（TextScaler）', () {
+    // #251: 「実機では等倍で壊れる場所は無い」は誤りではなかった。
+    //
+    // issue #251 は「研究棟タブが 375×667・等倍で 17px 縦に溢れる」と
+    // 報告していたが、**これは代替フォント（`flutter test` が使う、
+    // 1文字=1emの箱で描くフォント）だけで起きる現象で、実機（実フォント）
+    // では再現しなかった**。NEXT BUS カードの時刻表示（`09:00`・64px・
+    // 太字）が代替フォントでは1行に収め切れず折り返るが、実フォントでは
+    // 折り返らない。実フォントで同じ再現データを測ると、375×667・等倍では
+    // overflow が出ず、**高さを 580px まで削って初めてわずかに溢れる**
+    // （667px に対して約87px の余裕があった）。
+    //
+    // **production コードの修正は入れなかった。** 実機に無い問題のために
+    // `_StopTab` の必要な高さを実測定数で見積もる仕組みを持ち込むのは、
+    // レイアウトを変えるたびに定数が古くなる壊れやすさに見合わない。
+    //
+    // **見つかった本当の問題は2つ**（どちらも #251 の成果として残す）。
+    //
+    // 1. **`koizumi`（1方向）だけで測っていたこと。** `SegmentedButton` の
+    //    有無で縦の条件が変わるのに、このファイルも `text_scale_probe_test.dart`
+    //    も片方しか見ていなかった。→ 下の2件と、fixture（`_twoWayResult` /
+    //    probe の `kenkyuto` 追加）で解消
+    // 2. **代替フォントの結果を実機の結論に使ってしまう導線。** 今回の
+    //    直接の原因。`doc/text-scale-measurement.md` には「リリースの範囲を
+    //    決める材料にするなら実フォントで測ること」と書いてあったが、
+    //    「等倍で壊れる」という結論はそこを通さずに出してしまった。
+    //    **PR #244 → #246 で一度踏んだのと同じ間違い**（PR #244 は代替
+    //    フォントの結果を「375px では等倍でも切れている」と誤って読み、
+    //    PR #246 で実フォントを測って訂正した）。**三度目を防ぐため、
+    //    `doc/text-scale-measurement.md` に「等倍の結論も実フォントで
+    //    確かめること」を明記した**（測定手順に「拡大の限界」だけでなく
+    //    等倍の話も対象と分かるように）。
+    group('2方向ある停留所でも測る（#251・網を広げる）', () {
+      // #251 の教訓1（`koizumi` だけで測っていたこと）を踏まえ、**既存の
+      // 倍率テスト（`_deviceLimit`）を2方向の停留所（研究棟相当）でも
+      // 踏み直す。** `_deviceLimit`（1.3・#240 のしきい値ちょうど）まで
+      // このファイルの他のテストは koizumi（1方向）だけで担保していたが、
+      // `SegmentedButton` が出る分の縦のコストを載せても #240 の余白詰め
+      // （`verticalSqueezeOf`）だけで溢れないことをここで確かめる。
+      testWidgets('研究棟相当・375×667・倍率 $_deviceLimit まで溢れない（既存の倍率テストの踏み直し）',
+          (tester) async {
+        _usePhone(tester);
+
+        await tester
+            .pumpWidget(_wrap(_twoWayResult, ['kenkyuto'], _deviceLimit));
+        await tester.pumpAndSettle();
+        _expectScaleApplied(tester, _deviceLimit);
+
+        // 2方向あるデータであること（SegmentedButton が出る条件）の確認
+        expect(find.byType(SegmentedButton<String>), findsOneWidget);
+      });
+
+      // #240 の (c)（しきい値を超えたら余白を詰めるのをやめて画面ごと
+      // スクロールに切り替える）が、`SegmentedButton` のある停留所でも
+      // 正しく働く（余白を詰めたままにしない）ことを、koizumi だけでなく
+      // 研究棟相当でも確かめる（教訓1の踏み直し）。
+      // 判定の立て方は `しきい値を超えたらカードの余白は詰めない（#240）`
+      // と同じ。
+      testWidgets(
+          '研究棟相当・倍率が $kVerticalScrollThreshold を超えたら画面ごとスクロールに切り替わり余白も詰めない',
+          (tester) async {
+        const scale = kVerticalScrollThreshold + 0.1;
+        _usePhone(tester);
+
+        await tester.pumpWidget(_wrap(_twoWayResult, ['kenkyuto'], scale));
+        await tester.pumpAndSettle();
+        _expectScaleApplied(tester, scale);
+
+        // (c) が働いている証拠
+        expect(
+          find.ancestor(
+            of: find.byType(NextBusDisplay),
+            matching: find.byType(SingleChildScrollView),
+          ),
+          findsOneWidget,
+        );
+
+        // フッター（`更新: ...`）の Padding が等倍のまま
+        // （(c) に切り替わったら余白を詰める理由が無い。`verticalSqueezeOf`
+        // のドキュメント参照）
+        final footerPadding = tester.widget<Padding>(
+          find.ancestor(
+            of: find.textContaining('更新:'),
+            matching: find.byType(Padding),
+          ),
+        );
+        expect((footerPadding.padding as EdgeInsets).top, 8.0);
+        expect((footerPadding.padding as EdgeInsets).bottom, 16.0);
+      });
+    });
+
     testWidgets('倍率 $_deviceLimit までは 375×667 で何も溢れない（#237）', (tester) async {
       _usePhone(tester);
 
