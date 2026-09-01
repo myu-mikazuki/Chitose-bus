@@ -17,10 +17,10 @@
 | — | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | **release/v1.3.1 に切り出し済み** |
 | — | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | **release/v1.3.1 に切り出し済み** |
 | 1 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.3 で横に溢れる | **develop 済み**（PR #249） |
-| 2 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | v1.3.2 |
-| 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | **fix/issue-240 実装済み・PR 未作成** |
-| 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | v1.3.2 |
-| 5 | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 測る網を広げる（`koizumi` 固定で測っていた穴を塞ぐ。production の修正は無し） | v1.3.2 |
+| 2 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | **develop 済み**（PR #250） |
+| 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | **develop 済み**（PR #252） |
+| 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | **develop 済み**（PR #254） |
+| 5 | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 測る網を広げる（`koizumi` 固定で測っていた穴を塞ぐ。production の修正は無し） | **develop 済み**（PR #255） |
 | — | [#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253) | **2026年10月1日からの新ダイヤに対応**（108便→168便） | **2026-10-01 まで** |
 | 6 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
 | 7 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
@@ -182,7 +182,7 @@ overflow / 省略が出ない**（到着行は開いた状態を含む）。**�
 #241 が作った穴ではなく、**横を塞いだ結果として表に出たもの**（縦は元から 1.5 で
 負けていた）。
 
-**#240 は fix/issue-240 で実装済み（2026-09-01・PR 未作成）。** 拡大時だけ
+**#240 は develop 済み**（2026-09-02・PR #252）。 拡大時だけ
 `_StopTab` の余白（カードの padding・`SizedBox` の高さ）を詰める方式 (a) を、
 **Android の「最大」(1.3) まで確実に通すことを目標に**入れた。1.3 を超えたら
 (a) を追い込まず、`_StopTab` ごとスクロールに切り替える方式 (c) に譲る
@@ -386,7 +386,14 @@ v1.3.2 はそれを短縮名＋タップに変える。
 | Issue | 内容 | PR |
 |-------|------|-----|
 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行を短縮名に戻し、タップで正式名を出す | #249 |
-| [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大時に `_StopTab` の余白を詰め（1.3 まで）、超えたら画面ごとスクロールに切り替える | 未作成（fix/issue-240） |
+| [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しを短縮名に戻し、タップで正式名を出す | #250 |
+| [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大時に `_StopTab` の余白を詰め（1.3 まで）、超えたら画面ごとスクロールに切り替える | #252 |
+| [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 行ヘッダの中間3つを折り返せるようにする | #254 |
+| [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 拡大の計測を2方向の停留所にも広げる（**production の修正は無し**） | #255 |
+
+**v1.3.2 の実装は5件すべて develop に入った**（2026-09-02）。次はリリース作業
+（`release/v1.3.2` を切る）。**#251 だけ production の変更が無い**ので、
+リリースノートでは「テストと記録の整備」として扱うこと。
 
 ### v1.3.1 で出したもの（**main へマージ済み・2026-08-31**）
 
