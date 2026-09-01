@@ -67,11 +67,11 @@
 **どちらの列も「溢れ始める（切れ始める）倍率」。**テストが踏むのはその1段下なので、
 `text_scaler_test.dart` の定数とは一致しない。
 
-**下の実フォントの列は [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) の実装後に測り直したもの**（2026-09-01・Meiryo・375px）。
+**下の実フォントの列は [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) / [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) の実装後に測り直したもの**（2026-09-01・Meiryo・375px）。
 
 | 場所 | 軸 | テスト用フォント | **実フォント** | 直し |
 |---|---|---|---|---|
-| 節の見出し（`◯◯ 発`）が**切れる** | 横 | 1.0 | **1.15** | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) |
+| ~~節の見出し（`◯◯ 発`）が切れる（既定＝短縮名）~~ | 横 | ~~1.0~~ | **2.0 まで無傷** | **[#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) で解消** |
 | ~~NEXT BUS カードの到着行（300px）~~ | 横 | ~~1.15~~ | **2.0 まで無傷** | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
 | ~~タブ（4タブ）~~ | 横 | ~~1.4~~ | ~~1.4~~ | **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) で解消** |
 | `_StopTab` の Column（**閉じた状態**） | 縦 | 1.1 | **1.5** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
@@ -82,9 +82,13 @@
 | ~~来週シートの到着行（303px）~~ | 横 | ~~1.15~~ | ~~未計測~~ | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
 | 来週シートの行ヘッダ（311px）※ | 横 | **1.18** | 未計測 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
 
-**#241 で到着行の横は片付いた。**既定を短縮名に戻し、正式名はタップで出す
-折り返し可能な行にしたので、実フォントでは **2.0 まで横の overflow が出ない**
-（開いた状態を含む）。
+**#241 / #245 で到着行と節の見出しの横は片付いた。**どちらも既定を短縮名に
+戻し、正式名はタップで出す形にしたので、実フォントでは **2.0 まで横の
+overflow / 省略が出ない**（到着行は開いた状態を含む）。**節の見出しだけ、
+タップして正式名を出した状態は元のまま 1.15 から切れる**——これは意図した
+仕様で、正式名は「タップすれば必ず全部読める」ことだけを約束しており、
+高倍率まで1行に収まることは約束していない（`_StopSectionHeader` のドキュメント
+コメント参照）。
 
 **代わりに縦（#240）が下がった。**タップで出す行のぶん縦が伸びるため、
 **到着行を1つ開くと 1.5 → 1.4、全部（カード3行＋リスト3行）開くと 1.3**。
@@ -127,9 +131,11 @@
 - **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) — 行ヘッダは停留所名と無関係に溢れる。**時刻・講義タグ・
   行き先・`◀ NEXT`・ベルを固定幅で並べていて縮む余地が無い。既定の4停留所でも同じ
 - **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) — 縦にも溢れる。**issue は「幅が詰まっている場所」を想定していた
-- **[#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) — 節の見出しは `Expanded` + ellipsis なので溢れずに黙って切れる。**
-  overflow では原理的に拾えないため #237 の網に入っていない。#208 の
-  「削らずに正式名を出す」は**等倍では守れている**
+- **[#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) — 節の見出しは `Expanded` + ellipsis なので溢れずに黙って切れる**
+  （**解消済み**）。overflow では原理的に拾えないため #237 の網に入っていな
+  かった。既定を短縮名に戻し、正式名はタップで出す形にしたことで、#208 の
+  「削らずに正式名を出す」は「常に出す」から「タップすれば必ず出る」に
+  置き換わった
 
 ### v1.3.1 に入れるのは #243 だけ（**対応済み**）
 

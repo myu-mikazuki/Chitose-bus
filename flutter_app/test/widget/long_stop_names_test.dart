@@ -167,12 +167,31 @@ void main() {
       });
     }
 
-    testWidgets('見出しの停留所名は削らずに正式名を出す', (tester) async {
+    // #245 で意図を反転させた（#208 → #245）。#208 はタブで1〜2文字しか読めない
+    // 名前を見出しに丸ごと出す形にしたが、#237 で拡大設定を実測すると
+    // 375px・1.15倍から `Expanded` + ellipsis で黙って切れていた。既定を
+    // 短縮名（最長5文字）に戻し、正式名はタップで確実に読める形で残した
+    // （`ArrivalRow` の #241 と同じ判断）。
+    testWidgets('見出しの停留所名は既定で短縮名を出す（#245）', (tester) async {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();
 
-      // タブでは1〜2文字しか読めない名前を、ここでは丸ごと出す（#208）。
+      // 古泉循環器内科クリニック前 ではなく 古泉
+      expect(find.text('古泉 発'), findsOneWidget);
+      expect(find.text('古泉循環器内科クリニック前 発'), findsNothing);
       // find.text だけでは ellipsis で切れていても通るので、省略の有無まで見る
+      expectNotTruncated(tester, '古泉 発');
+    });
+
+    testWidgets('見出しをタップすると正式名が丸ごと出る（#245）', (tester) async {
+      await tester.pumpWidget(_wrap(['koizumi']));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('古泉 発'));
+      await tester.pump();
+
+      // タブでは1〜2文字しか読めない名前を、タップすればここで丸ごと読める
+      // （#208 の「削らずに正式名を出す」という約束はタップで果たす）
       expect(find.text('古泉循環器内科クリニック前 発'), findsOneWidget);
       expectNotTruncated(tester, '古泉循環器内科クリニック前 発');
     });

@@ -149,18 +149,32 @@ Future<void> _probe(
   FlutterError.onError = (details) => found.add(_describe(details));
 
   var header = '(見出しが見つからない)';
+  var headerOfficial = '(タップしても正式名が出ない)';
   // 到着行を展開したことで**新たに**溢れたものだけを分けて出す（#241）
   var afterArrival = <String>{};
   try {
     await tester.pumpWidget(_wrap(stopIds, scale));
     await tester.pumpAndSettle();
 
-    // 節見出しは `Expanded` + ellipsis で**溢れずに切れる**ので、
-    // overflow ではなく didExceedMaxLines で見る（#245）
-    final headerFinder = find.text('古泉循環器内科クリニック前 発');
+    // #245: 節見出しは既定で短縮名（`古泉 発`）を出す。`Expanded` + ellipsis で
+    // **溢れずに切れる**ので、overflow ではなく didExceedMaxLines で見る
+    final headerFinder = find.text('古泉 発');
     if (headerFinder.evaluate().isNotEmpty) {
       final paragraph = tester.renderObject<RenderParagraph>(headerFinder);
       header = paragraph.didExceedMaxLines ? '切れている' : '収まっている';
+
+      // タップした先（正式名側）も同じ枠に収まるかを別に見る。#245 は
+      // 「タップすれば必ず読める」ことを既定表示の緩和の代わりに約束しているので、
+      // 正式名側が高倍率でどこまで持つかも測っておく
+      await tester.tap(headerFinder);
+      await tester.pumpAndSettle();
+      final officialFinder = find.text('古泉循環器内科クリニック前 発');
+      if (officialFinder.evaluate().isNotEmpty) {
+        final officialParagraph =
+            tester.renderObject<RenderParagraph>(officialFinder);
+        headerOfficial =
+            officialParagraph.didExceedMaxLines ? '切れている' : '収まっている';
+      }
     }
 
     // 到着行は行を開かないと出ない
@@ -196,7 +210,8 @@ Future<void> _probe(
   }
 
   // ignore: avoid_print
-  print('==== $label / 倍率 $scale ── 節見出し: $header');
+  print('==== $label / 倍率 $scale ── 節見出し（短縮名）: $header'
+      ' ／ タップ後（正式名）: $headerOfficial');
   if (found.isEmpty) {
     // ignore: avoid_print
     print('     overflow なし');
