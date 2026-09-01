@@ -719,29 +719,81 @@ TextStyle _sectionTitleStyle(BuildContext context) => TextStyle(
       letterSpacing: 3,
     );
 
-/// 節の見出しと、いま見ている停留所の**正式名**を1行に並べる（#208）。
+/// 節の見出しと、いま見ている停留所の名前を1行に並べる。
 ///
-/// タブは短縮名（#207）でもさらに省略される。375px・上限の5タブではラベルに
-/// 27px しか残らず、どれも1字＋`…` に切れるため、**タブだけでは見ている停留所を
-/// 確定できない**。ここは幅が足りるので、`labelOf`（= `shortLabel ?? label`）では
-/// なく [BusStopLookup.officialLabelOf] を引く。
+/// ## 経緯（#208 → #245）
+///
+/// **#208**: タブは短縮名（#207）でもさらに省略される。375px・上限の5タブでは
+/// ラベルに 27px しか残らず、どれも1字＋`…` に切れるため、**タブだけでは見ている
+/// 停留所を確定できない**。そこでここだけは幅が足りるとみて、`labelOf`
+/// （= `shortLabel ?? label`）ではなく [BusStopLookup.officialLabelOf]（正式名）を
+/// 常時出すことにした。
+///
+/// **#245（今回）**: #237 で拡大設定を実測すると、375px・1.15倍（Android の
+/// 「大」）から正式名が `古泉循環器内科クリニ…` のように切れ始めていた。
+/// `Expanded` + ellipsis は overflow を起こさず黙って切るので、#208 の
+/// 「削らずに正式名を出す」という約束は**拡大設定を掛けた瞬間に破れていた**。
+///
+/// #208 が正式名を置いた理由（「タブだけでは停留所を確定できない」）自体は
+/// 消えていない。ただし**常時出さなくても、タップで出せれば同じ用を足せる**
+/// （`ArrivalRow` の #241 と同じ考え方）。そこで既定を短縮名
+/// （[BusStopLookup.labelOf]）に戻し、**タップした場所でその場でトグル**して
+/// 正式名に切り替える形にした。短縮名は最長5文字（`O･A入口`）なので、375px なら
+/// 拡大設定を掛けてもまず溢れない。
 ///
 /// **見出しと同じ行に置く。** 独立した1行にすると縦が 35px 増え、短い画面
 /// （800x600）で `_StopTab` の Column が溢れる。この画面は NEXT BUS のサイズが
 /// そのまま下を押す作りで縦の余裕がほとんど無い（#124）ため、行を増やさずに済む
-/// 置き方を採る。
+/// 置き方を採る。**#245 でトグルにした後も、1行下や独立行には出さない**——
+/// 縦を1pxも増やさないのは、#240（`_StopTab` の縦の溢れ）と縦の予算を奪い合う
+/// ため。正式名を出した状態＋高倍率では入りきらないことがあり、そこは
+/// ellipsis で切れてよい（タップして自分で開いた状態なので）。
+///
+/// 読み上げ（`Semantics`）はトグルの状態に関わらず**常に正式名**を渡す。画面には
+/// 短縮名しか出ないタイミングがある以上、スクリーンリーダー利用者には最初から
+/// 正式名で確定させておく（`_StopLabelPlaceholder`・`ArrivalRow` に前例がある）。
 ///
 /// 使うのは**一番上の見出しだけ**。同じ停留所を2度書いても情報は増えない。
-class _StopSectionHeader extends StatelessWidget {
-  const _StopSectionHeader({required this.title, required this.boardingLabel});
+class _StopSectionHeader extends StatefulWidget {
+  const _StopSectionHeader({
+    required this.title,
+    required this.stopId,
+    required this.stopMaster,
+  });
 
   final String title;
 
-  /// 乗車地の正式名。`◯◯ 発` の形で出す
-  final String boardingLabel;
+  /// 乗車地の停留所 ID
+  final String stopId;
+
+  /// 停留所の表示名の供給元（GAS の stopMaster）
+  final List<BusStop> stopMaster;
+
+  @override
+  State<_StopSectionHeader> createState() => _StopSectionHeaderState();
+}
+
+class _StopSectionHeaderState extends State<_StopSectionHeader> {
+  // タップで正式名を出すかどうか。既定は短縮名（false）
+  bool _showOfficial = false;
+
+  @override
+  void didUpdateWidget(_StopSectionHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 停留所を切り替えたら開いた状態を持ち越さない。前の停留所で正式名を
+    // 出したままだと、切り替え後もタップした覚えのない停留所の正式名が
+    // 出て混乱する（`ArrivalRow` の #241 と同じ考え方）
+    if (oldWidget.stopId != widget.stopId) {
+      _showOfficial = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final shortLabel = widget.stopMaster.labelOf(widget.stopId);
+    final officialLabel = widget.stopMaster.officialLabelOf(widget.stopId);
+    final displayLabel = _showOfficial ? officialLabel : shortLabel;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
@@ -751,20 +803,51 @@ class _StopSectionHeader extends StatelessWidget {
         // ぶんは名前へ回らない。375px で名前に使える幅は **211px → 165.5px**
         // まで落ちる（実測）。`title` は 'NEXT BUS' / 'SCHEDULE' の固定文字列で、
         // 縮むべきは名前のほうではない
-        Text(title, style: _sectionTitleStyle(context)),
+        Text(widget.title, style: _sectionTitleStyle(context)),
         const SizedBox(width: 12),
-        // 375px なら実データで最も長い名前（オフィス・アルカディア入口）まで
-        // 収まる。文字を大きくする設定や、より狭い画面のための ellipsis
+        // タップ領域は Expanded の中に GestureDetector を置く。右寄せテキスト
+        // だが、当たり判定は Expanded の幅いっぱい（HitTestBehavior.opaque）
+        // なので、文字の外側をタップしても反応する
         Expanded(
-          child: Text(
-            '$boardingLabel 発',
-            textAlign: TextAlign.end,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
-            style: TextStyle(
-              color: context.appColors.textPrimary,
-              fontSize: 14,
-              letterSpacing: 1,
+          // **`MergeSemantics` で自分だけの境界を作る。** `GestureDetector`
+          // 単体では自分の tap アクションの SemanticsNode を独立させない
+          // ——このヘッダーの左右に他の操作可能な要素が無いため、
+          // 何もしないと tap アクションと正式名ラベルが
+          // 一番近い既存の境界（`TabBarView` の各ページ＝`role: tabPanel`）
+          // までそのまま這い上がり、'NEXT BUS' や
+          // "TODAY'S SCHEDULE"・フッタの更新日時まで**1つの読み上げ単位に
+          // 巻き込んで**しまう（`debugDumpSemanticsTree()` で実際に確認した。
+          // その状態だとタブパネル全体のどこをダブルタップしても
+          // このトグルが起動してしまい、'NEXT BUS' 等の周辺テキストも
+          // 個別に読み上げられなくなる）。`MergeSemantics` は
+          // `isSemanticBoundary = true` を立てるので、この Widget 自身を
+          // 上への巻き込みから切り離せる
+          child: MergeSemantics(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _showOfficial = !_showOfficial),
+              child: Semantics(
+                // 画面には短縮名しか出ないタイミングがあるので、読み上げは
+                // トグルの状態に関わらず常に正式名で確定させる。子の Text
+                // 自身の読み上げ（短縮名 or 正式名）は二重に読ませないよう
+                // 除外する（`GestureDetector` は既定で子孫の `Semantics` を
+                // 自分のタップ操作のノードにマージするため、ここで
+                // `excludeSemantics` しないと二重に読まれる。`ArrivalRow`
+                // の #241 で実際に確認済みの罠）
+                label: '$officialLabel 発',
+                excludeSemantics: true,
+                child: Text(
+                  '$displayLabel 発',
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: TextStyle(
+                    color: context.appColors.textPrimary,
+                    fontSize: 14,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -1002,8 +1085,8 @@ class _StopTabState extends State<_StopTab> {
               if (widget.dayType == null) ...[
                 _StopSectionHeader(
                   title: 'NEXT BUS',
-                  boardingLabel:
-                      widget.stopMaster.officialLabelOf(widget.stopId),
+                  stopId: widget.stopId,
+                  stopMaster: widget.stopMaster,
                 ),
                 const SizedBox(height: 8),
                 // IndexedStack で両方向の NextBusDisplay を常時保持し、
@@ -1034,8 +1117,8 @@ class _StopTabState extends State<_StopTab> {
                 // こちらになるので、乗車地はここに乗せる
                 _StopSectionHeader(
                   title: 'SCHEDULE',
-                  boardingLabel:
-                      widget.stopMaster.officialLabelOf(widget.stopId),
+                  stopId: widget.stopId,
+                  stopMaster: widget.stopMaster,
                 ),
               const SizedBox(height: 8),
             ],

@@ -648,11 +648,14 @@ void main() {
       expect(find.textContaining('有効期間'), findsNothing);
     });
 
-    /// 本文に出す「いま見ている停留所」（#208）。
+    /// 本文に出す「いま見ている停留所」（#208 → #245）。
     ///
     /// タブは短縮名（#207）でもさらに省略される（375px・5タブでラベルに残るのは
-    /// 27px）。**タブが短くなるほど本文の正式名が要る**ので、タブと本文で
-    /// 違う名前が出ていること自体がこの群の主題。
+    /// 27px）。**タブだけでは見ている停留所を確定できない**ので、#208 は本文に
+    /// 常に正式名を出すことにした。#245 でこれをタップ式のトグルに変えた
+    /// （既定は短縮名、タップでその場で正式名に切り替わる）——常時正式名を
+    /// 出さなくても、タップで確実に読めれば同じ用は足りる、という判断
+    /// （`ArrivalRow` の #241 と同じ）。
     group('いま見ている停留所の名前', () {
       Future<void> pump(WidgetTester tester) async {
         await tester.pumpWidget(
@@ -669,12 +672,13 @@ void main() {
         await tester.pump();
       }
 
-      testWidgets('本文には正式名を出す（タブは短縮名のまま）', (tester) async {
+      testWidgets('本文は既定で短縮名を出す（#245）', (tester) async {
         await pump(tester);
 
-        // 本文は正式名。短縮名だけでは指す停留所が曖昧になる
-        expectNotTruncated(tester, '千歳駅前 発');
-        // タブは短縮名のまま。ここを正式名にすると幅が足りない
+        // 科技大本部棟 ではなく 千歳駅（本文もタブと同じ短縮名になる）
+        expectNotTruncated(tester, '千歳駅 発');
+        expect(find.text('千歳駅前 発'), findsNothing);
+        // タブも短縮名のまま。ここを正式名にすると幅が足りない
         expect(
           find.descendant(
             of: find.byType(TabBar),
@@ -682,6 +686,28 @@ void main() {
           ),
           findsOneWidget,
         );
+      });
+
+      testWidgets('本文をタップすると正式名に切り替わる（#245）', (tester) async {
+        await pump(tester);
+
+        await tester.tap(find.text('千歳駅 発'));
+        await tester.pump();
+
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+        expect(find.text('千歳駅 発'), findsNothing);
+      });
+
+      testWidgets('もう一度タップすると短縮名に戻る（#245）', (tester) async {
+        await pump(tester);
+
+        await tester.tap(find.text('千歳駅 発'));
+        await tester.pump();
+        await tester.tap(find.text('千歳駅前 発'));
+        await tester.pump();
+
+        expect(find.text('千歳駅 発'), findsOneWidget);
+        expect(find.text('千歳駅前 発'), findsNothing);
       });
 
       testWidgets('タブを切り替えると追随する', (tester) async {
@@ -693,7 +719,42 @@ void main() {
         ));
         await tester.pumpAndSettle();
 
-        expect(find.text('科技大研究棟 発'), findsOneWidget);
+        expect(find.text('研究棟 発'), findsOneWidget);
+        expect(find.text('千歳駅 発'), findsNothing);
+      });
+
+      testWidgets('タブを切り替えるとトグルが戻る（#245・3-8 の担保）', (tester) async {
+        await pump(tester);
+
+        // 千歳駅タブで正式名を開く
+        await tester.tap(find.text('千歳駅 発'));
+        await tester.pump();
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+
+        // 研究棟タブへ切り替える
+        await tester.tap(find.descendant(
+          of: find.byType(TabBar),
+          matching: find.text('研究棟'),
+        ));
+        await tester.pumpAndSettle();
+
+        // 研究棟は開いた覚えが無いので短縮名のまま
+        expect(find.text('研究棟 発'), findsOneWidget);
+        expect(find.text('科技大研究棟 発'), findsNothing);
+
+        // 千歳駅タブへ戻ると、トグルは開いた状態を持ち越さず短縮名に
+        // 戻っている。`TabBarView` は既定では画面外のページを
+        // `AutomaticKeepAlive` していないため `_StopTab`（延いては
+        // `_StopSectionHeader`）ごと作り直される——`didUpdateWidget` に
+        // 頼らずとも、この経路では毎回真っさらな State から始まる
+        // （前の停留所で開いた状態が残ると混乱する、という 3-8 の要求を
+        // 実測で確かめる）
+        await tester.tap(find.descendant(
+          of: find.byType(TabBar),
+          matching: find.text('千歳駅'),
+        ));
+        await tester.pumpAndSettle();
+        expect(find.text('千歳駅 発'), findsOneWidget);
         expect(find.text('千歳駅前 発'), findsNothing);
       });
 
@@ -705,7 +766,51 @@ void main() {
 
         // NEXT BUS は消えるが、タブが省略されるのは同じなので名前は要る
         expect(find.text('NEXT BUS'), findsNothing);
+        expect(find.text('千歳駅 発'), findsOneWidget);
+      });
+
+      testWidgets('SCHEDULE 側の見出しもタップでトグルする（#245・3-15）', (tester) async {
+        await pump(tester);
+
+        // 当日以外のダイヤ表示に切り替える。ここでは見出しが
+        // 'NEXT BUS' ではなく 'SCHEDULE' の呼び出し（:1035）になる
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+        expect(find.text('SCHEDULE'), findsOneWidget);
+        expect(find.text('千歳駅 発'), findsOneWidget);
+
+        await tester.tap(find.text('千歳駅 発'));
+        await tester.pump();
         expect(find.text('千歳駅前 発'), findsOneWidget);
+
+        await tester.tap(find.text('千歳駅前 発'));
+        await tester.pump();
+        expect(find.text('千歳駅 発'), findsOneWidget);
+      });
+
+      // #245 のレビュー（PR #250）で「判断がつかない」と挙がった点。
+      // **確かめたうえで、持ち越してよいと決めた。**
+      testWidgets('dayType を切り替えてもトグルは持ち越す（#245・意図した挙動）', (tester) async {
+        await pump(tester);
+
+        // NEXT BUS 側で正式名を出す
+        await tester.tap(find.text('千歳駅 発'));
+        await tester.pump();
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+
+        // 当日以外のダイヤ表示へ。見出しの呼び出しは NEXT BUS 用から
+        // SCHEDULE 用に変わるが、Column の同じ位置なので Element が
+        // 使い回され、`didUpdateWidget` は stopId が同じなのでリセットしない
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+        expect(find.text('SCHEDULE'), findsOneWidget);
+
+        // **正式名のまま。** 停留所を切り替えたときは戻す（上のテスト）が、
+        // ここは**同じ停留所を見続けている**ので戻す理由が無い。むしろ
+        // 「正式名で見たい」という意思表示を、ダイヤ種別を変えただけで
+        // 捨てるほうが不親切
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+        expect(find.text('千歳駅 発'), findsNothing);
       });
 
       testWidgets('狭い端末でも見出しと同じ行に収まる', (tester) async {
@@ -719,7 +824,65 @@ void main() {
         await pump(tester);
 
         expect(find.text('NEXT BUS'), findsOneWidget);
-        expectNotTruncated(tester, '千歳駅前 発');
+        expectNotTruncated(tester, '千歳駅 発');
+      });
+
+      testWidgets('読み上げは既定（短縮名）でも常に正式名（#245）', (tester) async {
+        // `find.bySemanticsLabel` / `tester.getSemantics` はセマンティクス
+        // ツリーが実際に組み立てられていないと何も見つからない
+        // （`ArrivalRow` の #241 のテストと同じ作法）
+        final handle = tester.ensureSemantics();
+        await pump(tester);
+
+        // 画面には短縮名（千歳駅 発）しか出ていないが、読み上げは正式名
+        // （千歳駅前 発）で確定させる。`debugDumpSemanticsTree()` で
+        // 実際に確かめた形をそのまま主張する
+        final label = tester.getSemantics(find.text('千歳駅 発')).label;
+        expect(label, '千歳駅前 発');
+
+        // **`MergeSemantics` で自分だけの境界を作れているか**も確かめる。
+        // これが無いと、GestureDetector 単体では tap アクションと
+        // ラベルが一番近い既存の境界（この画面では TabBarView の各ページ）
+        // までそのまま這い上がり、'NEXT BUS' のような周辺の静的テキストまで
+        // ヘッダーと同じ読み上げ単位に巻き込まれる
+        // （`debugDumpSemanticsTree()` で実際に確認して見つけた罠。
+        // 修正前は 'NEXT BUS' のラベルが「NEXT BUS\n千歳駅前 発\n
+        // TODAY'S SCHEDULE\n更新: 2024-01-01」になっていた）
+        final nextBusLabel = tester.getSemantics(find.text('NEXT BUS')).label;
+        expect(
+          nextBusLabel,
+          isNot(contains('発')),
+          reason: 'ヘッダーの tap アクション・ラベルが周辺の静的テキストと'
+              '同じ読み上げ単位に巻き込まれてはいけない',
+        );
+
+        handle.dispose();
+      });
+
+      testWidgets('タップして正式名を出しても読み上げは二重にならない（#245）', (tester) async {
+        final handle = tester.ensureSemantics();
+        await pump(tester);
+
+        final collapsedLabel = tester.getSemantics(find.text('千歳駅 発')).label;
+        expect(collapsedLabel, '千歳駅前 発');
+
+        await tester.tap(find.text('千歳駅 発'));
+        await tester.pump();
+
+        // タップ後は画面の文字が正式名（千歳駅前 発）に変わるだけで、
+        // 読み上げ側は元から正式名だったので増えない
+        // （`GestureDetector` が子孫の `Semantics` を自分のタップ操作の
+        // ノードにマージする既定の挙動により、`excludeSemantics` を外すと
+        // ここが「千歳駅前 発千歳駅前 発」のように二重になる罠がある —
+        // `ArrivalRow` の #241 で実際に確認済み）
+        final expandedLabel = tester.getSemantics(find.text('千歳駅前 発')).label;
+        expect(
+          expandedLabel,
+          collapsedLabel,
+          reason: 'タップ後も読み上げのラベルはタップ前と同じであるべき（二重に読ませない）',
+        );
+
+        handle.dispose();
       });
 
       testWidgets('stopMaster に無い停留所は ID のまま出す', (tester) async {
