@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kagi_bus/core/theme/text_scale.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
 import 'package:kagi_bus/domain/entities/stop_selection.dart';
 import 'package:kagi_bus/presentation/viewmodels/schedule_result.dart';
@@ -35,9 +36,9 @@ import '../helpers/test_theme.dart';
 /// | ~~節の見出し（`◯◯ 発`）が切れる（既定＝短縮名）~~ | 横 | ~~1.0~~ | **2.0 まで無傷** | ~~する~~ | **#245 で解消** |
 /// | ~~NEXT BUS カードの到着行（300px）~~ | 横 | ~~1.15~~ | **2.0 まで無傷** | ~~する~~ | **#241 で解消** |
 /// | ~~タブ（`Tab` の中の `Row`・4タブ）~~ | 横 | ~~1.4~~ | ~~1.4~~ | しない | **#243 で解消** |
-/// | `_StopTab` の Column（375×667・**閉じた状態**） | 縦 | 1.1 | **1.5** | しない | #240（未着手） |
-/// | `_StopTab` の Column（**到着行を1つ開いた状態**） | 縦 | — | **1.4** | しない | #240（未着手） |
-/// | `_StopTab` の Column（**到着行を全部開いた状態**） | 縦 | — | **1.3** | しない | #240（未着手） |
+/// | ~~`_StopTab` の Column（375×667・**閉じた状態**）~~ | 縦 | ~~1.1~~ | **2.0 まで無傷** | しない | **#240 で解消** |
+/// | ~~`_StopTab` の Column（**到着行を1つ開いた状態**）~~ | 縦 | ~~—~~ | **2.0 まで無傷** | しない | **#240 で解消** |
+/// | ~~`_StopTab` の Column（**到着行を全部開いた状態**）~~ | 縦 | ~~—~~ | **2.0 まで無傷** | しない | **#240 で解消** |
 /// | ~~ホームの時刻表リストの到着行（335px）~~ | 横 | ~~1.25~~ | **2.0 まで無傷** | ~~する~~ | **#241 で解消** |
 /// | ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 ／ **1.35**※ | **2.0** | しない | #242（未着手） |
 /// | ~~来週シートの到着行（303px）~~ | 横 | ~~1.15~~ | ~~未計測~~ | ~~する~~ | **#241 で解消** |
@@ -50,7 +51,8 @@ import '../helpers/test_theme.dart';
 /// 測り直すこと。この欄の数字を信じて「1.4 までは大丈夫」と読まないこと。**
 ///
 /// **実機では等倍（1.0）で壊れる場所は無い。**
-/// **Android の「最大」(1.3) でも、到着行を全部開かないかぎり溢れない。**
+/// **`_StopTab` の縦は #240 で解消し、到着行を全部開いた状態でも
+/// 2.0 まで overflow が出ない**（詳しくは下）。
 ///
 /// **到着行（#241）・タブ（#243）・節の見出し（#245）は解消済み。**表には
 /// 経緯として残してある。**「溢れる」の主張自体が意味を失った**——3つとも
@@ -70,14 +72,16 @@ import '../helpers/test_theme.dart';
 /// 1. **代替フォントでは、来週シートの行ヘッダ（#242・未着手）が
 ///    `_arrivalLimit` を主張するテストの中でいちばん先に負けるようになった**
 ///    （1.18・詳しくは `_arrivalLimit` のドキュメントコメント）
-/// 2. **実フォントでは、`_StopTab` の縦（#240・未着手）が下がった。**
+/// 2. **実フォントでは、`_StopTab` の縦（#240）が下がった。**
 ///    タップで出す行のぶん縦が伸びるので、1つ開くと 1.5 → **1.4**、
 ///    全部（カード3行＋リスト3行）開くと **1.3**。**Android の「最大」に
-///    ちょうど届く**ので、#240 の優先度はこの計測で上がった。
-///    **リリースノートの「既知の問題」に載せる基準（1.3 まで）に入る**
+///    ちょうど届いていた**ので、#240 の優先度はこの計測で上がり、
+///    このPRで解消した（下の [kVerticalScrollThreshold] を参照）。
 ///
 /// **どちらも #241 が作った穴ではなく、#241 が横を塞いだ結果として
-/// 表に出たもの。**縦（#240）は元から 1.5 で負けていた。
+/// 表に出たもの。**縦（#240）は元から 1.5 で負けていたが、**このPRで
+/// 1.3 まで余白を詰め（(a)）、それを超えたら `_StopTab` ごとスクロールに
+/// 切り替える（(c)）ことで、2.0 まで溢れなくなった。**
 ///
 /// issue の一覧に無かったものが4つ出た（#237 は検知までしか持たない）。
 ///
@@ -93,7 +97,10 @@ import '../helpers/test_theme.dart';
 /// - **行ヘッダ（`_ScheduleRow` の折りたたみ時の `Row`）は停留所名と無関係**
 ///   （#242）。時刻・講義タグ・行き先・`◀ NEXT`・ベルを固定幅で並べていて
 ///   縮む余地が無いため、既定の4停留所でも同じ倍率で溢れる
-/// - **縦にも溢れる**（#240）。issue は「幅が詰まっている場所」を想定していた
+/// - **縦にも溢れる**（#240・**解消済み**）。issue は「幅が詰まっている場所」を
+///   想定していたが、`_StopTab` の `Column` は縦にも溢れていた。拡大時だけ
+///   余白を詰め（1.3 まで）、それでも足りない分は `_StopTab` ごと
+///   スクロールに切り替えることで直した
 /// - **到着行は解消済み**（#241）。#231 → #234 と2回続けて字を小さくする／
 ///   正式名にする、と対症療法を重ねていたが、拡大設定そのものには効いて
 ///   いなかった。既定を短縮名に戻し、正式名をタップで出す形にしたことで、
@@ -129,9 +136,24 @@ import '../helpers/test_theme.dart';
 /// 更新し忘れても緑のまま通る**。直したら必ずここを測り直すこと。
 /// 上限側も主張すると直した瞬間に赤くなるので、あえて入れていない。
 
-/// 375×667 の実機並びで、まだ何も溢れない上限。1.1 で `_StopTab` の Column が
-/// 縦に 14px 溢れるので、**限界のすぐ下**を踏んでいる（#240）
-const _deviceLimit = 1.05;
+/// 375×667 の実機並びで、閉じたままなら何も溢れない上限（#240）。
+///
+/// #240 で余白を詰めるようになったので、**Android の「最大」(1.3) まで
+/// そのまま踏める。** 1.35 から出る overflow は `_StopTab` の Column（縦）
+/// ではなく `_ScheduleRow`（時刻表リストの行ヘッダ・横・343px）のもので、
+/// これは #242（未着手）の対象——`_deviceLimit` が示す「縦の限界」とは
+/// 別物なので、ここでは踏まない（#242 を直すときにそちらの限界を測ること）。
+const _deviceLimit = 1.3;
+
+/// 375×667 の実機並びで、**到着行を1つ開いた状態**でも何も溢れない上限
+/// （#240・「到着行を1つ開いた状態でも溢れない」ことの担保）。
+///
+/// #241 でタップすると1行下に正式名を出すようになった分、縦が伸びる。
+/// #240 の余白詰めはこの伸びた分も含めて 1.3 まで吸収するよう調整してある
+/// ので、[_deviceLimit]（閉じたまま）と同じ値まで踏める。1.35 から出る
+/// overflow は [_deviceLimit] の注記と同じ理由（#242・行ヘッダ）で、
+/// ここでは踏まない。
+const _deviceLimitArrivalOpen = 1.3;
 
 /// 縦の余裕を与えたときに、到着行3経路が耐えられる上限。
 ///
@@ -329,14 +351,140 @@ void main() {
       await tester.pumpAndSettle();
       _expectScaleApplied(tester, _deviceLimit);
 
-      // ここが赤くなったら縦がいちばん先に負ける（1.1 で `_StopTab` の
-      // Column が 14px 溢れる・#240）。**画面の高さを削る変更を拾うのが役目**。
+      // ここが赤くなったら縦がいちばん先に負ける。#240 で余白を詰めるように
+      // なる前は 1.1 で `_StopTab` の Column が 14px 溢れていた。
+      // **画面の高さを削る変更を拾うのが役目**。
       // #241 で到着行の既定表示は短縮名に戻したので `O･A入口 着`
       expect(find.text('O･A入口 着'), findsOneWidget);
 
       // **節見出し（`◯◯ 発`）はここでは見ない。**`Expanded` + ellipsis なので
       // 溢れずに黙って切れる＝ overflow では原理的に拾えない。#245 で既定を
       // 短縮名に戻したので、その主張は下の別テストで倍率ごとに切って見る
+
+      // $_deviceLimit は #240 のしきい値（[kVerticalScrollThreshold]）ちょうど
+      // ——この範囲は (a) 余白を詰めるだけで凌ぐ。(c) の全体スクロールへの
+      // 切り替えはまだ起きていないはず。**`SingleChildScrollView` の有無では
+      // 判定できない**——`ScheduleList` は有界（`Expanded` 配下）でも自前の
+      // `SingleChildScrollView` を使うため、(a)/(c) どちらでも1つは見つかる。
+      // ここでは「`NextBusDisplay` が `SingleChildScrollView` の中に無い」
+      // ことで判定する（(c) なら `_StopTab` 全体を包む外側のものの中に入る）
+      expect(
+        find.ancestor(
+          of: find.byType(NextBusDisplay),
+          matching: find.byType(SingleChildScrollView),
+        ),
+        findsNothing,
+      );
+    });
+
+    // #240 で増えた主張。「閉じたまま」だけでなく**到着行を1つ開いた状態**
+    // （#241 でタップすると出るようになった正式名の行）でも 667px の縦に
+    // 収まることを見る。開くのは NEXT BUS カードの `ArrivalRow` 1つだけ——
+    // `text_scale_probe_test.dart` の実測（「到着行を1つ開く」）と同じ操作。
+    // 時刻表リストの行も一緒に開こうとすると、伸びた分でスクロール位置が
+    // ずれて `_expandRow` の tap 座標が外れることがあった（実際に踏んだ）ため、
+    // ここでは1手に絞る。時刻表リスト側は倍率が (a) の範囲内なら影響しない
+    // （行そのものの高さは変わらない。伸びるのはタップして開いたときだけ）。
+    testWidgets(
+        '到着行を1つ開いた状態でも倍率 $_deviceLimitArrivalOpen までは 375×667 で何も溢れない（#240）',
+        (tester) async {
+      _usePhone(tester);
+
+      await tester
+          .pumpWidget(_wrap(_result, ['koizumi'], _deviceLimitArrivalOpen));
+      await tester.pumpAndSettle();
+      _expectScaleApplied(tester, _deviceLimitArrivalOpen);
+
+      // NEXT BUS カードの到着行を1つ開く
+      final cardArrival = find
+          .descendant(
+            of: find.byType(NextBusDisplay),
+            matching: find.text('O･A入口 着'),
+          )
+          .first;
+      await tester.tap(cardArrival);
+      await tester.pumpAndSettle();
+      expect(find.text('オフィス・アルカディア入口'), findsOneWidget);
+
+      // ここも (a) の範囲（しきい値ちょうど）。まだ (c) には切り替わっていない
+      // （上のテストと同じ理由で `NextBusDisplay` の祖先で判定する）
+      expect(
+        find.ancestor(
+          of: find.byType(NextBusDisplay),
+          matching: find.byType(SingleChildScrollView),
+        ),
+        findsNothing,
+      );
+    });
+
+    // #240 の (c)。しきい値（[kVerticalScrollThreshold]）を超えたら、余白を
+    // 詰めるのをやめて `_StopTab` ごとスクロールに切り替わる。上の2件が
+    // しきい値「以下」（(a) だけで凌ぐ）を見ているのに対し、こちらは
+    // しきい値の「上」を見る（4-17: 上と下の両方をテストする）。
+    //
+    // #240 を直す前は、実フォントで 2.0 のとき 323px、代替フォントではもっと
+    // 早い段階から数十〜百px級で `_StopTab` の Column が縦に溢れていた
+    // （`kVerticalScrollThreshold` のドキュメントコメント参照）。
+    //
+    // **`_headerOnlyResult`（中身が軽い）を使うため、ここでは overflow の
+    // 有無では (c) が働いたかどうかを判定できない**——中身が軽いと、(c) が
+    // 働かず (a) の余白詰めだけでもこの倍率では溢れない可能性がある
+    // （`_result` を使わない理由は下）。**判定は `SingleChildScrollView` の
+    // 有無でする。**なお `Column` は `SingleChildScrollView` の中でしか
+    // 無限の高さを許されない（`Expanded` は使えない）ので、構造として
+    // 「(c) に切り替わっていれば縦に溢れない」は変わらず成り立つ。
+    //
+    // **`_headerOnlyResult` を使う。**`_result`（ScheduleList に行がある）を
+    // 使うと、この倍率では #242（時刻表リストの行ヘッダ・未着手）が
+    // 停留所名と無関係に横へ溢れ、無関係な例外に巻き込まれてテストごと
+    // 落ちる（`_arrivalLimit` の上のテストが `_headerOnlyResult` を使う
+    // 理由と同じ）。ここで見たいのは `_StopTab` が (c) に切り替わって
+    // 縦に溢れないことだけなので、行ヘッダの無い応答を使う。
+    testWidgets(
+        '倍率が $kVerticalScrollThreshold を超えたら画面ごとスクロールに切り替わり溢れない（#240 の (c)）',
+        (tester) async {
+      const scale = kVerticalScrollThreshold + 0.2;
+      _usePhone(tester);
+
+      await tester.pumpWidget(_wrap(_headerOnlyResult, ['koizumi'], scale));
+      await tester.pumpAndSettle();
+      _expectScaleApplied(tester, scale);
+
+      // (c) が働いている証拠。`NextBusDisplay` が `SingleChildScrollView`
+      // の中に入っている——(a) だけの範囲（$_deviceLimit 以下）ではこうならない
+      // （上の2件と対になる判定。`ScheduleList` 自前の `SingleChildScrollView`
+      // と混同しないための立て方は上のテストの注記を参照）
+      expect(
+        find.ancestor(
+          of: find.byType(NextBusDisplay),
+          matching: find.byType(SingleChildScrollView),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('古泉 発'), findsOneWidget);
+    });
+
+    // #124 の「800x600 で溢れる」を踏まえて、拡大時もそこを見ておく。
+    // `_usePhone` を呼ばなければ `flutter test` の既定の論理サイズ（800x600）
+    // のまま pump される。375×667 より幅は広いが高さは低く、横に余裕がある分
+    // 縦の伸びは375px幅より小さいはずだが、**縦が低い**ことに変わりはないので
+    // 別に見ておく。
+    testWidgets('800x600（#124）でも到着行を1つ開いた状態で倍率 $_deviceLimitArrivalOpen まで溢れない',
+        (tester) async {
+      await tester
+          .pumpWidget(_wrap(_result, ['koizumi'], _deviceLimitArrivalOpen));
+      await tester.pumpAndSettle();
+      _expectScaleApplied(tester, _deviceLimitArrivalOpen);
+
+      final cardArrival = find
+          .descendant(
+            of: find.byType(NextBusDisplay),
+            matching: find.text('O･A入口 着'),
+          )
+          .first;
+      await tester.tap(cardArrival);
+      await tester.pumpAndSettle();
+      expect(find.text('オフィス・アルカディア入口'), findsOneWidget);
     });
 
     // #245 で新しく足した主張。**この計画の前の版では「代替フォントだと
@@ -351,11 +499,12 @@ void main() {
     // doc/roadmap.md の「#237 で分かったこと」）。ここを足すと「実機は
     // 無事なのにテストだけ赤い」状態になる
     //
-    // **高さは 667px（実機並び）を使わない。**1.1 で `_StopTab` の Column が
-    // 縦に溢れる（#240・未着手）ため、1.15 / 1.5 で高さ 667 のまま pump すると
-    // 見出しとは無関係な縦の overflow 例外に巻き込まれてテストごと落ちる
-    // （実際に踏んだ）。ここで見たいのは横だけなので、`_arrivalLimit` の
-    // テストと同じく縦に余裕を持たせる
+    // **高さは 667px（実機並び）を使わない。**#240 を直す前は 1.1 で
+    // `_StopTab` の Column が縦に溢れ、1.15 / 1.5 で高さ 667 のまま pump すると
+    // 見出しとは無関係な縦の overflow 例外に巻き込まれてテストごと落ちていた
+    // （実際に踏んだ）。#240 で 1.3 まで（このテストなら中身が軽いのでもっと
+    // 上まで）溢れなくなったが、ここで見たいのは横だけなので、`_arrivalLimit`
+    // のテストと同じく引き続き縦に余裕を持たせておく
     //
     // **`_result` も使わない。**`HomeScreen` を丸ごと pump すると
     // `ScheduleList` の行ヘッダ（#242・未着手）が代替フォントの 1.18 あたりから
