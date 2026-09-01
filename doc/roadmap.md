@@ -87,9 +87,12 @@
 | ~~`_StopTab` の Column（**到着行を1つ開く**）~~ | 縦 | ~~—~~ | **2.0 まで無傷** | **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) で解消** |
 | ~~`_StopTab` の Column（**到着行を全部開く**）~~ | 縦 | ~~—~~ | **2.0 まで無傷** | **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) で解消** |
 | ~~ホームの時刻表リストの到着行（335px）~~ | 横 | ~~1.25~~ | **2.0 まで無傷** | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
-| ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | **2.0** | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+| ~~ホームの時刻表リストの行ヘッダ（343px）~~ | 横 | ~~1.5~~ | **2.0 まで無傷** | **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) で解消** |
 | ~~来週シートの到着行（303px）~~ | 横 | ~~1.15~~ | ~~未計測~~ | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
-| 来週シートの行ヘッダ（311px）※ | 横 | **1.18** | 未計測 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+| ~~来週シートの行ヘッダ（311px）~~※ | 横 | ~~1.18~~ | 未計測 | **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) で解消** |
+
+**#240 / #241 / #242 / #245 の4件が揃い、probe の範囲では実フォントで
+2.0 まで overflow が1つも出なくなった**（2026-09-02 実測）。
 
 **#241 / #245 で到着行と節の見出しの横は片付いた。**どちらも既定を短縮名に
 戻し、正式名はタップで出す形にしたので、実フォントでは **2.0 まで横の
