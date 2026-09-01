@@ -107,14 +107,17 @@ class _NextBusCard extends StatelessWidget {
     final minutes = entry.minutesFromNow(now: now);
     final minLabel = _formatCountdown(minutes);
 
-    // 拡大時だけカードの縦の余白を詰める（#240 の (a)）。しきい値
-    // （`kVerticalScrollThreshold`）を超えたら `_StopTab` 側が全体スクロールに
-    // 切り替える（(c)）ので、その先はここで詰める意味が無い——比率が
-    // しきい値を超えても [verticalSqueezeFactor] は下限で頭打ちのままだが、
-    // その状態はもう使われない（`_StopTab` がこのカードごとスクロール可能な
-    // 領域に置く）。**等倍（ratio <= 1.0）では squeeze が 1.0 になり、
-    // 1pxも変わらない。**
-    final squeeze = verticalSqueezeFactor(textScaleRatio(context));
+    // 拡大時だけカードの縦の余白を詰める（#240 の (a)）。
+    //
+    // **`verticalSqueezeFactor` を直に呼ばないこと。**しきい値
+    // （`kVerticalScrollThreshold`）を超えると `_StopTab` 側が全体スクロールに
+    // 切り替える（(c)）が、**このカードはその中で描かれ続ける。**下限で
+    // 頭打ちになった倍率をそのまま使うと、縦はいくらでも使えるのに
+    // カードの中だけ詰まったままになる（PR #252 のレビュー指摘で実際に踏んだ）。
+    // `verticalSqueezeOf` はしきい値を超えたら 1.0 を返す。
+    //
+    // **等倍（ratio <= 1.0）では 1.0 になり、1pxも変わらない。**
+    final squeeze = verticalSqueezeOf(context);
 
     return Container(
       width: double.infinity,

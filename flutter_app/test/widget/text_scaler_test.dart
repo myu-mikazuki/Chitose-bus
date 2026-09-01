@@ -620,6 +620,73 @@ void main() {
     //
     // 便を持たせないのは、カードと時刻表リストが先に溢れてここまで届かない
     // ため。`_StopHasNoBus` になればタブだけが残る。
+    // **しきい値を超えたら余白を詰めるのをやめる**（#240 / PR #252 のレビュー指摘）。
+    //
+    // `kVerticalScrollThreshold` を超えると `_StopTab` は全体スクロール（(c)）に
+    // 切り替わる。**縦はいくらでも使えるので、そこで余白を詰める理由が無い。**
+    // ところが `_NextBusCard` は `verticalSqueezeFactor` を直に呼んでいたため、
+    // 下限（35%）で頭打ちになった倍率をそのまま使い続けていた——**タブ側の
+    // 余白は元に戻るのに、カードの中だけ詰まったまま**という状態になっていた。
+    //
+    // 判定を `verticalSqueezeOf` に引き取って直したが、**直しただけでは
+    // 検知できない**（このファイル全体と同じ性質）ので、ここで留める。
+    //
+    // **`HomeScreen` 経由では見られない。** 1.5 まで上げると行ヘッダ（#242・
+    // 未着手）の overflow に巻き込まれて落ちる。カードの余白は `MediaQuery` の
+    // 倍率だけで決まるので、`NextBusDisplay` を単体で pump すれば足りる
+    // （「到着行の展開は高倍率でも溢れない」と同じ作法）。
+    testWidgets('しきい値を超えたらカードの余白は詰めない（#240）', (tester) async {
+      double cardVerticalPadding() {
+        final container = tester.widget<Container>(
+          find
+              .descendant(
+                of: find.byType(NextBusDisplay),
+                matching: find.byType(Container),
+              )
+              .first,
+        );
+        return (container.padding! as EdgeInsets).vertical;
+      }
+
+      Future<void> pumpAt(double scale) async {
+        await tester.pumpWidget(MaterialApp(
+          theme: buildTestTheme(),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(scale)),
+            child: child!,
+          ),
+          home: ProviderScope(
+            overrides: [countdownOverride(now: DateTime(2024, 6, 17, 8, 0))],
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: NextBusDisplay(
+                  timetable: _timetable('2024-01-01', '2024-12-31'),
+                  stopId: 'koizumi',
+                  stopMaster: kLongStopMaster,
+                ),
+              ),
+            ),
+          ),
+        ));
+        await tester.pumpAndSettle();
+      }
+
+      // 等倍。詰めないので素の 24*2
+      await pumpAt(1.0);
+      final atOne = cardVerticalPadding();
+      expect(atOne, 48.0, reason: '等倍では 24*2 のまま');
+
+      // しきい値の下。詰まっていること
+      await pumpAt(1.2);
+      expect(cardVerticalPadding(), lessThan(atOne), reason: 'しきい値の下では詰まる');
+
+      // しきい値の上。**等倍と同じに戻る**——スクロールに切り替わるので
+      // 詰める理由が無い
+      await pumpAt(1.5);
+      expect(cardVerticalPadding(), atOne, reason: 'しきい値の上ではスクロールに任せ、余白は詰めない');
+    });
+
     testWidgets('タブは倍率 $_tabLimit まで持つ（4タブ・#237）', (tester) async {
       _usePhone(tester, height: 1200);
 

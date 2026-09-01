@@ -1048,9 +1048,12 @@ class _StopTabState extends State<_StopTab> {
     // ——`_NextBusCard`（`next_bus_display.dart`）も同じしきい値を見ている。
     // **等倍（ratio <= 1.0）では useFullScroll は false・squeeze は 1.0 になり、
     // 何も変わらない。**
-    final ratio = textScaleRatio(context);
-    final useFullScroll = ratio > kVerticalScrollThreshold;
-    final squeeze = useFullScroll ? 1.0 : verticalSqueezeFactor(ratio);
+    // **判定は `core/theme/text_scale.dart` に置いてある。** ここで
+    // `ratio > kVerticalScrollThreshold ? 1.0 : ...` と書くと、同じ判定を
+    // 書き忘れた側（`_NextBusCard`）だけ詰まったままになる事故が起きる
+    // （PR #252 のレビュー指摘で実際に踏んだ）
+    final useFullScroll = useVerticalScroll(context);
+    final squeeze = verticalSqueezeOf(context);
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1163,7 +1166,13 @@ class _StopTabState extends State<_StopTab> {
     // 大半の経路は元の `Expanded` + `IndexedStack` のままで、スクロール位置の
     // 永続化（#177 以来の作り）を崩さない。
     return SingleChildScrollView(
-      key: PageStorageKey('stopTabScroll_${widget.stopId}'),
+      // **内側の `ScheduleList` の `ValueKey` と同じ粒度にする。**停留所だけを
+      // キーにすると、行き先を切り替えても同じスクロール位置を共有してしまう
+      // （PR #252 のレビュー指摘）。内側のリストは行き先・ダイヤ種別・季節ごとに
+      // 位置を分けているので、外側だけ粗いと**切り替えた瞬間に外と内が別々の
+      // 位置を主張する**。上のしきい値を超えたときだけ通る経路だが、揃えておく
+      key: PageStorageKey('stopTabScroll_${widget.stopId}_${_destination}_'
+          '${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
       child: content,
     );
   }

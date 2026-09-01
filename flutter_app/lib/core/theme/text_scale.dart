@@ -71,3 +71,28 @@ double verticalSqueezeFactor(double ratio) {
   final t = ((ratio - 1.0) / (kVerticalScrollThreshold - 1.0)).clamp(0.0, 1.0);
   return 1.0 - t * (1.0 - _minSqueezeFactor);
 }
+
+/// 縦の余白を詰める倍率を、**しきい値の判定込み**で返す（#240）。
+///
+/// **余白を詰める側はこちらを呼ぶこと。**[verticalSqueezeFactor] を直に呼ぶと、
+/// [kVerticalScrollThreshold] を超えたときに下限（35%）で頭打ちになったまま
+/// 返ってくる。その状態で (c) の全体スクロールに切り替わると、**縦は
+/// いくらでも使えるのに余白だけ詰まったまま**という窮屈な見た目になる。
+///
+/// **実際に踏んだ**（PR #252 のレビュー指摘）。`_StopTab` は呼び出し側で
+/// `useFullScroll ? 1.0 : ...` と判定していたが、`_NextBusCard` は
+/// [verticalSqueezeFactor] を直に呼んでいたため、**しきい値を超えると
+/// タブの余白は元に戻るのにカードの中だけ詰まったまま**になっていた。
+/// **判定を2箇所に書いたせいで片方だけ落ちた**——このファイルが防ぐはずの
+/// 事故そのものなので、判定ごとここに引き取る。
+///
+/// スクロールに切り替えるかどうかは [useVerticalScroll] で別に取る。
+double verticalSqueezeOf(BuildContext context) {
+  final ratio = textScaleRatio(context);
+  if (ratio > kVerticalScrollThreshold) return 1.0;
+  return verticalSqueezeFactor(ratio);
+}
+
+/// (c) の全体スクロールに切り替えるかどうか（#240）。
+bool useVerticalScroll(BuildContext context) =>
+    textScaleRatio(context) > kVerticalScrollThreshold;
