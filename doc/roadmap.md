@@ -18,8 +18,9 @@
 | — | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | **release/v1.3.1 に切り出し済み** |
 | 1 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.3 で横に溢れる | **develop 済み**（PR #249） |
 | 2 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | v1.3.2 |
-| 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | v1.3.2 |
+| 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | **fix/issue-240 実装済み・PR 未作成** |
 | 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | v1.3.2 |
+| 5 | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | **研究棟タブが 375x667 の等倍で縦に溢れる** | v1.3.2 |
 | 6 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
 | 7 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
 | 8 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
@@ -62,7 +63,15 @@
 
 ### #237 で分かったこと（375px 実測）
 
-**実機では等倍（1.0）で壊れる場所は無い。**Android の「大」が 1.15、「最大」が 1.3。
+> [!CAUTION]
+> **「実機では等倍（1.0）で壊れる場所は無い」は誤りだった（[#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251)）。**
+> **研究棟タブは 375×667・等倍・無操作で 17px 縦に溢れる。**2方向ある停留所は
+> `SegmentedButton` が出て縦を約40px 食うが、**#237 の実測も probe も乗車地を
+> `koizumi`（1方向）でしか採っておらず、その分が勘定に入っていなかった。**
+> **v1.3.1（審査待ちの版）にも同じ 17px で存在する**（`git worktree` で確認）。
+> 下の表は**拡大設定に関する限界**であって、等倍の話はこの表の外にある。
+
+**この表の範囲では**、Android の「大」が 1.15、「最大」が 1.3。
 
 **どちらの列も「溢れ始める（切れ始める）倍率」。**テストが踏むのはその1段下なので、
 `text_scaler_test.dart` の定数とは一致しない。
@@ -74,9 +83,9 @@
 | ~~節の見出し（`◯◯ 発`）が切れる（既定＝短縮名）~~ | 横 | ~~1.0~~ | **2.0 まで無傷** | **[#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) で解消** |
 | ~~NEXT BUS カードの到着行（300px）~~ | 横 | ~~1.15~~ | **2.0 まで無傷** | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
 | ~~タブ（4タブ）~~ | 横 | ~~1.4~~ | ~~1.4~~ | **[#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) で解消** |
-| `_StopTab` の Column（**閉じた状態**） | 縦 | 1.1 | **1.5** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
-| `_StopTab` の Column（**到着行を1つ開く**） | 縦 | — | **1.4** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
-| `_StopTab` の Column（**到着行を全部開く**） | 縦 | — | **1.3** | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) |
+| ~~`_StopTab` の Column（**閉じた状態**）~~ | 縦 | ~~1.1~~ | **2.0 まで無傷** | **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) で解消** |
+| ~~`_StopTab` の Column（**到着行を1つ開く**）~~ | 縦 | ~~—~~ | **2.0 まで無傷** | **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) で解消** |
+| ~~`_StopTab` の Column（**到着行を全部開く**）~~ | 縦 | ~~—~~ | **2.0 まで無傷** | **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) で解消** |
 | ~~ホームの時刻表リストの到着行（335px）~~ | 横 | ~~1.25~~ | **2.0 まで無傷** | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
 | ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | **2.0** | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
 | ~~来週シートの到着行（303px）~~ | 横 | ~~1.15~~ | ~~未計測~~ | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
@@ -93,9 +102,19 @@ overflow / 省略が出ない**（到着行は開いた状態を含む）。**�
 **代わりに縦（#240）が下がった。**タップで出す行のぶん縦が伸びるため、
 **到着行を1つ開くと 1.5 → 1.4、全部（カード3行＋リスト3行）開くと 1.3**。
 **Android の「最大」にちょうど届く**ので、**#240 の優先度はこの計測で上がった**。
-**リリースノートの「既知の問題」に載せる基準（1.3 まで）にも入る。**
 #241 が作った穴ではなく、**横を塞いだ結果として表に出たもの**（縦は元から 1.5 で
 負けていた）。
+
+**#240 は fix/issue-240 で実装済み（2026-09-01・PR 未作成）。** 拡大時だけ
+`_StopTab` の余白（カードの padding・`SizedBox` の高さ）を詰める方式 (a) を、
+**Android の「最大」(1.3) まで確実に通すことを目標に**入れた。1.3 を超えたら
+(a) を追い込まず、`_StopTab` ごとスクロールに切り替える方式 (c) に譲る
+（(b) の画面全面 `SingleChildScrollView` 化はしていない——リストの `Expanded` +
+`IndexedStack` + `PageStorageKey` によるスクロール位置の永続化を崩すおそれが
+あるため、等倍〜1.3 の経路は元のまま）。結果、実フォントでは**到着行を全部
+開いた状態でも 2.0 まで縦の overflow が出ない**。詳しい実測・しきい値の根拠は
+`flutter_app/lib/core/theme/text_scale.dart` の `kVerticalScrollThreshold` の
+ドキュメントコメントを参照。
 
 ※ **来週シートは本番では開けない。**GAS が `upcoming: null` を直書きしており、
 カレンダーアイコンも出ない（`_showUpcomingSheet` の TODO(#202)）。
@@ -104,9 +123,9 @@ overflow / 省略が出ない**（到着行は開いた状態を含む）。**�
 
 **リリースノートの「既知の問題」に載せる基準は、Android の「最大」（1.3）までに崩れる場所だけ。**
 ホームの行ヘッダ（2.0・#242）は「最大」より上なので載せない。
-**`_StopTab` の Column（#240）は #241 の後に基準の中へ入った** — 閉じたままなら 1.5 だが、
-**到着行を全部開くと 1.3 で縦に溢れる**。v1.3.2 で #240 を直せば消えるので、
-**載せるかどうかはリリース時点で #240 が入っているかで決める。**
+**`_StopTab` の Column（#240）は #241 の後に一度は基準の中へ入った**
+（閉じたままなら 1.5 だが、到着行を全部開くと 1.3 で縦に溢れていた）が、
+**fix/issue-240 で解消したので、リリースノートには載せない。**
 
 > [!IMPORTANT]
 > **PR #244 の時点の表は「テスト用フォント」の列しか無く、実機より厳しく出ていた。**
@@ -130,7 +149,7 @@ overflow / 省略が出ない**（到着行は開いた状態を含む）。**�
   **溢れなくなり、限界は「読めなくなる」（2.5 で `古…`）に変わった**
 - **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) — 行ヘッダは停留所名と無関係に溢れる。**時刻・講義タグ・
   行き先・`◀ NEXT`・ベルを固定幅で並べていて縮む余地が無い。既定の4停留所でも同じ
-- **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) — 縦にも溢れる。**issue は「幅が詰まっている場所」を想定していた
+- **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) — 縦にも溢れる**（**解消済み**）。issue は「幅が詰まっている場所」を想定していた
 - **[#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) — 節の見出しは `Expanded` + ellipsis なので溢れずに黙って切れる**
   （**解消済み**）。overflow では原理的に拾えないため #237 の網に入っていな
   かった。既定を短縮名に戻し、正式名はタップで出す形にしたことで、#208 の
@@ -220,19 +239,28 @@ v1.3.2 はそれを短縮名＋タップに変える。
 
 ### 順序と、#241 で分かったこと
 
-**#241 → #245 → #240 → #242。** #241 の展開行と #242 の折り返しは**どちらも縦を
-増やす**ので、それを織り込んでからでないと #240 の直す量を決められない。
+**#241 → #245 → #240 → #242 → #251。** #241 の展開行と #242 の折り返しは
+**どちらも縦を増やす**ので、それを織り込んでからでないと #240 の直す量を決められない。
+
+**[#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) は #240 の作業中に見つかって足したもの。**
+**等倍で崩れるので、この5件の中でいちばん実害が大きい**（拡大設定を触っていない
+ユーザーが、既定の4停留所のひとつを開くだけで踏む）。それでも最後に置くのは、
+**#240 で入れた仕組み（`lib/core/theme/text_scale.dart`）をそのまま使えるはず**で、
+先に着手すると同じものを2度作ることになるため。**#242 は縦を増やす**ので、
+その後に測るのも都合がよい。
 
 **#241 は develop 済み**（2026-09-01・PR #249）。**横は片付いた**（実フォントで
 2.0 まで無傷）が、**代わりに縦（#240）が下がった** — 到着行を1つ開くと 1.5 → 1.4、
 全部開くと 1.3。**Android の「最大」に届くので #240 の優先度が上がり、
-リリースノートの「既知の問題」の基準にも入る**（上の実測表を参照）。
+リリースノートの「既知の問題」の基準にも入っていた**（上の実測表を参照）。
 
 **タップできると分からない問題**（affordance が無い）は別 issue に切る。
 時刻表リストの行が元からタップで開く作りなので、アプリ内では一貫している。
 
-**`ArrivalRow` のタップ領域が 48dp より小さい**件も #240 と一緒に見る。
-padding を足すと縦が伸びるため、単独では直せない。
+**`ArrivalRow` のタップ領域が 48dp より小さい件は #240 に含めなかった。**
+`04-issue-240-vertical.md`（作業手順）のチェックリストに無く、padding を
+足すと縦がさらに伸びて #240 の詰める量に食い込むため、別 issue で見るのが
+安全と判断した。**未着手のまま**（本 PR ではやっていない）。
 
 ---
 
@@ -245,6 +273,7 @@ padding を足すと縦が伸びるため、単独では直せない。
 | Issue | 内容 | PR |
 |-------|------|-----|
 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行を短縮名に戻し、タップで正式名を出す | #249 |
+| [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大時に `_StopTab` の余白を詰め（1.3 まで）、超えたら画面ごとスクロールに切り替える | 未作成（fix/issue-240） |
 
 ### v1.3.1 で出したもの（**main へマージ済み・2026-08-31**）
 

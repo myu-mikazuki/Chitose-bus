@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
+import '../../core/theme/text_scale.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/banner_ad_viewmodel.dart';
 import '../viewmodels/favorite_tab_viewmodel.dart';
@@ -884,10 +885,12 @@ class _StopLabelPlaceholder extends StatelessWidget {
   /// `scale(42)` は 42pt の字の曲線を引いてしまい、実際のラベル（14px）に
   /// 掛かる倍率とは別物になる。**ラベル自身の字の大きさから比率を出すこと。**
   /// `TextScaler.linear` では一致するので、**テストは緑のまま実機だけずれる。**
+  ///
+  /// 比率の出し方自体は `core/theme/text_scale.dart` の [textScaleRatio] に
+  /// まとめた（#240）。ここは元のフォントサイズ（`DefaultTextStyle`）を渡すだけ。
   static double scaledWidth(BuildContext context) {
     final fontSize = DefaultTextStyle.of(context).style.fontSize ?? 14.0;
-    final ratio = MediaQuery.textScalerOf(context).scale(fontSize) / fontSize;
-    return width * ratio;
+    return width * textScaleRatio(context, baseFontSize: fontSize);
   }
 
   @override
@@ -1038,12 +1041,26 @@ class _StopTabState extends State<_StopTab> {
     // 便が1本も無い**という状態で、ここでだけ言える（#177）
     if (_destinations.isEmpty) return const _StopHasNoBus();
 
-    return Column(
+    // 拡大時の縦の溢れへの対処（#240）。まず (a) 余白を詰めて凌ぎ、
+    // `kVerticalScrollThreshold` を超えたら (c) 画面ごとスクロールに切り替える
+    // （下の `Expanded` を外し、`_buildScheduleSection` が入れ替える）。
+    // 比率の出し方・しきい値・詰め方は `core/theme/text_scale.dart` にまとめてある
+    // ——`_NextBusCard`（`next_bus_display.dart`）も同じしきい値を見ている。
+    // **等倍（ratio <= 1.0）では useFullScroll は false・squeeze は 1.0 になり、
+    // 何も変わらない。**
+    // **判定は `core/theme/text_scale.dart` に置いてある。** ここで
+    // `ratio > kVerticalScrollThreshold ? 1.0 : ...` と書くと、同じ判定を
+    // 書き忘れた側（`_NextBusCard`）だけ詰まったままになる事故が起きる
+    // （PR #252 のレビュー指摘で実際に踏んだ）
+    final useFullScroll = useVerticalScroll(context);
+    final squeeze = verticalSqueezeOf(context);
+
+    final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Column(
+        Padding(
+          padding: EdgeInsets.fromLTRB(16, 16 * squeeze, 16, 0),
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 現在は無効化中だが、再有効化したときにここへ出る
@@ -1077,7 +1094,7 @@ class _StopTabState extends State<_StopTab> {
             ),
           ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: EdgeInsets.fromLTRB(16, 16 * squeeze, 16, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1088,14 +1105,11 @@ class _StopTabState extends State<_StopTab> {
                   stopId: widget.stopId,
                   stopMaster: widget.stopMaster,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8 * squeeze),
                 // IndexedStack で両方向の NextBusDisplay を常時保持し、
                 // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
-                // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-                // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
-                // これにより TabBarView（PageView）への伝播を防ぐ。
-                GestureDetector(
-                  onVerticalDragUpdate: (_) {},
+                _wrapVerticalDragBarrier(
+                  active: !useFullScroll,
                   child: IndexedStack(
                     index: _destinations.indexOf(_destination).clamp(0, 99),
                     children: [
@@ -1109,7 +1123,7 @@ class _StopTabState extends State<_StopTab> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24 * squeeze),
                 // 乗車地は上の NEXT BUS 側に出ているので、ここでは繰り返さない
                 Text("TODAY'S SCHEDULE", style: _sectionTitleStyle(context)),
               ] else
@@ -1120,7 +1134,7 @@ class _StopTabState extends State<_StopTab> {
                   stopId: widget.stopId,
                   stopMaster: widget.stopMaster,
                 ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8 * squeeze),
             ],
           ),
         ),
@@ -1128,32 +1142,9 @@ class _StopTabState extends State<_StopTab> {
         // 本部棟↔千歳駅切り替え時にスクロール位置が独立して維持される。
         // PageStorageKey でスクロール位置を方向ごとに永続化する
         // （当日/ダイヤ種別ごとに独立させるため dayType もキーに含める）。
-        // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-        // ジェスチャーアリーナに参加し、スクロール不可時の縦スワイプを消費する。
-        // これにより TabBarView（PageView）への伝播を防ぐ。
-        Expanded(
-          child: GestureDetector(
-            onVerticalDragUpdate: (_) {},
-            child: IndexedStack(
-              index: _destinations.indexOf(_destination).clamp(0, 99),
-              children: [
-                for (final d in _destinations)
-                  ScheduleList(
-                    key: ValueKey(
-                        '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-                    timetable: widget.timetable,
-                    stopId: widget.stopId,
-                    stopMaster: widget.stopMaster,
-                    destination: d,
-                    dayType: widget.dayType,
-                    season: widget.season,
-                  ),
-              ],
-            ),
-          ),
-        ),
+        _buildScheduleSection(expand: !useFullScroll),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: EdgeInsets.fromLTRB(16, 8 * squeeze, 16, 16 * squeeze),
           child: Text(
             '更新: ${widget.updatedAt}',
             style:
@@ -1162,5 +1153,70 @@ class _StopTabState extends State<_StopTab> {
         ),
       ],
     );
+
+    if (!useFullScroll) return content;
+
+    // (c) 拡大がしきい値を超えたときだけ画面ごとスクロールにする（#240）。
+    // `ScheduleList` は自分の `LayoutBuilder` で有界/非有界を見て、非有界
+    // （= `Expanded` を外した状態）なら自動で `ListView(shrinkWrap: true,
+    // physics: NeverScrollableScrollPhysics)` に切り替わる作り
+    // （`schedule_list.dart`・来週シートの `SingleChildScrollView` 直下と同じ
+    // 経路）なので、ここでは `Expanded` を外して `SingleChildScrollView` で
+    // 包むだけでよい。**(b) のように常時これを使うわけではない**——等倍を含む
+    // 大半の経路は元の `Expanded` + `IndexedStack` のままで、スクロール位置の
+    // 永続化（#177 以来の作り）を崩さない。
+    return SingleChildScrollView(
+      // **内側の `ScheduleList` の `ValueKey` と同じ粒度にする。**停留所だけを
+      // キーにすると、行き先を切り替えても同じスクロール位置を共有してしまう
+      // （PR #252 のレビュー指摘）。内側のリストは行き先・ダイヤ種別・季節ごとに
+      // 位置を分けているので、外側だけ粗いと**切り替えた瞬間に外と内が別々の
+      // 位置を主張する**。上のしきい値を超えたときだけ通る経路だが、揃えておく
+      key: PageStorageKey('stopTabScroll_${widget.stopId}_${_destination}_'
+          '${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
+      child: content,
+    );
+  }
+
+  /// `NEXT BUS` カード・時刻表リストの縦ドラッグを、`TabBarView`（PageView）に
+  /// 伝播させないためのバリア。
+  ///
+  /// もとは常時 `GestureDetector(onVerticalDragUpdate: (_) {})` を被せていたが、
+  /// (c)（`useFullScroll`）のときは外側の `SingleChildScrollView` 自身が
+  /// 縦ドラッグの受け手になる必要があるため、ここで奪うと**外側までドラッグが
+  /// 届かず画面がスクロールできなくなる**。[active] が false のときは素通しする。
+  Widget _wrapVerticalDragBarrier(
+      {required bool active, required Widget child}) {
+    if (!active) return child;
+    return GestureDetector(
+      onVerticalDragUpdate: (_) {},
+      child: child,
+    );
+  }
+
+  /// 時刻表リスト部分。`expand: true`（既定の等倍〜しきい値まで）では従来どおり
+  /// `Expanded` + `IndexedStack` に収め、`expand: false`（(c) の全体スクロール時）
+  /// では `Expanded` を外す——`SingleChildScrollView` の中で `Expanded` は使えない
+  /// （unbounded な高さに対して flex を要求してエラーになる）。
+  Widget _buildScheduleSection({required bool expand}) {
+    final stack = _wrapVerticalDragBarrier(
+      active: expand,
+      child: IndexedStack(
+        index: _destinations.indexOf(_destination).clamp(0, 99),
+        children: [
+          for (final d in _destinations)
+            ScheduleList(
+              key: ValueKey(
+                  '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
+              timetable: widget.timetable,
+              stopId: widget.stopId,
+              stopMaster: widget.stopMaster,
+              destination: d,
+              dayType: widget.dayType,
+              season: widget.season,
+            ),
+        ],
+      ),
+    );
+    return expand ? Expanded(child: stack) : stack;
   }
 }

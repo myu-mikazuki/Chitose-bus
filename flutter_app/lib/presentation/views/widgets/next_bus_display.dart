@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_colors_theme.dart';
+import '../../../core/theme/text_scale.dart';
 import '../../../domain/entities/bus_schedule.dart';
 import '../../viewmodels/schedule_viewmodel.dart';
 import 'arrival_row.dart';
@@ -106,9 +107,21 @@ class _NextBusCard extends StatelessWidget {
     final minutes = entry.minutesFromNow(now: now);
     final minLabel = _formatCountdown(minutes);
 
+    // 拡大時だけカードの縦の余白を詰める（#240 の (a)）。
+    //
+    // **`verticalSqueezeFactor` を直に呼ばないこと。**しきい値
+    // （`kVerticalScrollThreshold`）を超えると `_StopTab` 側が全体スクロールに
+    // 切り替える（(c)）が、**このカードはその中で描かれ続ける。**下限で
+    // 頭打ちになった倍率をそのまま使うと、縦はいくらでも使えるのに
+    // カードの中だけ詰まったままになる（PR #252 のレビュー指摘で実際に踏んだ）。
+    // `verticalSqueezeOf` はしきい値を超えたら 1.0 を返す。
+    //
+    // **等倍（ratio <= 1.0）では 1.0 になり、1pxも変わらない。**
+    final squeeze = verticalSqueezeOf(context);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      padding: EdgeInsets.symmetric(vertical: 24 * squeeze, horizontal: 20),
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.secondary, width: 1.5),
         borderRadius: BorderRadius.circular(8),
@@ -157,7 +170,7 @@ class _NextBusCard extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8 * squeeze),
           Text(
             entry.time,
             style: TextStyle(
@@ -172,7 +185,7 @@ class _NextBusCard extends StatelessWidget {
           // 以前は「千歳駅のときだけ出す」と乗車地を名指ししていたが、GAS が
           // 他の停留所にのりばを足したら出す、が正しい（#177）
           if (entry.platformNumber != null) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4 * squeeze),
             Text(
               '${entry.platformNumber}のりば',
               style: TextStyle(
@@ -182,7 +195,7 @@ class _NextBusCard extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 8),
+          SizedBox(height: 8 * squeeze),
           Text(
             minLabel,
             style: TextStyle(
@@ -193,9 +206,9 @@ class _NextBusCard extends StatelessWidget {
           ),
           // 到着時刻（arrivalsが空でない場合のみ表示）
           if (entry.arrivals.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12 * squeeze),
             Divider(color: colors.divider, height: 1),
-            const SizedBox(height: 10),
+            SizedBox(height: 10 * squeeze),
             ..._buildArrivalRows(entry),
           ],
         ],
