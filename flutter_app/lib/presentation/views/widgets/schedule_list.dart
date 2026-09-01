@@ -198,6 +198,9 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
         ),
         child: Text(
           period.label,
+          // 下の系統タグと同じ理由（#242 / PR #254 の指摘）
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: color,
             fontSize: 10,
@@ -356,6 +359,16 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                           ),
                           child: Text(
                             widget.bus.routeLabel!,
+                            // **枠の中で文字単位に割れるのを防ぐ**（#242 /
+                            // PR #254 の指摘）。`Wrap` の子は「その行に入る
+                            // ところまで」の幅しか貰えないので、拡大時に
+                            // `空港経由` が `空港経` / `由` の2行になって
+                            // タグの枠が崩れていた。**`Wrap` は折り返せてしまう
+                            // ぶん overflow 例外を出さないので、テストは緑の
+                            // まま見た目だけ壊れる。** 等倍では収まるので
+                            // ellipsis は働かない
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: textColor,
                               fontSize: 10,
@@ -366,6 +379,10 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                       ..._buildLectureTagWidgets(),
                       Text(
                         widget.bus.destination,
+                        // 系統タグと同じ理由。1.7 で `科技大` が
+                        // `科技` / `大` に割れていた（#242 / PR #254 の指摘）
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                             color: textColor, fontSize: 14, letterSpacing: 1),
                       ),

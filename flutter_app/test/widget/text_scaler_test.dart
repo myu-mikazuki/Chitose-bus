@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/core/theme/text_scale.dart';
@@ -180,6 +181,16 @@ const _deviceLimitArrivalOpen = 1.3;
 /// **#242 で 1.35 → 1.7 まで上がった。**中間の3つ（系統タグ・講義タグ・
 /// 行き先）を `Wrap` に入れて折り返すようにしたため。1.8 で 4.5px 溢れる。
 ///
+/// **この値は系統タグ（`routeLabel`）を持つ便で測ったもの。** 実データ
+/// （`gas/Code.gs`）の便は `空港経由` / `直通` / `長都発` / `長都行き` の
+/// いずれかを持つが、**fixture がタグ無しだったため実態より甘い条件で
+/// 測っていた**（PR #254 のレビュー指摘）。`_result` に持たせて測り直した
+/// 結果、**溢れ始める倍率は 1.8 のまま変わらなかった**——`Wrap` は
+/// 折り返せるので、タグが増えても overflow の側には効かない。
+/// **効いていたのは見た目のほう**で、1.65 あたりからタグの中の文字が
+/// 2行に割れていた（`maxLines: 1` + ellipsis で直した。下の
+/// 「系統タグと行き先は高倍率でも1行のまま」で留めている）。
+///
 /// **1.8 以上を狙って `◀ NEXT` も `Wrap` に入れるのはやめた**（#242）。
 /// 右端から離れて**等倍の見え方が変わる**のに対し、Android の上限は 1.3 で
 /// 1.7 はすでに遥かに超えている。**実機が到達しない倍率のために等倍の
@@ -201,6 +212,10 @@ BusTimetable _timetable(String validFrom, String validTo) => BusTimetable(
       schedules: const [
         BusEntry(
           time: '09:00',
+          // **実データは系統タグを持つ**（`gas/Code.gs` の `空港経由` /
+          // `直通` / `長都発` / `長都行き`）。**タグの無い便で幅の限界を測ると
+          // 実態より甘く出る**ので fixture にも持たせる（PR #254 の指摘・#242）
+          routeLabel: '空港経由',
           boardingStopId: 'koizumi',
           destination: '科技大',
           arrivals: {
@@ -214,6 +229,10 @@ BusTimetable _timetable(String validFrom, String validTo) => BusTimetable(
         // 303px / 311px の経路を素通りしてしまう
         BusEntry(
           time: '09:40',
+          // **実データは系統タグを持つ**（`gas/Code.gs` の `空港経由` /
+          // `直通` / `長都発` / `長都行き`）。**タグの無い便で幅の限界を測ると
+          // 実態より甘く出る**ので fixture にも持たせる（PR #254 の指摘・#242）
+          routeLabel: '空港経由',
           boardingStopId: 'chitose',
           destination: '科技大',
           arrivals: {
@@ -284,6 +303,10 @@ final _headerOnlyResult = ScheduleResult(
       schedules: [
         BusEntry(
           time: '09:00',
+          // **実データは系統タグを持つ**（`gas/Code.gs` の `空港経由` /
+          // `直通` / `長都発` / `長都行き`）。**タグの無い便で幅の限界を測ると
+          // 実態より甘く出る**ので fixture にも持たせる（PR #254 の指摘・#242）
+          routeLabel: '空港経由',
           boardingStopId: 'koizumi',
           destination: '科技大',
           weekendOnly: true,
@@ -579,6 +602,47 @@ void main() {
       // タップが外れても警告止まりなので、シートの到着行が描かれないまま
       // 緑で通ってしまう。カード1 ＋ ホームのリスト1 ＋ シート1 で3つ
       expect(find.text('O･A入口 着'), findsNWidgets(3));
+    });
+
+    // **「溢れない」と「読める」は別**（#242 / PR #254 のレビュー指摘）。
+    //
+    // `Wrap` の子は「その行に入るところまで」の幅しか貰えないので、拡大時に
+    // 系統タグの `空港経由` が `空港経` / `由` の2行に割れ、**タグの枠が
+    // 崩れていた**。`Wrap` は折り返せてしまうぶん overflow 例外を出さないので、
+    // **テストは緑のまま見た目だけ壊れる**——`_arrivalLimit` の側では
+    // 原理的に拾えない。`maxLines: 1` + ellipsis で直したが、
+    // **消されても気づけないので、ここで1行に収まっていることを主張する。**
+    testWidgets('系統タグと行き先は高倍率でも1行のまま（#242）', (tester) async {
+      _usePhone(tester, height: 1200);
+      await tester.pumpWidget(_wrap(_result, ['koizumi'], _arrivalLimit));
+      await tester.pumpAndSettle();
+
+      final scaler =
+          MediaQuery.textScalerOf(tester.element(find.byType(HomeScreen)));
+
+      // 系統タグ（10px）。2行になっていれば高さが2倍近くになる
+      final tag = tester.renderObject<RenderParagraph>(
+        find
+            .descendant(
+              of: find.byType(ScheduleList),
+              matching: find.text('空港経由'),
+            )
+            .first,
+      );
+      expect(tag.size.height, lessThan(scaler.scale(10) * 2),
+          reason: '系統タグが2行に割れている');
+
+      // 行き先（14px）
+      final dest = tester.renderObject<RenderParagraph>(
+        find
+            .descendant(
+              of: find.byType(ScheduleList),
+              matching: find.text('科技大'),
+            )
+            .first,
+      );
+      expect(dest.size.height, lessThan(scaler.scale(14) * 2),
+          reason: '行き先が2行に割れている');
     });
 
     // #241 の「どの倍率でも溢れない」を主張する場所。`_arrivalLimit` の上の
