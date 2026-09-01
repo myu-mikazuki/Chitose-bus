@@ -160,30 +160,41 @@ class _ArrivalRowState extends State<ArrivalRow> {
   ///
   /// 補足であることが分かるよう、字は既定行より小さく・色は
   /// `textTertiary` に落としてある。
+  ///
+  /// **`ExcludeSemantics` で包んでいる。** `GestureDetector` は既定で
+  /// 子孫の `Semantics` ノードを自分の tap アクションのノードにマージする
+  /// ため、ここを素の `Text` のままにすると、上の既定行が既に
+  /// `Semantics(label: '$officialLabel 着')` で渡している正式名・時刻と、
+  /// この行の正式名・時刻が両方マージされて**二重に読み上げられる**
+  /// （実際に `debugDumpSemanticsTree()` で確認した）。読み上げには最初から
+  /// 正式名を渡しているので、展開してもスクリーンリーダー側で新しく
+  /// 読ませる情報は無い——この行は見える人向けの補足に閉じてよい
   Widget _buildExpandedRow(AppColorsTheme colors, String officialLabel) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: Wrap(
-        spacing: 8,
-        children: [
-          Text(
-            officialLabel,
-            style: TextStyle(
-              color: colors.textTertiary,
-              fontSize: 11,
-              letterSpacing: 1,
+    return ExcludeSemantics(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: Wrap(
+          spacing: 8,
+          children: [
+            Text(
+              officialLabel,
+              style: TextStyle(
+                color: colors.textTertiary,
+                fontSize: 11,
+                letterSpacing: 1,
+              ),
             ),
-          ),
-          Text(
-            widget.time,
-            style: TextStyle(
-              color: colors.textTertiary,
-              fontSize: 11,
-              letterSpacing: 1,
-              fontFeatures: const [FontFeature.tabularFigures()],
+            Text(
+              widget.time,
+              style: TextStyle(
+                color: colors.textTertiary,
+                fontSize: 11,
+                letterSpacing: 1,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
