@@ -788,6 +788,31 @@ void main() {
         expect(find.text('千歳駅 発'), findsOneWidget);
       });
 
+      // #245 のレビュー（PR #250）で「判断がつかない」と挙がった点。
+      // **確かめたうえで、持ち越してよいと決めた。**
+      testWidgets('dayType を切り替えてもトグルは持ち越す（#245・意図した挙動）', (tester) async {
+        await pump(tester);
+
+        // NEXT BUS 側で正式名を出す
+        await tester.tap(find.text('千歳駅 発'));
+        await tester.pump();
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+
+        // 当日以外のダイヤ表示へ。見出しの呼び出しは NEXT BUS 用から
+        // SCHEDULE 用に変わるが、Column の同じ位置なので Element が
+        // 使い回され、`didUpdateWidget` は stopId が同じなのでリセットしない
+        await tester.tap(find.byIcon(Icons.event_repeat));
+        await tester.pumpAndSettle();
+        expect(find.text('SCHEDULE'), findsOneWidget);
+
+        // **正式名のまま。** 停留所を切り替えたときは戻す（上のテスト）が、
+        // ここは**同じ停留所を見続けている**ので戻す理由が無い。むしろ
+        // 「正式名で見たい」という意思表示を、ダイヤ種別を変えただけで
+        // 捨てるほうが不親切
+        expect(find.text('千歳駅前 発'), findsOneWidget);
+        expect(find.text('千歳駅 発'), findsNothing);
+      });
+
       testWidgets('狭い端末でも見出しと同じ行に収まる', (tester) async {
         // iPhone SE 相当。見出し（NEXT BUS）と同居させているので、名前が
         // 伸びると行が溢れる。overflow はテストが失敗として拾う
