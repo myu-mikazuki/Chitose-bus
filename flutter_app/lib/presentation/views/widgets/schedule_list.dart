@@ -198,6 +198,9 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
         ),
         child: Text(
           period.label,
+          // 下の系統タグと同じ理由（#242 / PR #254 の指摘）
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: color,
             fontSize: 10,
@@ -205,7 +208,9 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
           ),
         ),
       ),
-      const SizedBox(width: 8),
+      // **末尾に `SizedBox(width: 8)` を付けないこと**（#242）。返り値は
+      // `Wrap` の子として並べるので、区切りは `Wrap` の `spacing` が持つ。
+      // 付けると二重に空いて等倍の見た目が変わる
     ];
   }
 
@@ -316,38 +321,74 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (widget.bus.routeLabel != null) ...[
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: widget.isNext
-                            ? AppColors.onPrimary
-                            : colors.textTertiary,
+                // **中間の3つ（系統タグ・講義タグ・行き先）を `Wrap` に入れる**（#242）。
+                //
+                // 元は素の `Row` に固定幅で並べ、`Spacer` を挟むだけだったので
+                // **縮む余地が無く、停留所名と無関係に横へ溢れていた**
+                // （代替フォントの実測で 1.35、実フォントで 2.0）。既定の
+                // 4停留所でも同じ倍率で溢れる。
+                //
+                // **`Spacer` を `Expanded` に置き換えて中に `Wrap` を入れる**のが肝。
+                // `Wrap` には `Spacer` が無いので、素直に `Wrap` へ移すと
+                // `◀ NEXT` とベルが右端から離れてしまう。`Expanded` は
+                // `Spacer` と同じく残り幅を全部取るので、**等倍の見え方は
+                // 変わらないまま**、入らなくなった分だけ2段目へ流れる。
+                //
+                // **時刻とベルは `Wrap` に入れない。** 時刻は行の主役、ベルは
+                // タップ対象なので、位置が動くと押しにくい。
+                //
+                // `crossAxisAlignment` は `Row` の既定（center）のまま。
+                // 等倍では1段なので差が出ない
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (widget.bus.routeLabel != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: widget.isNext
+                                  ? AppColors.onPrimary
+                                  : colors.textTertiary,
+                            ),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            widget.bus.routeLabel!,
+                            // **枠の中で文字単位に割れるのを防ぐ**（#242 /
+                            // PR #254 の指摘）。`Wrap` の子は「その行に入る
+                            // ところまで」の幅しか貰えないので、拡大時に
+                            // `空港経由` が `空港経` / `由` の2行になって
+                            // タグの枠が崩れていた。**`Wrap` は折り返せてしまう
+                            // ぶん overflow 例外を出さないので、テストは緑の
+                            // まま見た目だけ壊れる。** 等倍では収まるので
+                            // ellipsis は働かない
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 10,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ..._buildLectureTagWidgets(),
+                      Text(
+                        widget.bus.destination,
+                        // 系統タグと同じ理由。1.7 で `科技大` が
+                        // `科技` / `大` に割れていた（#242 / PR #254 の指摘）
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: textColor, fontSize: 14, letterSpacing: 1),
                       ),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
-                      widget.bus.routeLabel!,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 10,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                ],
-                ..._buildLectureTagWidgets(),
-                Text(
-                  widget.bus.destination,
-                  style: TextStyle(
-                      color: textColor, fontSize: 14, letterSpacing: 1),
                 ),
-                // ベルアイコンを右端に配置するため全行に Spacer を挿入。
-                // isPast 行はベルを SizedBox.shrink() で返すため視覚的影響はない。
-                const Spacer(),
                 if (widget.isNext)
                   const Text(
                     '◀ NEXT',

@@ -98,6 +98,72 @@ void main() {
       expect(find.text('時刻表データなし'), findsOneWidget);
     });
 
+    // #242 で行ヘッダの中間3つ（系統タグ・講義タグ・行き先）を `Wrap` に
+    // 入れた。**折り返せるようにしたぶん、等倍で勝手に折り返す事故**が
+    // 起きうるので、そこを留める。
+    group('行ヘッダの並び（#242）', () {
+      BusTimetable timetableWith(String time) => BusTimetable(
+            validFrom: '2024-01-01',
+            validTo: '2024-03-31',
+            schedules: [
+              BusEntry(
+                time: time,
+                boardingStopId: 'chitose',
+                destination: '千歳科技大',
+                routeLabel: '空港経由',
+              ),
+            ],
+          );
+
+      testWidgets('等倍では1段のまま折り返さない', (tester) async {
+        final t = safeFutureHhmm(60);
+        await tester.pumpWidget(_wrap(ScheduleList(
+            stopMaster: kTestStopMaster,
+            timetable: timetableWith(t),
+            stopId: 'chitose')));
+        await tester.pumpAndSettle();
+
+        // `Wrap` が2段になると、高さが子1つぶんより明らかに大きくなる。
+        // **素の px で比べない**——代替フォントと実機で行の高さが違うので、
+        // 中身（行き先の Text）の高さを基準に相対で見る
+        final wrap = find
+            .descendant(
+              of: find.byType(ScheduleList),
+              matching: find.byType(Wrap),
+            )
+            .first;
+        final lineHeight = tester.getSize(find.text('千歳科技大')).height;
+        expect(
+          tester.getSize(wrap).height,
+          lessThan(lineHeight * 1.5),
+          reason: '等倍では折り返さず1段のままであること',
+        );
+      });
+
+      testWidgets('ベルは右端にある（Expanded が Spacer の役目を兼ねている）', (tester) async {
+        final t = safeFutureHhmm(60);
+        await tester.pumpWidget(_wrapWithNotification(
+          ScheduleList(
+              stopMaster: kTestStopMaster,
+              timetable: timetableWith(t),
+              stopId: 'chitose'),
+          NotificationSettings(enabled: true),
+        ));
+        await tester.pumpAndSettle();
+
+        // #242 で `Spacer` を `Expanded(Wrap)` に置き換えた。`Expanded` が
+        // 残り幅を全部取るので**ベルは右端のまま**——ここが崩れると
+        // 「等倍の見え方は変わらない」が破れる
+        final bell = find.byType(IconButton);
+        expect(bell, findsOneWidget, reason: 'ベルが出る条件で pump できていない');
+
+        final rowRight = tester.getRect(find.byType(ScheduleList)).right;
+        final bellRight = tester.getRect(bell).right;
+        // 行の左右 padding は 16
+        expect(rowRight - bellRight, lessThan(20.0), reason: 'ベルが右端に寄っていること');
+      });
+    });
+
     testWidgets('バスリストに複数エントリ: 時刻・行き先が表示される', (tester) async {
       final t1 = safeFutureHhmm(60);
       final t2 = safeFutureHhmm(120);

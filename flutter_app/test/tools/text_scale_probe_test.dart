@@ -57,6 +57,10 @@ BusTimetable _timetable(String validFrom, String validTo) => BusTimetable(
       schedules: const [
         BusEntry(
           time: '09:00',
+          // **実データは系統タグを持つ**（`gas/Code.gs` の `空港経由` /
+          // `直通` / `長都発` / `長都行き`）。**タグの無い便で幅の限界を測ると
+          // 実態より甘く出る**ので fixture にも持たせる（PR #254 の指摘・#242）
+          routeLabel: '空港経由',
           boardingStopId: 'koizumi',
           destination: '科技大',
           arrivals: {
@@ -67,6 +71,10 @@ BusTimetable _timetable(String validFrom, String validTo) => BusTimetable(
         ),
         BusEntry(
           time: '09:40',
+          // **実データは系統タグを持つ**（`gas/Code.gs` の `空港経由` /
+          // `直通` / `長都発` / `長都行き`）。**タグの無い便で幅の限界を測ると
+          // 実態より甘く出る**ので fixture にも持たせる（PR #254 の指摘・#242）
+          routeLabel: '空港経由',
           boardingStopId: 'chitose',
           destination: '科技大',
           arrivals: {

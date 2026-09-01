@@ -21,6 +21,7 @@
 | 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | **fix/issue-240 実装済み・PR 未作成** |
 | 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | v1.3.2 |
 | 5 | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | **研究棟タブが 375x667 の等倍で縦に溢れる** | v1.3.2 |
+| — | [#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253) | **2026年10月1日からの新ダイヤに対応**（108便→168便） | **2026-10-01 まで** |
 | 6 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
 | 7 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
 | 8 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
@@ -87,9 +88,20 @@
 | ~~`_StopTab` の Column（**到着行を1つ開く**）~~ | 縦 | ~~—~~ | **2.0 まで無傷** | **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) で解消** |
 | ~~`_StopTab` の Column（**到着行を全部開く**）~~ | 縦 | ~~—~~ | **2.0 まで無傷** | **[#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) で解消** |
 | ~~ホームの時刻表リストの到着行（335px）~~ | 横 | ~~1.25~~ | **2.0 まで無傷** | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
-| ホームの時刻表リストの行ヘッダ（343px） | 横 | 1.5 | **2.0** | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+| ~~ホームの時刻表リストの行ヘッダ（343px）~~ | 横 | ~~1.5~~ | **2.0 まで無傷** | **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) で解消** |
 | ~~来週シートの到着行（303px）~~ | 横 | ~~1.15~~ | ~~未計測~~ | **[#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) で解消** |
-| 来週シートの行ヘッダ（311px）※ | 横 | **1.18** | 未計測 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) |
+| ~~来週シートの行ヘッダ（311px）~~※ | 横 | ~~1.18~~ | 未計測 | **[#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) で解消** |
+
+**#240 / #241 / #242 / #245 の4件が揃い、probe の範囲では実フォントで
+2.0 まで overflow が1つも出なくなった**（2026-09-02 実測）。
+
+**この計測は系統タグ（`routeLabel`）を持つ便で採り直したもの。** 実データの便は
+`空港経由` / `直通` / `長都発` / `長都行き` のいずれかを持つが、**fixture が
+タグ無しだったため実態より甘い条件で測っていた**（PR #254 のレビュー指摘）。
+**溢れ始める倍率は変わらなかった**が、**1.65 あたりからタグの中の文字が2行に
+割れていた**ことが分かり、`maxLines: 1` + ellipsis で直した。
+**`Wrap` は折り返せるぶん overflow 例外を出さないので、この種の崩れは
+overflow では拾えない。**
 
 **#241 / #245 で到着行と節の見出しの横は片付いた。**どちらも既定を短縮名に
 戻し、正式名はタップで出す形にしたので、実フォントでは **2.0 まで横の
@@ -191,7 +203,32 @@ overflow / 省略が出ない**（到着行は開いた状態を含む）。**�
 Android「最大」で実際に崩れる唯一のもの**だから。#245 はより低い倍率で届くが
 **ellipsis で切れるだけで崩れない**ので下げてある。
 
-**[#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) だけ期限がある。** iOS の最低要件が 14.0 のままで、
+### [#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253) — 新ダイヤ（2026-10-01）
+
+**期限がいちばん近い。** 大学から新旧比較表を受け取った（2026-09-02）。
+
+| 区分 | 方向 | 旧 | 新 |
+|---|---|---|---|
+| 平日 | 科技大・ラピダス行き | 40便 | **63便** |
+| 平日 | 千歳駅・長都駅行き | 31便 | **51便** |
+| 土日祝 | 科技大・ラピダス行き | 18便 | **30便** |
+| 土日祝 | 千歳駅・長都駅行き | 19便 | **24便** |
+
+**合計 108便 → 168便。「新系統」という名前未定の系統が新設される。**
+
+**比較表だけでは実装できない。**載っているのは主要6停留所だけで、`ROUTES` は
+1便あたり14停留所ぶんの時刻を持つ。**新ダイヤの完全な時刻表が要る。**
+
+**GAS のみの変更で済む見込みなので、アプリのリリースを待たずに出せる**
+（[判断の指針](#判断の指針)）。ただし**本番 GAS へのデプロイが必須**。
+
+**切り替え方は2案あり、先に決めること。** (a) 10/1 に `current` を差し替える／
+(b) [#202](https://github.com/myu-mikazuki/Chitose-bus/issues/202) を直して9月中は `upcoming` に入れ、`validFrom` で自動的に切り替える。
+**(b) なら当日の手作業が要らない**が、#202 の作業が前に要る。
+
+**過ぎるとアプリが間違った時刻を出し続ける。**単なる機能不足より悪い。
+
+**[#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) にも期限がある。** iOS の最低要件が 14.0 のままで、
 **2027年春以降は App Store Connect へのアップロード・申請ができなくなる**
 （ITMS-90068）。いまは警告だけで通るので順序は最後にしてあるが、**期限を過ぎると
 リリース経路そのものが止まる**ので、それまでのどこかのリリースに必ず載せる。
