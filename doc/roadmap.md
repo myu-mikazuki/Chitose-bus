@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-09-03
+最終更新: 2026-09-03（`release/v1.3.2` 切り出し）
 
 ---
 
@@ -16,21 +16,22 @@
 | — | [#234](https://github.com/myu-mikazuki/Chitose-bus/issues/234) | NEXT BUS カードの到着行に**正式名**を出す | **release/v1.3.1 に切り出し済み** |
 | — | [#237](https://github.com/myu-mikazuki/Chitose-bus/issues/237) | 文字拡大設定（`TextScaler`）で壊れる場所を検知する | **release/v1.3.1 に切り出し済み** |
 | — | [#243](https://github.com/myu-mikazuki/Chitose-bus/issues/243) | タブの幅計算が `TextScaler` を見ていない | **release/v1.3.1 に切り出し済み** |
-| 1 | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.3 で横に溢れる | **develop 済み**（PR #249） |
-| 2 | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | **develop 済み**（PR #250） |
-| 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | **develop 済み**（PR #252） |
-| 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | **develop 済み**（PR #254） |
-| 5 | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 測る網を広げる（`koizumi` 固定で測っていた穴を塞ぐ。production の修正は無し） | **develop 済み**（PR #255） |
-| 6 | [#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261) | `flutter test` の出力を圧縮するラッパースクリプトを用意する（開発用ツール） | **develop 済み**（PR #262） |
-| 7 | [#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260) | 横スクロールの感度を調整する | **develop 済み**（PR #263） |
+| — | [#241](https://github.com/myu-mikazuki/Chitose-bus/issues/241) | 到着行が拡大 1.3 で横に溢れる | **release/v1.3.2 に切り出し済み** |
+| — | [#245](https://github.com/myu-mikazuki/Chitose-bus/issues/245) | 節の見出しが拡大 1.15 で省略される | **release/v1.3.2 に切り出し済み** |
+| — | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | **release/v1.3.2 に切り出し済み** |
+| — | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | **release/v1.3.2 に切り出し済み** |
+| — | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 測る網を広げる（`koizumi` 固定で測っていた穴を塞ぐ。production の修正は無し） | **release/v1.3.2 に切り出し済み** |
+| — | [#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261) | `flutter test` の出力を圧縮するラッパースクリプトを用意する（開発用ツール） | **release/v1.3.2 に切り出し済み** |
+| — | [#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260) | 横スクロールの感度を調整する | **release/v1.3.2 に切り出し済み** |
 | — | [#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253) | **2026年10月1日からの新ダイヤに対応**（108便→168便） | **2026-10-01 まで** |
-| 8 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
-| 9 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 10 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
-| 11 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
-| 12 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
+| 1 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
+| 2 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
+| 3 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
+| 4 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| 5 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
 
-**v1.3.2 に入れる7件はすべて develop に入った。** リリース（main）はまだ。
+**v1.3.2 に入れる7件はすべて develop に入り、`release/v1.3.2` に切り出した**
+（2026-09-03）。main へのマージはまだ。
 
 - **[#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261)** — `flutter test` の出力を圧縮するラッパースクリプト
   （`scripts/test.sh`）を用意した。**アプリのコード（`flutter_app/lib`・`flutter_app/test`）は
@@ -49,7 +50,7 @@
 #177 が長い停留所名を画面に出せるようにした結果できた穴を6件まとめて塞いだもので、
 **タブに短縮名、NEXT BUS カードの上に正式名**、と出し分けるのが方針だった。
 
-**いま作っているのは v1.3.2**（下の [v1.3.2 の節](#v132いま作っているもの)）。
+**v1.3.2 はリリース準備中**（下の [v1.3.2 の節](#v132リリース準備中)）。
 #146（臨時便）は応答に便を追加するため、旧アプリへの影響を確認する必要がある。
 
 **#207 / #208 は develop にマージ済み**（2026-08-18・PR #230 / #232）。
@@ -277,7 +278,7 @@ overflow / 省略が出ない**（到着行は開いた状態を含む）。**�
 
 **#241 は v1.3.2 の主題にする。**「拡大設定に耐える」をまとめて片付けるなら、
 名前を省略してよい場所の線引きを先に決めること。
-→ **決めた**（2026-08-31）。[v1.3.2 の節](#v132いま作っているもの)を参照。
+→ **決めた**（2026-08-31）。[v1.3.2 の節](#v132リリース準備中)を参照。
 
 **上の順序表の 2〜5 は「実害の大きい順」。**実フォントの倍率順（#245 1.15 →
 #241 1.3 → #240 1.5 → #242 2.0）ではない。**#241 を先頭に置くのは、
@@ -327,7 +328,7 @@ Android「最大」で実際に崩れる唯一のもの**だから。#245 はよ
 
 ---
 
-## v1.3.2（いま作っているもの）
+## v1.3.2（リリース準備中）
 
 **テーマは「文字拡大設定（`TextScaler`）に耐える」。** v1.3.1 で #243 だけを入れ、
 残り4件を「停留所名を省略してよいかの判断が要る」として送ったもの。その判断を
@@ -409,9 +410,13 @@ v1.3.2 はそれを短縮名＋タップに変える。
 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 行ヘッダの中間3つを折り返せるようにする | #254 |
 | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 拡大の計測を2方向の停留所にも広げる（**production の修正は無し**） | #255 |
 
-**v1.3.2 の実装は5件すべて develop に入った**（2026-09-02）。次はリリース作業
-（`release/v1.3.2` を切る）。**#251 だけ production の変更が無い**ので、
-リリースノートでは「テストと記録の整備」として扱うこと。
+| [#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260) | 縦ドラッグバリアを `TabBarView` の各ページ最外周に移し、常時掛ける | #263 |
+| [#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261) | `flutter test` の出力を圧縮するラッパースクリプト（開発用ツール・**リリースノートには載せない**） | #262 |
+
+**v1.3.2 の実装は7件すべて develop に入り**（2026-09-03）、**`release/v1.3.2` を
+切った**（同日・`doc/release-notes/v1.3.2.md` / whatsnew / pubspec `1.3.2+23` /
+README）。**#251 だけ production の変更が無い**ので、リリースノートでは
+「テストと記録の整備」として扱った。
 
 ### v1.3.1 で出したもの（**main へマージ済み・2026-08-31**）
 
