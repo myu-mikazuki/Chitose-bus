@@ -21,12 +21,23 @@
 | 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | **develop 済み**（PR #252） |
 | 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | **develop 済み**（PR #254） |
 | 5 | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 測る網を広げる（`koizumi` 固定で測っていた穴を塞ぐ。production の修正は無し） | **develop 済み**（PR #255） |
+| 6 | [#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261) | `flutter test` の出力を圧縮するラッパースクリプトを用意する（開発用ツール） | |
+| 7 | [#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260) | 横スクロールの感度を調整する | |
 | — | [#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253) | **2026年10月1日からの新ダイヤに対応**（108便→168便） | **2026-10-01 まで** |
-| 6 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
-| 7 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
-| 8 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
-| 9 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
-| 10 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
+| 8 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
+| 9 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
+| 10 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
+| 11 | ログ系 | [#109](https://github.com/myu-mikazuki/Chitose-bus/issues/109) ログ収集基盤 / PR #120 Crashlytics | |
+| 12 | [#233](https://github.com/myu-mikazuki/Chitose-bus/issues/233) | iOS の最低要件を 15.0 に上げる（ITMS-90068） | **2027年春まで** |
+
+**#261 → #260 の順で入れること。** #261 が先。
+
+- **[#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261)** — `flutter test` の出力を圧縮するラッパースクリプト
+  （`scripts/test.sh`）を用意する。**アプリのコード（`flutter_app/lib`・`flutter_app/test`）は
+  触らない開発用ツールで、アプリの動作は何も変わらない。v1.3.2 には入れるが、
+  リリースノートには載せない。**
+- **[#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260)** — 横スクロールの感度を調整する。
+  **まだ着手しない。** ここに順序として載せてあるだけ
 
 **v1.3.0 はリリース済み**（2026-08-16 審査提出・2026-08-31 両ストア公開）。
 **v1.3.1 は 2026-08-31 に main へマージ・タグ済みで、いまストアの審査待ち。**
