@@ -412,6 +412,7 @@ v1.3.2 はそれを短縮名＋タップに変える。
 
 | [#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260) | 縦ドラッグバリアを `TabBarView` の各ページ最外周に移し、常時掛ける | #263 |
 | [#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261) | `flutter test` の出力を圧縮するラッパースクリプト（開発用ツール・**リリースノートには載せない**） | #262 |
+| [#266](https://github.com/myu-mikazuki/Chitose-bus/issues/266) | (c) 経路で NEXT 行への初回自動スクロールが走らないことをコメントに残す（**挙動の変更なし**・リリースノートには載せない） | PR #264 のレビューから |
 
 **v1.3.2 の実装は7件すべて develop に入り**（2026-09-03）、**`release/v1.3.2` を
 切った**（同日・`doc/release-notes/v1.3.2.md` / whatsnew / pubspec `1.3.2+23` /
@@ -598,6 +599,7 @@ PR #238 のレビューまで「リストがいちばん狭い」と誤認して
 | [#185](https://github.com/myu-mikazuki/Chitose-bus/issues/185) | エラー画面に生の例外文字列が出る | [#108](https://github.com/myu-mikazuki/Chitose-bus/issues/108)（エラーメッセージ整備）と同じ範囲。まとめて扱うほうがよい |
 | [#190](https://github.com/myu-mikazuki/Chitose-bus/issues/190) | 通知キーが同時刻・別系統の便で衝突する | #177 以前からの不具合で回帰ではない |
 | [#228](https://github.com/myu-mikazuki/Chitose-bus/issues/228) | お気に入りの停留所を選択から外しても何も伝えない | #177 が作った隙間だが、実害は星が消えるだけ |
+| [#265](https://github.com/myu-mikazuki/Chitose-bus/issues/265) | 拡大 1.3 超の全体スクロール経路で、行き先の切り替えが `_StopTab` 配下の State を作り直す | **Android の上限（1.3）を超えた設定でだけ起きる。**誤表示にはならず、開いていた到着行が畳まれるだけ。PR #264 のレビューで見つけたもので、直すにはスクロール位置の永続化の作りに触る |
 | [#202](https://github.com/myu-mikazuki/Chitose-bus/issues/202) | 「来週のダイヤ」シートが4停留所固定 | `upcoming` が常に null で、シート自体を開けない |
 | #124 / #83 / #73 / #56 / #2 / #22 / #108 | | 未定 |
 
