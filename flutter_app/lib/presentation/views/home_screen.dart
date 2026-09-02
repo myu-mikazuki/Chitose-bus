@@ -25,6 +25,71 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// `TabBarView`（内部は `PageView`）の各ページの一番外側を包み、縦ドラッグが
+/// 横スワイプ（タブ切り替え）に奪われるのを防ぐバリア（#260）。
+///
+/// ## なぜ要るか
+///
+/// `PageView` は `HorizontalDragGestureRecognizer` を持つ。ジェスチャー
+/// アリーナに縦の recognizer が1つも参加していないと、横の recognizer が
+/// アリーナで唯一のメンバーになり、アリーナが閉じた時点で無条件に勝つ。
+/// すると縦スワイプのわずかな横成分がすべてページ送りに使われ、隣のタブへ
+/// 飛んでしまう。このバリアは「縦の recognizer を必ず1つアリーナに参加させる」
+/// ための空の `onVerticalDragUpdate` ハンドラで、それ自体は何もしない
+/// （縦方向の recognizer がアリーナに存在すること自体が目的）。
+///
+/// ## なぜ内側のスクロールを壊さないか
+///
+/// ヒットテストは子を先に処理してから自分を結果に加える
+/// （`RenderProxyBoxWithHitTestBehavior` 系の作り）ため、`ListView` /
+/// `SingleChildScrollView` のスクロール recognizer は、このバリアより**先に**
+/// アリーナへ参加する。縦ドラッグが縦の slop を超えると、先に参加した内側の
+/// recognizer が先に自己受理してアリーナを勝ち取るので、内側のスクロールは
+/// 今までどおり動く（`ScheduleList` は有界時、自前の `SingleChildScrollView`
+/// でスクロールする——`schedule_list.dart` 参照。このバリアの外側から包んでも
+/// 実際にスクロールが動くことをテストで確認済み）。バリアが効くのは、
+/// 内側に縦の recognizer が居ない場面
+/// ——余白・見出し・(c) で中身が画面に収まっていて `SingleChildScrollView` が
+/// `setCanDrag(false)` により recognizer を持たないとき——に限られる。
+///
+/// ## 置き場所: `_StopTab` の内側ではなく `TabBarView` の各 child の最外周
+///
+/// かつては `_StopTab` の内側2箇所（NEXT BUS カード・時刻表リスト）にだけ
+/// 掛け、(c)（`useFullScroll`・拡大 1.3 超）のときは `active: false` で
+/// 外していた。だが (c) では外側の `SingleChildScrollView` の**外**（
+/// `SegmentedButton` の周り・見出しの行・フッタの余白）にバリアが無くなり、
+/// そこを掴んで斜めに引くと横に取られる穴が残っていた。
+///
+/// ここ（`TabBarView` の各 child の最外周）に常時1つ掛ければ、(c) の
+/// `SingleChildScrollView` は必ずこのバリアの子孫になる。**スクロール可能な
+/// ときは内側の recognizer が先に勝ち、中身が収まってスクロール不要な
+/// ときはバリアが縦を吸ってページ送りを防ぐ**——両方が同時に成り立つので、
+/// `active` フラグはもう要らない。`_StopNotFetched` / `_StopHasNoBus` の
+/// ような静的なページも同じ場所で一緒に守れる。
+///
+/// ## `HitTestBehavior.opaque` が要る理由
+///
+/// 既定（`HitTestBehavior.deferToChild`）は、子が自分をヒットテストしない
+/// 限り自分もヒットテストされない。`RenderFlex`（`Row`/`Column`）や
+/// `RenderPadding` は自分自身をヒットテストしないので、`SegmentedButton` の
+/// 周りや見出し・フッタの**余白**（文字の上ではない部分）を掴んだドラッグ
+/// では、このバリアがそもそもアリーナに参加せず穴が残る。`opaque` にして、
+/// 子が透明でも自分がヒットテストの対象になるようにする。
+///
+/// [key] は呼び出し側の `Key` をそのまま渡すこと。`TabBarView.children` は
+/// 停留所の並べ替え・追加で入れ替わるため、直下の要素が停留所ごとの `Key`
+/// （`ValueKey(stopId)`）を持たないと、Flutter の子リスト差分検出（key に
+/// よる要素の再利用）が働かず、並び替え時に State（選択中の行き先・
+/// スクロール位置など）が正しい停留所に追随しなくなる。
+Widget _wrapVerticalDragBarrier(Widget child, {Key? key}) {
+  return GestureDetector(
+    key: key,
+    behavior: HitTestBehavior.opaque,
+    onVerticalDragUpdate: (_) {},
+    child: child,
+  );
+}
+
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
@@ -385,26 +450,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       controller: _tabController,
                       children: [
                         for (final id in stopIds)
-                          // オフラインで停留所を足すと、その停留所の時刻を
-                          // 持たないキャッシュを表示することになる。
-                          // 「便が1本も無い」と区別して伝える（#177）
-                          if (!result.data.covers(id))
-                            _StopNotFetched(
-                              key: ValueKey('notFetched_$id'),
-                              onRetry: () => ref
-                                  .read(scheduleViewModelProvider.notifier)
-                                  .refresh(),
-                            )
-                          else
-                            _StopTab(
-                              key: ValueKey(id),
-                              timetable: result.data.current,
-                              stopId: id,
-                              stopMaster: result.data.stopMaster,
-                              updatedAt: result.data.updatedAt,
-                              dayType: dayType,
-                              season: season,
-                            ),
+                          // 縦ドラッグが横スワイプ（タブ切り替え）に奪われる
+                          // のを防ぐバリア（#260）。各ページの最外周に常時
+                          // 掛ける——理由は [_wrapVerticalDragBarrier] 参照。
+                          // **key は中身と同じ値を付ける**（並べ替え時の
+                          // State 追随のため。関数のドキュメント参照）
+                          !result.data.covers(id)
+                              ? _wrapVerticalDragBarrier(
+                                  key: ValueKey('notFetched_$id'),
+                                  // オフラインで停留所を足すと、その停留所の
+                                  // 時刻を持たないキャッシュを表示すること
+                                  // になる。「便が1本も無い」と区別して
+                                  // 伝える（#177）
+                                  _StopNotFetched(
+                                    onRetry: () => ref
+                                        .read(
+                                            scheduleViewModelProvider.notifier)
+                                        .refresh(),
+                                  ),
+                                )
+                              : _wrapVerticalDragBarrier(
+                                  key: ValueKey(id),
+                                  _StopTab(
+                                    timetable: result.data.current,
+                                    stopId: id,
+                                    stopMaster: result.data.stopMaster,
+                                    updatedAt: result.data.updatedAt,
+                                    dayType: dayType,
+                                    season: season,
+                                  ),
+                                ),
                       ],
                     ),
                   ),
@@ -918,7 +993,10 @@ class _StopLabelPlaceholder extends StatelessWidget {
 /// オフラインで停留所を足すと起きる。「時刻表データなし」（便が1本も無い）とは
 /// 別物なので、取得すれば出ることが分かる言い方にする。
 class _StopNotFetched extends StatelessWidget {
-  const _StopNotFetched({super.key, required this.onRetry});
+  // key はここでは受けない。呼び出し側（`_HomeScreenState`）は
+  // `TabBarView` の並べ替え対応のため、`_wrapVerticalDragBarrier` の
+  // 外側の `GestureDetector` に key を付ける（#260）
+  const _StopNotFetched({required this.onRetry});
 
   final VoidCallback onRetry;
 
@@ -951,8 +1029,8 @@ class _StopNotFetched extends StatelessWidget {
 }
 
 class _StopTab extends StatefulWidget {
+  // key はここでは受けない。理由は [_StopNotFetched] の注記と同じ（#260）
   const _StopTab({
-    super.key,
     required this.stopId,
     required this.stopMaster,
     required this.timetable,
@@ -1108,20 +1186,25 @@ class _StopTabState extends State<_StopTab> {
                 SizedBox(height: 8 * squeeze),
                 // IndexedStack で両方向の NextBusDisplay を常時保持し、
                 // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
-                _wrapVerticalDragBarrier(
-                  active: !useFullScroll,
-                  child: IndexedStack(
-                    index: _destinations.indexOf(_destination).clamp(0, 99),
-                    children: [
-                      for (final d in _destinations)
-                        NextBusDisplay(
-                          timetable: widget.timetable,
-                          stopId: widget.stopId,
-                          stopMaster: widget.stopMaster,
-                          destination: d,
-                        ),
-                    ],
-                  ),
+                //
+                // **縦ドラッグバリアはここには無い。** かつてはここにも
+                // `_wrapVerticalDragBarrier` を掛けていたが、(c) では外さ
+                // ざるを得ず、`SegmentedButton` の周りや余白も含めて穴に
+                // なっていた（#260）。いまは `TabBarView` の各 child の
+                // 最外周（`_HomeScreenState` の `_wrapVerticalDragBarrier`）
+                // に1つだけ掛けている——ヒットテスト順で内側のスクロール
+                // 可能な要素が先に勝つので、ここに個別のバリアは要らない
+                IndexedStack(
+                  index: _destinations.indexOf(_destination).clamp(0, 99),
+                  children: [
+                    for (final d in _destinations)
+                      NextBusDisplay(
+                        timetable: widget.timetable,
+                        stopId: widget.stopId,
+                        stopMaster: widget.stopMaster,
+                        destination: d,
+                      ),
+                  ],
                 ),
                 SizedBox(height: 24 * squeeze),
                 // 乗車地は上の NEXT BUS 側に出ているので、ここでは繰り返さない
@@ -1165,6 +1248,19 @@ class _StopTabState extends State<_StopTab> {
     // 包むだけでよい。**(b) のように常時これを使うわけではない**——等倍を含む
     // 大半の経路は元の `Expanded` + `IndexedStack` のままで、スクロール位置の
     // 永続化（#177 以来の作り）を崩さない。
+    //
+    // **縦ドラッグバリアを外側に置くのが安全な理由（#260）。** この
+    // `SingleChildScrollView` は `TabBarView` の各 child の最外周に掛けた
+    // `_wrapVerticalDragBarrier`（`_HomeScreenState` 側）の子孫になる。
+    // 中身が画面に収まっていれば `SingleChildScrollView` は
+    // `setCanDrag(false)` で自分の drag recognizer を持たない——その場合は
+    // 外側のバリアだけがアリーナに残り、縦ドラッグを吸って横スワイプ
+    // （タブ切り替え）に取られるのを防ぐ。逆に中身が画面より大きければ
+    // `SingleChildScrollView` 自身が recognizer を持ち、ヒットテスト順で
+    // バリアより先にアリーナへ参加するため、こちらが勝って通常どおり
+    // スクロールできる。**バリアをこの内側（`SingleChildScrollView` の
+    // 中）に置くと、この二択が成り立たない**——中身が収まっている場面では
+    // どこにもバリアが無い状態に戻ってしまう。
     return SingleChildScrollView(
       // **内側の `ScheduleList` の `ValueKey` と同じ粒度にする。**停留所だけを
       // キーにすると、行き先を切り替えても同じスクロール位置を共有してしまう
@@ -1177,45 +1273,29 @@ class _StopTabState extends State<_StopTab> {
     );
   }
 
-  /// `NEXT BUS` カード・時刻表リストの縦ドラッグを、`TabBarView`（PageView）に
-  /// 伝播させないためのバリア。
-  ///
-  /// もとは常時 `GestureDetector(onVerticalDragUpdate: (_) {})` を被せていたが、
-  /// (c)（`useFullScroll`）のときは外側の `SingleChildScrollView` 自身が
-  /// 縦ドラッグの受け手になる必要があるため、ここで奪うと**外側までドラッグが
-  /// 届かず画面がスクロールできなくなる**。[active] が false のときは素通しする。
-  Widget _wrapVerticalDragBarrier(
-      {required bool active, required Widget child}) {
-    if (!active) return child;
-    return GestureDetector(
-      onVerticalDragUpdate: (_) {},
-      child: child,
-    );
-  }
-
   /// 時刻表リスト部分。`expand: true`（既定の等倍〜しきい値まで）では従来どおり
   /// `Expanded` + `IndexedStack` に収め、`expand: false`（(c) の全体スクロール時）
   /// では `Expanded` を外す——`SingleChildScrollView` の中で `Expanded` は使えない
   /// （unbounded な高さに対して flex を要求してエラーになる）。
+  ///
+  /// **縦ドラッグバリアはここには無い。** 上の NEXT BUS 側と同じ理由で、
+  /// `TabBarView` の各 child の最外周に1つ掛けるだけで足りる（#260）。
   Widget _buildScheduleSection({required bool expand}) {
-    final stack = _wrapVerticalDragBarrier(
-      active: expand,
-      child: IndexedStack(
-        index: _destinations.indexOf(_destination).clamp(0, 99),
-        children: [
-          for (final d in _destinations)
-            ScheduleList(
-              key: ValueKey(
-                  '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-              timetable: widget.timetable,
-              stopId: widget.stopId,
-              stopMaster: widget.stopMaster,
-              destination: d,
-              dayType: widget.dayType,
-              season: widget.season,
-            ),
-        ],
-      ),
+    final stack = IndexedStack(
+      index: _destinations.indexOf(_destination).clamp(0, 99),
+      children: [
+        for (final d in _destinations)
+          ScheduleList(
+            key: ValueKey(
+                '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
+            timetable: widget.timetable,
+            stopId: widget.stopId,
+            stopMaster: widget.stopMaster,
+            destination: d,
+            dayType: widget.dayType,
+            season: widget.season,
+          ),
+      ],
     );
     return expand ? Expanded(child: stack) : stack;
   }
