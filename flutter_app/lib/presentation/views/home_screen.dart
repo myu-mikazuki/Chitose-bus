@@ -1280,6 +1280,21 @@ class _StopTabState extends State<_StopTab> {
   ///
   /// **縦ドラッグバリアはここには無い。** 上の NEXT BUS 側と同じ理由で、
   /// `TabBarView` の各 child の最外周に1つ掛けるだけで足りる（#260）。
+  ///
+  /// **`expand: false` では、`ScheduleList` の初回の `ensureVisible`（NEXT 行を
+  /// 見える位置に出す）が走らない**（#266）。`ScheduleList` は
+  /// `constraints.maxHeight.isFinite` で有界/非有界を見ており、`Expanded` を外すと
+  /// 非有界（`_isBounded == false`）になって `initState` の postFrame が早期
+  /// return する（`schedule_list.dart` 参照）。**あの早期 return はもともと
+  /// 来週ダイヤの BottomSheet のために置いたもので、(c) を足したことで
+  /// こちらも同じ経路に入るようになった。**
+  ///
+  /// **意図した挙動として受け入れている。** (c) では外側の
+  /// `SingleChildScrollView` が先頭——すなわち NEXT BUS カード——から始まるので、
+  /// NEXT の情報自体は最初から見えている。むしろ拡大している状態で開いた直後に
+  /// リストの途中まで飛ぶほうが、いま何を見ているのか分かりにくい。
+  /// **ここを変えるなら、外側のスクロールごと動かすことになる**ので、
+  /// `ScheduleList` 側の早期 return を緩めるだけでは済まない。
   Widget _buildScheduleSection({required bool expand}) {
     final stack = IndexedStack(
       index: _destinations.indexOf(_destination).clamp(0, 99),
