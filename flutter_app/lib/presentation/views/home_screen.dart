@@ -1191,8 +1191,8 @@ class _StopTabState extends State<_StopTab> {
                 // `_wrapVerticalDragBarrier` を掛けていたが、(c) では外さ
                 // ざるを得ず、`SegmentedButton` の周りや余白も含めて穴に
                 // なっていた（#260）。いまは `TabBarView` の各 child の
-                // 最外周（`_HomeScreenState` の `_wrapVerticalDragBarrier`）
-                // に1つだけ掛けている——ヒットテスト順で内側のスクロール
+                // 最外周でトップレベルの `_wrapVerticalDragBarrier`
+                // を1つだけ掛けている——ヒットテスト順で内側のスクロール
                 // 可能な要素が先に勝つので、ここに個別のバリアは要らない
                 IndexedStack(
                   index: _destinations.indexOf(_destination).clamp(0, 99),
@@ -1251,7 +1251,7 @@ class _StopTabState extends State<_StopTab> {
     //
     // **縦ドラッグバリアを外側に置くのが安全な理由（#260）。** この
     // `SingleChildScrollView` は `TabBarView` の各 child の最外周に掛けた
-    // `_wrapVerticalDragBarrier`（`_HomeScreenState` 側）の子孫になる。
+    // `_wrapVerticalDragBarrier`（このファイルのトップレベル関数）の子孫になる。
     // 中身が画面に収まっていれば `SingleChildScrollView` は
     // `setCanDrag(false)` で自分の drag recognizer を持たない——その場合は
     // 外側のバリアだけがアリーナに残り、縦ドラッグを吸って横スワイプ
