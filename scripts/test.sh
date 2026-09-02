@@ -45,6 +45,13 @@
 #   scripts/test.sh test/widget/text_scaler_test.dart --plain-name "タブは倍率"
 #   scripts/test.sh test/tools/text_scale_probe_test.dart --dart-define=JP_FONT=/path/to/font.ttf
 #
+# **例外は `--reporter`/`-r`。** 素通しの原則どおりに渡しても、後ろに置いた
+# `--machine` が勝つ（`flutter test` は最後に指定した reporter を使う）ので、
+# 利用者が指定した reporter は黙って上書きされる。**黙って無視すると
+# 気づけない**ので、`--reporter`/`-r` が引数にあれば実行前に警告を出す
+# （止めはしない。動くには動くので、実害が出るのは reporter の見た目を
+# 変えたい時だけ）。素の reporter を使いたいときは `flutter test` を直接使う
+#
 # ## CI で使わない理由
 #
 # `.github/workflows/test.yml` は素の `flutter test` のまま変えていない。
@@ -58,6 +65,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$REPO_ROOT/flutter_app" || exit 1
+
+# 利用者が `--reporter`/`-r` を渡していたら、後ろの `--machine` に上書きされる
+# ことを警告する（上の「例外は --reporter/-r」参照）。止めずに続ける
+for arg in "$@"; do
+  case "$arg" in
+  --reporter | --reporter=* | -r)
+    echo "[scripts/test.sh] 警告: --reporter は無視します（このラッパーは --machine を使うため）。素の reporter を使いたいときは flutter test を直接使ってください。" >&2
+    break
+    ;;
+  esac
+done
 
 # `flutter test --machine` の標準出力を scripts/test_summarize.py にその場で
 # パイプする。stderr も同じストリームに混ぜる（2>&1）: pub get が失敗する等

@@ -66,6 +66,27 @@ print の中身はテストの合否に関わらずその場で出力に混ざ�
 （`pub get` 自体が失敗した、Dart VM がクラッシュした等、集計しようが無いケース）は、
 黙って何も出さないくらいなら生ログを流したほうがまし、という判断で
 非 JSON 行をそのまま出力する。
+
+## 想定外の形をしたイベントを1件ごとに守る（PR #262 レビュー指摘）
+
+`--machine` の出力は Dart の test パッケージのバージョンで細部が変わりうる
+（このファイルの前半で書いた通り、実機で確認した挙動を前提に読んでいる）。
+`testStart` に `test` キーが無い・`testDone` に `testID` が無いといった
+**想定外の形のイベントが来ても、スクリプト全体を巻き込んで未捕捉例外で
+落ちないようにする。** 集計目的のツールがトレースバックだけ返すのは、
+「テスト結果を読みたい」という存在理由に反する。
+
+- イベント1件の解釈（`dict` になったあとの `type` 別の処理）を丸ごと
+  `try` で囲み、失敗したら**そのイベントだけ捨てて次に進む**
+- 捨てた件数を最後に stderr へ1行警告として出す（スクリプト自身の警告がテスト結果と
+  紛れないように stdout ではなく stderr にする）。黙って捨てると
+  「テストが消えた」ことに気づけない
+- **`flutter test` 自身が吐く別プロトコルの配列イベント**（`isinstance(event, dict)`
+  が False になるもの）は元から無視する既知の対象なので、この警告には数えない
+- `testDone` の分岐は、**カウンタを増やす前に描画関数を呼ぶ**順序にしてある。
+  描画（`_render_failure`/`_render_output`）が想定外の形で例外を投げても、
+  `passed`/`failed` の数字がずれない（描画に失敗した回だけ丸ごと捨てて
+  カウンタも増やさない。イベント自体を無かったことにする）
 """
 
 from __future__ import annotations
@@ -137,14 +158,63 @@ def _render_output(test: dict | None, entries: list[tuple[str, object]]) -> str 
     return "\n".join(lines)
 
 
+def _handle_event(
+    event: dict,
+    tests: dict[int, dict],
+    buffers: dict[int, list[tuple[str, object]]],
+    blocks: list[str],
+    counts: dict[str, int],
+) -> int | None:
+    """1件のイベントを解釈して `tests`/`buffers`/`blocks`/`counts` を更新する。
+
+    想定外の形（キー欠落など）なら例外を投げて構わない。呼び出し側
+    （`main`）がイベント単位で捕まえて次に進む。ここでは
+    **カウンタ（`counts`）を増やすのは描画が成功したあと**にすること
+    （ドックコメント「想定外の形をしたイベントを1件ごとに守る」参照）。
+    戻り値は現在の `elapsed_ms`（更新しなければ None）。
+    """
+    elapsed_ms = event["time"] if "time" in event else None
+
+    etype = event.get("type")
+    if etype == "testStart":
+        test = event["test"]
+        tests[test["id"]] = test
+        buffers[test["id"]] = []
+    elif etype == "print":
+        buffers.setdefault(event["testID"], []).append(("print", event["message"]))
+    elif etype == "error":
+        buffers.setdefault(event["testID"], []).append(("error", event))
+    elif etype == "testDone":
+        tid = event["testID"]
+        entries = buffers.pop(tid, [])
+        if event.get("hidden"):
+            pass  # 読み込み成功のノイズ。中身も要らない
+        elif event.get("skipped"):
+            counts["skipped"] += 1
+        elif event.get("result") == "success":
+            # 先に描画（失敗しうる）、成功したらカウンタを増やす
+            output = _render_output(tests.get(tid), entries)
+            counts["passed"] += 1
+            if output:
+                blocks.append(output)
+        else:
+            # "failure"（assert 失敗）/ "error"（例外・コンパイルエラー等）
+            failure_block = _render_failure(tests.get(tid), entries)
+            counts["failed"] += 1
+            blocks.append(failure_block)
+
+    return elapsed_ms
+
+
 def main() -> int:
     tests: dict[int, dict] = {}
     buffers: dict[int, list[tuple[str, object]]] = {}
     blocks: list[str] = []  # 失敗の詳細と、成功でも print があるものを出現順で溜める
     raw_fallback: list[str] = []
-    passed = failed = skipped = 0
+    counts = {"passed": 0, "failed": 0, "skipped": 0}
     elapsed_ms = 0
     saw_json = False
+    discarded = 0  # 想定外の形で解釈を諦めたイベントの数
 
     for raw_line in sys.stdin:
         line = raw_line.rstrip("\n")
@@ -161,37 +231,25 @@ def main() -> int:
             # `flutter test` 自身が吐く別プロトコルのイベント（例:
             # `[{"event":"test.startedProcess",...}]`。配列で来る）。
             # `test` パッケージの JSON reporter とは別物なので無視する
+            # （既知の無視対象。discarded には数えない）
             continue
-        if "time" in event:
-            elapsed_ms = event["time"]
 
-        etype = event.get("type")
-        if etype == "testStart":
-            test = event["test"]
-            tests[test["id"]] = test
-            buffers[test["id"]] = []
-        elif etype == "print":
-            buffers.setdefault(event["testID"], []).append(("print", event["message"]))
-        elif etype == "error":
-            buffers.setdefault(event["testID"], []).append(("error", event))
-        elif etype == "testDone":
-            tid = event["testID"]
-            entries = buffers.pop(tid, [])
-            if event.get("hidden"):
-                # 読み込み成功のノイズ。中身も要らない
-                continue
-            if event.get("skipped"):
-                skipped += 1
-                continue
-            if event.get("result") == "success":
-                passed += 1
-                output = _render_output(tests.get(tid), entries)
-                if output:
-                    blocks.append(output)
-                continue
-            # "failure"（assert 失敗）/ "error"（例外・コンパイルエラー等）
-            failed += 1
-            blocks.append(_render_failure(tests.get(tid), entries))
+        try:
+            new_elapsed = _handle_event(event, tests, buffers, blocks, counts)
+        except Exception:
+            # 想定外の形のイベント。このイベントだけ捨てて次に進む
+            # （集計・終了コードを壊さない。件数は最後にまとめて警告する）
+            discarded += 1
+            continue
+        if new_elapsed is not None:
+            elapsed_ms = new_elapsed
+
+    if discarded:
+        print(
+            f"警告: 解釈できないイベントを {discarded} 件捨てました"
+            "（--machine の出力形式が想定と違う可能性があります）。",
+            file=sys.stderr,
+        )
 
     if not saw_json:
         # JSON を1行も読めなかった＝ flutter test が集計以前に落ちている。
@@ -204,11 +262,11 @@ def main() -> int:
         print(block)
         print()
 
-    parts = [f"{passed} passed"]
-    if failed:
-        parts.append(f"{failed} failed")
-    if skipped:
-        parts.append(f"{skipped} skipped")
+    parts = [f"{counts['passed']} passed"]
+    if counts["failed"]:
+        parts.append(f"{counts['failed']} failed")
+    if counts["skipped"]:
+        parts.append(f"{counts['skipped']} skipped")
     elapsed_s = round(elapsed_ms / 1000)
     print(f"{', '.join(parts)} ({elapsed_s}s)")
     return 0
