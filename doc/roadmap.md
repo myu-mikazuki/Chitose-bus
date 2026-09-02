@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-09-02
+最終更新: 2026-09-03
 
 ---
 
@@ -21,8 +21,8 @@
 | 3 | [#240](https://github.com/myu-mikazuki/Chitose-bus/issues/240) | 拡大 1.5 で `_StopTab` の中身が縦に溢れる | **develop 済み**（PR #252） |
 | 4 | [#242](https://github.com/myu-mikazuki/Chitose-bus/issues/242) | 時刻表リストの行ヘッダが拡大 2.0 で横に溢れる | **develop 済み**（PR #254） |
 | 5 | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 測る網を広げる（`koizumi` 固定で測っていた穴を塞ぐ。production の修正は無し） | **develop 済み**（PR #255） |
-| 6 | [#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261) | `flutter test` の出力を圧縮するラッパースクリプトを用意する（開発用ツール） | |
-| 7 | [#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260) | 横スクロールの感度を調整する | |
+| 6 | [#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261) | `flutter test` の出力を圧縮するラッパースクリプトを用意する（開発用ツール） | **develop 済み**（PR #262） |
+| 7 | [#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260) | 横スクロールの感度を調整する | PR #263（レビュー通過・マージ待ち） |
 | — | [#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253) | **2026年10月1日からの新ダイヤに対応**（108便→168便） | **2026-10-01 まで** |
 | 8 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
 | 9 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
@@ -37,7 +37,10 @@
   触らない開発用ツールで、アプリの動作は何も変わらない。v1.3.2 には入れるが、
   リリースノートには載せない。**
 - **[#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260)** — 横スクロールの感度を調整する。
-  **まだ着手しない。** ここに順序として載せてあるだけ
+  **PR #263**（`fix/issue-260`・レビュー通過）。縦ドラッグバリア（`_wrapVerticalDragBarrier`）を
+  `_StopTab` の内側2箇所から `TabBarView` の各 child の最外周へ移し、常時掛ける形に
+  直した。`active` フラグ（(c)・拡大 1.3 超のときだけ外す仕組み）は廃止。
+  詳しくは `home_screen.dart` の `_wrapVerticalDragBarrier` のドキュメント参照
 
 **v1.3.0 はリリース済み**（2026-08-16 審査提出・2026-08-31 両ストア公開）。
 **v1.3.1 は 2026-08-31 に main へマージ・タグ済みで、いまストアの審査待ち。**
