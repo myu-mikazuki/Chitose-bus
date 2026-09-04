@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_colors_theme.dart';
+import '../../core/theme/text_scale.dart';
 import '../../domain/entities/bus_schedule.dart';
 import '../viewmodels/banner_ad_viewmodel.dart';
 import '../viewmodels/favorite_tab_viewmodel.dart';
@@ -22,6 +23,71 @@ class HomeScreen extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+/// `TabBarView`（内部は `PageView`）の各ページの一番外側を包み、縦ドラッグが
+/// 横スワイプ（タブ切り替え）に奪われるのを防ぐバリア（#260）。
+///
+/// ## なぜ要るか
+///
+/// `PageView` は `HorizontalDragGestureRecognizer` を持つ。ジェスチャー
+/// アリーナに縦の recognizer が1つも参加していないと、横の recognizer が
+/// アリーナで唯一のメンバーになり、アリーナが閉じた時点で無条件に勝つ。
+/// すると縦スワイプのわずかな横成分がすべてページ送りに使われ、隣のタブへ
+/// 飛んでしまう。このバリアは「縦の recognizer を必ず1つアリーナに参加させる」
+/// ための空の `onVerticalDragUpdate` ハンドラで、それ自体は何もしない
+/// （縦方向の recognizer がアリーナに存在すること自体が目的）。
+///
+/// ## なぜ内側のスクロールを壊さないか
+///
+/// ヒットテストは子を先に処理してから自分を結果に加える
+/// （`RenderProxyBoxWithHitTestBehavior` 系の作り）ため、`ListView` /
+/// `SingleChildScrollView` のスクロール recognizer は、このバリアより**先に**
+/// アリーナへ参加する。縦ドラッグが縦の slop を超えると、先に参加した内側の
+/// recognizer が先に自己受理してアリーナを勝ち取るので、内側のスクロールは
+/// 今までどおり動く（`ScheduleList` は有界時、自前の `SingleChildScrollView`
+/// でスクロールする——`schedule_list.dart` 参照。このバリアの外側から包んでも
+/// 実際にスクロールが動くことをテストで確認済み）。バリアが効くのは、
+/// 内側に縦の recognizer が居ない場面
+/// ——余白・見出し・(c) で中身が画面に収まっていて `SingleChildScrollView` が
+/// `setCanDrag(false)` により recognizer を持たないとき——に限られる。
+///
+/// ## 置き場所: `_StopTab` の内側ではなく `TabBarView` の各 child の最外周
+///
+/// かつては `_StopTab` の内側2箇所（NEXT BUS カード・時刻表リスト）にだけ
+/// 掛け、(c)（`useFullScroll`・拡大 1.3 超）のときは `active: false` で
+/// 外していた。だが (c) では外側の `SingleChildScrollView` の**外**（
+/// `SegmentedButton` の周り・見出しの行・フッタの余白）にバリアが無くなり、
+/// そこを掴んで斜めに引くと横に取られる穴が残っていた。
+///
+/// ここ（`TabBarView` の各 child の最外周）に常時1つ掛ければ、(c) の
+/// `SingleChildScrollView` は必ずこのバリアの子孫になる。**スクロール可能な
+/// ときは内側の recognizer が先に勝ち、中身が収まってスクロール不要な
+/// ときはバリアが縦を吸ってページ送りを防ぐ**——両方が同時に成り立つので、
+/// `active` フラグはもう要らない。`_StopNotFetched` / `_StopHasNoBus` の
+/// ような静的なページも同じ場所で一緒に守れる。
+///
+/// ## `HitTestBehavior.opaque` が要る理由
+///
+/// 既定（`HitTestBehavior.deferToChild`）は、子が自分をヒットテストしない
+/// 限り自分もヒットテストされない。`RenderFlex`（`Row`/`Column`）や
+/// `RenderPadding` は自分自身をヒットテストしないので、`SegmentedButton` の
+/// 周りや見出し・フッタの**余白**（文字の上ではない部分）を掴んだドラッグ
+/// では、このバリアがそもそもアリーナに参加せず穴が残る。`opaque` にして、
+/// 子が透明でも自分がヒットテストの対象になるようにする。
+///
+/// [key] は呼び出し側の `Key` をそのまま渡すこと。`TabBarView.children` は
+/// 停留所の並べ替え・追加で入れ替わるため、直下の要素が停留所ごとの `Key`
+/// （`ValueKey(stopId)`）を持たないと、Flutter の子リスト差分検出（key に
+/// よる要素の再利用）が働かず、並び替え時に State（選択中の行き先・
+/// スクロール位置など）が正しい停留所に追随しなくなる。
+Widget _wrapVerticalDragBarrier(Widget child, {Key? key}) {
+  return GestureDetector(
+    key: key,
+    behavior: HitTestBehavior.opaque,
+    onVerticalDragUpdate: (_) {},
+    child: child,
+  );
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
@@ -384,26 +450,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       controller: _tabController,
                       children: [
                         for (final id in stopIds)
-                          // オフラインで停留所を足すと、その停留所の時刻を
-                          // 持たないキャッシュを表示することになる。
-                          // 「便が1本も無い」と区別して伝える（#177）
-                          if (!result.data.covers(id))
-                            _StopNotFetched(
-                              key: ValueKey('notFetched_$id'),
-                              onRetry: () => ref
-                                  .read(scheduleViewModelProvider.notifier)
-                                  .refresh(),
-                            )
-                          else
-                            _StopTab(
-                              key: ValueKey(id),
-                              timetable: result.data.current,
-                              stopId: id,
-                              stopMaster: result.data.stopMaster,
-                              updatedAt: result.data.updatedAt,
-                              dayType: dayType,
-                              season: season,
-                            ),
+                          // 縦ドラッグが横スワイプ（タブ切り替え）に奪われる
+                          // のを防ぐバリア（#260）。各ページの最外周に常時
+                          // 掛ける——理由は [_wrapVerticalDragBarrier] 参照。
+                          // **key は中身と同じ値を付ける**（並べ替え時の
+                          // State 追随のため。関数のドキュメント参照）
+                          !result.data.covers(id)
+                              ? _wrapVerticalDragBarrier(
+                                  key: ValueKey('notFetched_$id'),
+                                  // オフラインで停留所を足すと、その停留所の
+                                  // 時刻を持たないキャッシュを表示すること
+                                  // になる。「便が1本も無い」と区別して
+                                  // 伝える（#177）
+                                  _StopNotFetched(
+                                    onRetry: () => ref
+                                        .read(
+                                            scheduleViewModelProvider.notifier)
+                                        .refresh(),
+                                  ),
+                                )
+                              : _wrapVerticalDragBarrier(
+                                  key: ValueKey(id),
+                                  _StopTab(
+                                    timetable: result.data.current,
+                                    stopId: id,
+                                    stopMaster: result.data.stopMaster,
+                                    updatedAt: result.data.updatedAt,
+                                    dayType: dayType,
+                                    season: season,
+                                  ),
+                                ),
                       ],
                     ),
                   ),
@@ -719,29 +795,81 @@ TextStyle _sectionTitleStyle(BuildContext context) => TextStyle(
       letterSpacing: 3,
     );
 
-/// 節の見出しと、いま見ている停留所の**正式名**を1行に並べる（#208）。
+/// 節の見出しと、いま見ている停留所の名前を1行に並べる。
 ///
-/// タブは短縮名（#207）でもさらに省略される。375px・上限の5タブではラベルに
-/// 27px しか残らず、どれも1字＋`…` に切れるため、**タブだけでは見ている停留所を
-/// 確定できない**。ここは幅が足りるので、`labelOf`（= `shortLabel ?? label`）では
-/// なく [BusStopLookup.officialLabelOf] を引く。
+/// ## 経緯（#208 → #245）
+///
+/// **#208**: タブは短縮名（#207）でもさらに省略される。375px・上限の5タブでは
+/// ラベルに 27px しか残らず、どれも1字＋`…` に切れるため、**タブだけでは見ている
+/// 停留所を確定できない**。そこでここだけは幅が足りるとみて、`labelOf`
+/// （= `shortLabel ?? label`）ではなく [BusStopLookup.officialLabelOf]（正式名）を
+/// 常時出すことにした。
+///
+/// **#245（今回）**: #237 で拡大設定を実測すると、375px・1.15倍（Android の
+/// 「大」）から正式名が `古泉循環器内科クリニ…` のように切れ始めていた。
+/// `Expanded` + ellipsis は overflow を起こさず黙って切るので、#208 の
+/// 「削らずに正式名を出す」という約束は**拡大設定を掛けた瞬間に破れていた**。
+///
+/// #208 が正式名を置いた理由（「タブだけでは停留所を確定できない」）自体は
+/// 消えていない。ただし**常時出さなくても、タップで出せれば同じ用を足せる**
+/// （`ArrivalRow` の #241 と同じ考え方）。そこで既定を短縮名
+/// （[BusStopLookup.labelOf]）に戻し、**タップした場所でその場でトグル**して
+/// 正式名に切り替える形にした。短縮名は最長5文字（`O･A入口`）なので、375px なら
+/// 拡大設定を掛けてもまず溢れない。
 ///
 /// **見出しと同じ行に置く。** 独立した1行にすると縦が 35px 増え、短い画面
 /// （800x600）で `_StopTab` の Column が溢れる。この画面は NEXT BUS のサイズが
 /// そのまま下を押す作りで縦の余裕がほとんど無い（#124）ため、行を増やさずに済む
-/// 置き方を採る。
+/// 置き方を採る。**#245 でトグルにした後も、1行下や独立行には出さない**——
+/// 縦を1pxも増やさないのは、#240（`_StopTab` の縦の溢れ）と縦の予算を奪い合う
+/// ため。正式名を出した状態＋高倍率では入りきらないことがあり、そこは
+/// ellipsis で切れてよい（タップして自分で開いた状態なので）。
+///
+/// 読み上げ（`Semantics`）はトグルの状態に関わらず**常に正式名**を渡す。画面には
+/// 短縮名しか出ないタイミングがある以上、スクリーンリーダー利用者には最初から
+/// 正式名で確定させておく（`_StopLabelPlaceholder`・`ArrivalRow` に前例がある）。
 ///
 /// 使うのは**一番上の見出しだけ**。同じ停留所を2度書いても情報は増えない。
-class _StopSectionHeader extends StatelessWidget {
-  const _StopSectionHeader({required this.title, required this.boardingLabel});
+class _StopSectionHeader extends StatefulWidget {
+  const _StopSectionHeader({
+    required this.title,
+    required this.stopId,
+    required this.stopMaster,
+  });
 
   final String title;
 
-  /// 乗車地の正式名。`◯◯ 発` の形で出す
-  final String boardingLabel;
+  /// 乗車地の停留所 ID
+  final String stopId;
+
+  /// 停留所の表示名の供給元（GAS の stopMaster）
+  final List<BusStop> stopMaster;
+
+  @override
+  State<_StopSectionHeader> createState() => _StopSectionHeaderState();
+}
+
+class _StopSectionHeaderState extends State<_StopSectionHeader> {
+  // タップで正式名を出すかどうか。既定は短縮名（false）
+  bool _showOfficial = false;
+
+  @override
+  void didUpdateWidget(_StopSectionHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 停留所を切り替えたら開いた状態を持ち越さない。前の停留所で正式名を
+    // 出したままだと、切り替え後もタップした覚えのない停留所の正式名が
+    // 出て混乱する（`ArrivalRow` の #241 と同じ考え方）
+    if (oldWidget.stopId != widget.stopId) {
+      _showOfficial = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final shortLabel = widget.stopMaster.labelOf(widget.stopId);
+    final officialLabel = widget.stopMaster.officialLabelOf(widget.stopId);
+    final displayLabel = _showOfficial ? officialLabel : shortLabel;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
@@ -751,20 +879,51 @@ class _StopSectionHeader extends StatelessWidget {
         // ぶんは名前へ回らない。375px で名前に使える幅は **211px → 165.5px**
         // まで落ちる（実測）。`title` は 'NEXT BUS' / 'SCHEDULE' の固定文字列で、
         // 縮むべきは名前のほうではない
-        Text(title, style: _sectionTitleStyle(context)),
+        Text(widget.title, style: _sectionTitleStyle(context)),
         const SizedBox(width: 12),
-        // 375px なら実データで最も長い名前（オフィス・アルカディア入口）まで
-        // 収まる。文字を大きくする設定や、より狭い画面のための ellipsis
+        // タップ領域は Expanded の中に GestureDetector を置く。右寄せテキスト
+        // だが、当たり判定は Expanded の幅いっぱい（HitTestBehavior.opaque）
+        // なので、文字の外側をタップしても反応する
         Expanded(
-          child: Text(
-            '$boardingLabel 発',
-            textAlign: TextAlign.end,
-            overflow: TextOverflow.ellipsis,
-            softWrap: false,
-            style: TextStyle(
-              color: context.appColors.textPrimary,
-              fontSize: 14,
-              letterSpacing: 1,
+          // **`MergeSemantics` で自分だけの境界を作る。** `GestureDetector`
+          // 単体では自分の tap アクションの SemanticsNode を独立させない
+          // ——このヘッダーの左右に他の操作可能な要素が無いため、
+          // 何もしないと tap アクションと正式名ラベルが
+          // 一番近い既存の境界（`TabBarView` の各ページ＝`role: tabPanel`）
+          // までそのまま這い上がり、'NEXT BUS' や
+          // "TODAY'S SCHEDULE"・フッタの更新日時まで**1つの読み上げ単位に
+          // 巻き込んで**しまう（`debugDumpSemanticsTree()` で実際に確認した。
+          // その状態だとタブパネル全体のどこをダブルタップしても
+          // このトグルが起動してしまい、'NEXT BUS' 等の周辺テキストも
+          // 個別に読み上げられなくなる）。`MergeSemantics` は
+          // `isSemanticBoundary = true` を立てるので、この Widget 自身を
+          // 上への巻き込みから切り離せる
+          child: MergeSemantics(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _showOfficial = !_showOfficial),
+              child: Semantics(
+                // 画面には短縮名しか出ないタイミングがあるので、読み上げは
+                // トグルの状態に関わらず常に正式名で確定させる。子の Text
+                // 自身の読み上げ（短縮名 or 正式名）は二重に読ませないよう
+                // 除外する（`GestureDetector` は既定で子孫の `Semantics` を
+                // 自分のタップ操作のノードにマージするため、ここで
+                // `excludeSemantics` しないと二重に読まれる。`ArrivalRow`
+                // の #241 で実際に確認済みの罠）
+                label: '$officialLabel 発',
+                excludeSemantics: true,
+                child: Text(
+                  '$displayLabel 発',
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: TextStyle(
+                    color: context.appColors.textPrimary,
+                    fontSize: 14,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -801,10 +960,12 @@ class _StopLabelPlaceholder extends StatelessWidget {
   /// `scale(42)` は 42pt の字の曲線を引いてしまい、実際のラベル（14px）に
   /// 掛かる倍率とは別物になる。**ラベル自身の字の大きさから比率を出すこと。**
   /// `TextScaler.linear` では一致するので、**テストは緑のまま実機だけずれる。**
+  ///
+  /// 比率の出し方自体は `core/theme/text_scale.dart` の [textScaleRatio] に
+  /// まとめた（#240）。ここは元のフォントサイズ（`DefaultTextStyle`）を渡すだけ。
   static double scaledWidth(BuildContext context) {
     final fontSize = DefaultTextStyle.of(context).style.fontSize ?? 14.0;
-    final ratio = MediaQuery.textScalerOf(context).scale(fontSize) / fontSize;
-    return width * ratio;
+    return width * textScaleRatio(context, baseFontSize: fontSize);
   }
 
   @override
@@ -832,7 +993,10 @@ class _StopLabelPlaceholder extends StatelessWidget {
 /// オフラインで停留所を足すと起きる。「時刻表データなし」（便が1本も無い）とは
 /// 別物なので、取得すれば出ることが分かる言い方にする。
 class _StopNotFetched extends StatelessWidget {
-  const _StopNotFetched({super.key, required this.onRetry});
+  // key はここでは受けない。呼び出し側（`_HomeScreenState`）は
+  // `TabBarView` の並べ替え対応のため、`_wrapVerticalDragBarrier` の
+  // 外側の `GestureDetector` に key を付ける（#260）
+  const _StopNotFetched({required this.onRetry});
 
   final VoidCallback onRetry;
 
@@ -865,8 +1029,8 @@ class _StopNotFetched extends StatelessWidget {
 }
 
 class _StopTab extends StatefulWidget {
+  // key はここでは受けない。理由は [_StopNotFetched] の注記と同じ（#260）
   const _StopTab({
-    super.key,
     required this.stopId,
     required this.stopMaster,
     required this.timetable,
@@ -955,12 +1119,26 @@ class _StopTabState extends State<_StopTab> {
     // 便が1本も無い**という状態で、ここでだけ言える（#177）
     if (_destinations.isEmpty) return const _StopHasNoBus();
 
-    return Column(
+    // 拡大時の縦の溢れへの対処（#240）。まず (a) 余白を詰めて凌ぎ、
+    // `kVerticalScrollThreshold` を超えたら (c) 画面ごとスクロールに切り替える
+    // （下の `Expanded` を外し、`_buildScheduleSection` が入れ替える）。
+    // 比率の出し方・しきい値・詰め方は `core/theme/text_scale.dart` にまとめてある
+    // ——`_NextBusCard`（`next_bus_display.dart`）も同じしきい値を見ている。
+    // **等倍（ratio <= 1.0）では useFullScroll は false・squeeze は 1.0 になり、
+    // 何も変わらない。**
+    // **判定は `core/theme/text_scale.dart` に置いてある。** ここで
+    // `ratio > kVerticalScrollThreshold ? 1.0 : ...` と書くと、同じ判定を
+    // 書き忘れた側（`_NextBusCard`）だけ詰まったままになる事故が起きる
+    // （PR #252 のレビュー指摘で実際に踏んだ）
+    final useFullScroll = useVerticalScroll(context);
+    final squeeze = verticalSqueezeOf(context);
+
+    final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Column(
+        Padding(
+          padding: EdgeInsets.fromLTRB(16, 16 * squeeze, 16, 0),
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 現在は無効化中だが、再有効化したときにここへ出る
@@ -994,7 +1172,7 @@ class _StopTabState extends State<_StopTab> {
             ),
           ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: EdgeInsets.fromLTRB(16, 16 * squeeze, 16, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1002,31 +1180,33 @@ class _StopTabState extends State<_StopTab> {
               if (widget.dayType == null) ...[
                 _StopSectionHeader(
                   title: 'NEXT BUS',
-                  boardingLabel:
-                      widget.stopMaster.officialLabelOf(widget.stopId),
+                  stopId: widget.stopId,
+                  stopMaster: widget.stopMaster,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8 * squeeze),
                 // IndexedStack で両方向の NextBusDisplay を常時保持し、
                 // 本部棟↔千歳駅切り替え時のレイアウトガタつきを防ぐ。
-                // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-                // ジェスチャーアリーナに参加し、縦スワイプをここで消費する。
-                // これにより TabBarView（PageView）への伝播を防ぐ。
-                GestureDetector(
-                  onVerticalDragUpdate: (_) {},
-                  child: IndexedStack(
-                    index: _destinations.indexOf(_destination).clamp(0, 99),
-                    children: [
-                      for (final d in _destinations)
-                        NextBusDisplay(
-                          timetable: widget.timetable,
-                          stopId: widget.stopId,
-                          stopMaster: widget.stopMaster,
-                          destination: d,
-                        ),
-                    ],
-                  ),
+                //
+                // **縦ドラッグバリアはここには無い。** かつてはここにも
+                // `_wrapVerticalDragBarrier` を掛けていたが、(c) では外さ
+                // ざるを得ず、`SegmentedButton` の周りや余白も含めて穴に
+                // なっていた（#260）。いまは `TabBarView` の各 child の
+                // 最外周でトップレベルの `_wrapVerticalDragBarrier`
+                // を1つだけ掛けている——ヒットテスト順で内側のスクロール
+                // 可能な要素が先に勝つので、ここに個別のバリアは要らない
+                IndexedStack(
+                  index: _destinations.indexOf(_destination).clamp(0, 99),
+                  children: [
+                    for (final d in _destinations)
+                      NextBusDisplay(
+                        timetable: widget.timetable,
+                        stopId: widget.stopId,
+                        stopMaster: widget.stopMaster,
+                        destination: d,
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24 * squeeze),
                 // 乗車地は上の NEXT BUS 側に出ているので、ここでは繰り返さない
                 Text("TODAY'S SCHEDULE", style: _sectionTitleStyle(context)),
               ] else
@@ -1034,10 +1214,10 @@ class _StopTabState extends State<_StopTab> {
                 // こちらになるので、乗車地はここに乗せる
                 _StopSectionHeader(
                   title: 'SCHEDULE',
-                  boardingLabel:
-                      widget.stopMaster.officialLabelOf(widget.stopId),
+                  stopId: widget.stopId,
+                  stopMaster: widget.stopMaster,
                 ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8 * squeeze),
             ],
           ),
         ),
@@ -1045,32 +1225,9 @@ class _StopTabState extends State<_StopTab> {
         // 本部棟↔千歳駅切り替え時にスクロール位置が独立して維持される。
         // PageStorageKey でスクロール位置を方向ごとに永続化する
         // （当日/ダイヤ種別ごとに独立させるため dayType もキーに含める）。
-        // onVerticalDragUpdate を指定することで VerticalDragGestureRecognizer が
-        // ジェスチャーアリーナに参加し、スクロール不可時の縦スワイプを消費する。
-        // これにより TabBarView（PageView）への伝播を防ぐ。
-        Expanded(
-          child: GestureDetector(
-            onVerticalDragUpdate: (_) {},
-            child: IndexedStack(
-              index: _destinations.indexOf(_destination).clamp(0, 99),
-              children: [
-                for (final d in _destinations)
-                  ScheduleList(
-                    key: ValueKey(
-                        '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
-                    timetable: widget.timetable,
-                    stopId: widget.stopId,
-                    stopMaster: widget.stopMaster,
-                    destination: d,
-                    dayType: widget.dayType,
-                    season: widget.season,
-                  ),
-              ],
-            ),
-          ),
-        ),
+        _buildScheduleSection(expand: !useFullScroll),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: EdgeInsets.fromLTRB(16, 8 * squeeze, 16, 16 * squeeze),
           child: Text(
             '更新: ${widget.updatedAt}',
             style:
@@ -1079,5 +1236,92 @@ class _StopTabState extends State<_StopTab> {
         ),
       ],
     );
+
+    if (!useFullScroll) return content;
+
+    // (c) 拡大がしきい値を超えたときだけ画面ごとスクロールにする（#240）。
+    // `ScheduleList` は自分の `LayoutBuilder` で有界/非有界を見て、非有界
+    // （= `Expanded` を外した状態）なら自動で `ListView(shrinkWrap: true,
+    // physics: NeverScrollableScrollPhysics)` に切り替わる作り
+    // （`schedule_list.dart`・来週シートの `SingleChildScrollView` 直下と同じ
+    // 経路）なので、ここでは `Expanded` を外して `SingleChildScrollView` で
+    // 包むだけでよい。**(b) のように常時これを使うわけではない**——等倍を含む
+    // 大半の経路は元の `Expanded` + `IndexedStack` のままで、スクロール位置の
+    // 永続化（#177 以来の作り）を崩さない。
+    //
+    // **縦ドラッグバリアを外側に置くのが安全な理由（#260）。** この
+    // `SingleChildScrollView` は `TabBarView` の各 child の最外周に掛けた
+    // `_wrapVerticalDragBarrier`（このファイルのトップレベル関数）の子孫になる。
+    // 中身が画面に収まっていれば `SingleChildScrollView` は
+    // `setCanDrag(false)` で自分の drag recognizer を持たない——その場合は
+    // 外側のバリアだけがアリーナに残り、縦ドラッグを吸って横スワイプ
+    // （タブ切り替え）に取られるのを防ぐ。逆に中身が画面より大きければ
+    // `SingleChildScrollView` 自身が recognizer を持ち、ヒットテスト順で
+    // バリアより先にアリーナへ参加するため、こちらが勝って通常どおり
+    // スクロールできる。**バリアをこの内側（`SingleChildScrollView` の
+    // 中）に置くと、この二択が成り立たない**——中身が収まっている場面では
+    // どこにもバリアが無い状態に戻ってしまう。
+    return SingleChildScrollView(
+      // **内側の `ScheduleList` の `ValueKey` と同じ粒度にする。**停留所だけを
+      // キーにすると、行き先を切り替えても同じスクロール位置を共有してしまう
+      // （PR #252 のレビュー指摘）。内側のリストは行き先・ダイヤ種別・季節ごとに
+      // 位置を分けているので、外側だけ粗いと**切り替えた瞬間に外と内が別々の
+      // 位置を主張する**。上のしきい値を超えたときだけ通る経路だが、揃えておく。
+      //
+      // **副作用がある**（#265）。`_destination` が key に入っているので、
+      // 行き先を切り替えると widget の key 自体が変わる。key が変われば
+      // `Widget.canUpdate` が false になり、要素は再利用されずに作り直される
+      // ——`content` 以下（`IndexedStack` が保持する両方向の
+      // `NextBusDisplay` / `ScheduleList`、`_ScheduleRow` と `ArrivalRow` の
+      // 展開状態、`_StopSectionHeader` の正式名トグル）の State が破棄される。
+      // **この経路（しきい値超え）でだけ `IndexedStack` の State 保持が効かない。**
+      // 誤った表示にはならず、開いていたものが畳まれるだけなので v1.3.2 では
+      // 直していない。直すならスクロール位置の永続化ごと作り替えることになる
+      key: PageStorageKey('stopTabScroll_${widget.stopId}_${_destination}_'
+          '${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
+      child: content,
+    );
+  }
+
+  /// 時刻表リスト部分。`expand: true`（既定の等倍〜しきい値まで）では従来どおり
+  /// `Expanded` + `IndexedStack` に収め、`expand: false`（(c) の全体スクロール時）
+  /// では `Expanded` を外す——`SingleChildScrollView` の中で `Expanded` は使えない
+  /// （unbounded な高さに対して flex を要求してエラーになる）。
+  ///
+  /// **縦ドラッグバリアはここには無い。** 上の NEXT BUS 側と同じ理由で、
+  /// `TabBarView` の各 child の最外周に1つ掛けるだけで足りる（#260）。
+  ///
+  /// **`expand: false` では、`ScheduleList` の初回の `ensureVisible`（NEXT 行を
+  /// 見える位置に出す）が走らない**（#266）。`ScheduleList` は
+  /// `constraints.maxHeight.isFinite` で有界/非有界を見ており、`Expanded` を外すと
+  /// 非有界（`_isBounded == false`）になって `initState` の postFrame が早期
+  /// return する（`schedule_list.dart` 参照）。**あの早期 return はもともと
+  /// 来週ダイヤの BottomSheet のために置いたもので、(c) を足したことで
+  /// こちらも同じ経路に入るようになった。**
+  ///
+  /// **意図した挙動として受け入れている。** (c) では外側の
+  /// `SingleChildScrollView` が先頭——すなわち NEXT BUS カード——から始まるので、
+  /// NEXT の情報自体は最初から見えている。むしろ拡大している状態で開いた直後に
+  /// リストの途中まで飛ぶほうが、いま何を見ているのか分かりにくい。
+  /// **ここを変えるなら、外側のスクロールごと動かすことになる**ので、
+  /// `ScheduleList` 側の早期 return を緩めるだけでは済まない。
+  Widget _buildScheduleSection({required bool expand}) {
+    final stack = IndexedStack(
+      index: _destinations.indexOf(_destination).clamp(0, 99),
+      children: [
+        for (final d in _destinations)
+          ScheduleList(
+            key: ValueKey(
+                '${widget.stopId}_${d}_${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
+            timetable: widget.timetable,
+            stopId: widget.stopId,
+            stopMaster: widget.stopMaster,
+            destination: d,
+            dayType: widget.dayType,
+            season: widget.season,
+          ),
+      ],
+    );
+    return expand ? Expanded(child: stack) : stack;
   }
 }

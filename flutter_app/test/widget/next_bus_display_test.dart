@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
+import 'package:kagi_bus/presentation/views/widgets/arrival_row.dart';
 import 'package:kagi_bus/presentation/views/widgets/next_bus_display.dart';
 
 import '../helpers/test_theme.dart';
@@ -289,10 +290,135 @@ void main() {
             stopId: 'chitose')),
       );
 
-      expect(find.text('科技大研究棟 着'), findsOneWidget);
+      // #241: 到着行の既定表示は短縮名（`labelOf`）に戻した。
+      // `kenkyuto` の短縮名は '研究棟'（`kTestStopMaster` 参照）
+      expect(find.text('研究棟 着'), findsOneWidget);
+      expect(find.text('科技大研究棟 着'), findsNothing);
       // arrivalTime may equal busTime when both are capped at 23:58 (late-night run),
       // so use findsAtLeastNWidgets(1) instead of findsOneWidget.
       expect(find.text(arrivalTime), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('到着行をタップすると正式名と時刻が1行下に出る（#241）', (tester) async {
+      final busTime = safeFutureHhmm(60);
+      final arrivalTime = safeFutureHhmm(80);
+      final timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-03-31',
+        schedules: [
+          BusEntry(
+            time: busTime,
+            boardingStopId: 'chitose',
+            destination: '科技大',
+            arrivals: {'kenkyuto': arrivalTime},
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        _wrap(NextBusDisplay(
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
+      );
+
+      // タップ前は正式名は出ていない
+      expect(find.text('科技大研究棟'), findsNothing);
+
+      await tester.tap(find.text('研究棟 着'));
+      await tester.pumpAndSettle();
+
+      // タップ後は正式名と時刻（再掲）が1行下に出る
+      expect(find.text('科技大研究棟'), findsOneWidget);
+      expect(find.text(arrivalTime), findsAtLeastNWidgets(2));
+    });
+
+    testWidgets('略称側の Semantics label は正式名になる（#241）', (tester) async {
+      final busTime = safeFutureHhmm(60);
+      final arrivalTime = safeFutureHhmm(80);
+      final timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-03-31',
+        schedules: [
+          BusEntry(
+            time: busTime,
+            boardingStopId: 'chitose',
+            destination: '科技大',
+            arrivals: {'kenkyuto': arrivalTime},
+          ),
+        ],
+      );
+
+      // `find.bySemanticsLabel` / `tester.getSemantics` はセマンティクス
+      // ツリーが実際に組み立てられていないと何も見つからない。既定では
+      // 無効なので、テストの間だけ有効にする
+      final handle = tester.ensureSemantics();
+
+      await tester.pumpWidget(
+        _wrap(NextBusDisplay(
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
+      );
+
+      // 画面には短縮名しか出ないが、読み上げには正式名を渡す。
+      // **`ArrivalRow` 全体（`GestureDetector` の tap アクション）に、行内の
+      // 到着地・時刻の Text がまとめて1つの SemanticsNode にマージされる**
+      // （`GestureDetector` の既定の挙動）。マージ後のラベルは
+      // 「正式名 着\n時刻」になる。ここでは正式名が含まれることだけを
+      // 部分一致で確かめ、その正確な形（＝展開しても増えないこと）は
+      // 次のテストで主張する
+      expect(find.bySemanticsLabel(RegExp('科技大研究棟 着')), findsOneWidget);
+      handle.dispose();
+    });
+
+    testWidgets('到着行を展開しても Semantics の読み上げは二重にならない（#241）', (tester) async {
+      final busTime = safeFutureHhmm(60);
+      final arrivalTime = safeFutureHhmm(80);
+      final timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-03-31',
+        schedules: [
+          BusEntry(
+            time: busTime,
+            boardingStopId: 'chitose',
+            destination: '科技大',
+            arrivals: {'kenkyuto': arrivalTime},
+          ),
+        ],
+      );
+
+      final handle = tester.ensureSemantics();
+
+      await tester.pumpWidget(
+        _wrap(NextBusDisplay(
+            stopMaster: kTestStopMaster,
+            timetable: timetable,
+            stopId: 'chitose')),
+      );
+
+      // タップ前（既定行のみ）のマージ済みラベルは「正式名 着\n時刻」の1回だけ。
+      // `debugDumpSemanticsTree()` で実際に確かめた形をそのまま主張する
+      final arrivalRow = find.byType(ArrivalRow);
+      final collapsedLabel = tester.getSemantics(arrivalRow).label;
+      expect(collapsedLabel, '科技大研究棟 着\n$arrivalTime');
+
+      await tester.tap(find.text('研究棟 着'));
+      await tester.pumpAndSettle();
+
+      // タップして展開行（正式名＋時刻の再掲）が画面に出ても、読み上げには
+      // 何も足さない（`_buildExpandedRow` を `ExcludeSemantics` で包んで
+      // いるため）。読み上げは既にタップ前から正式名を渡しているので、
+      // 展開行の分だけラベルが伸びて「正式名 着\n時刻\n正式名\n時刻」の
+      // ように二重に読み上げられてはいけない
+      final expandedLabel = tester.getSemantics(arrivalRow).label;
+      expect(
+        expandedLabel,
+        collapsedLabel,
+        reason: '展開しても読み上げのラベルはタップ前と同じであるべき（二重に読ませない）',
+      );
+
+      handle.dispose();
     });
   });
 }

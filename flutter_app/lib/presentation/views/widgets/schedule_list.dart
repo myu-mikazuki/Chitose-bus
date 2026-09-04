@@ -7,6 +7,7 @@ import '../../../domain/entities/lecture_period.dart';
 import '../../viewmodels/display_settings_viewmodel.dart';
 import '../../viewmodels/notification_viewmodel.dart';
 import '../../viewmodels/schedule_viewmodel.dart';
+import 'arrival_row.dart';
 
 class ScheduleList extends ConsumerStatefulWidget {
   const ScheduleList({
@@ -61,6 +62,13 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
       // 非有界コンテキスト（来週ダイヤ BottomSheet 等）はスクロールしない。
       // nextBus が null の場合は _nextBusKey が付与されず currentContext が null となり
       // スクロールは発生しない（意図通り）。
+      //
+      // **非有界になる経路がもう1つ増えた**（#240 / #266）。文字拡大が
+      // `kVerticalScrollThreshold` を超えると `_StopTab` が画面ごとスクロールに
+      // 切り替わり、`Expanded` が外れてここも非有界になる。そちらでも
+      // 自動スクロールは走らないが、外側のスクロールが NEXT BUS カードから
+      // 始まるので意図した挙動として受け入れている
+      // （`home_screen.dart` の `_buildScheduleSection` 参照）。
       if (!_isBounded) return;
       final ctx = _nextBusKey.currentContext;
       if (ctx != null) {
@@ -197,6 +205,9 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
         ),
         child: Text(
           period.label,
+          // 下の系統タグと同じ理由（#242 / PR #254 の指摘）
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: color,
             fontSize: 10,
@@ -204,7 +215,9 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
           ),
         ),
       ),
-      const SizedBox(width: 8),
+      // **末尾に `SizedBox(width: 8)` を付けないこと**（#242）。返り値は
+      // `Wrap` の子として並べるので、区切りは `Wrap` の `spacing` が持つ。
+      // 付けると二重に空いて等倍の見た目が変わる
     ];
   }
 
@@ -246,55 +259,29 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
     );
   }
 
-  /// 到着行。**NEXT BUS カード（`next_bus_display.dart`）と同じものを出す。**
+  /// 到着行。**中身は `ArrivalRow`（`arrival_row.dart`）に切り出した。**
   ///
-  /// 降りる停留所を確かめる場所なので、短縮名ではなく正式名を引く（#234）。
-  /// 同じ便の到着地が画面の2箇所で違う名前になるのを避けるため、あちらと
-  /// 揃えている。字の大きさ（12px / 14px）も同じ。
+  /// NEXT BUS カード（`next_bus_display.dart`）と同じ Row が複製されていて、
+  /// #231 → #234 → #241 と3回続けて両方を直す羽目になったため、1箇所に
+  /// まとめた（#241）。既定表示・タップで正式名を出す判断の経緯・
+  /// 3経路の幅の実測（300 / 303 / 335px）は `ArrivalRow` のドキュメント
+  /// コメントを見ること。
   ///
-  /// **この行はカードより広い。**`left: 8` だけ見ると狭そうだが、カード側は
-  /// 外の `Padding(16)` とカード自身の `horizontal: 20` を持っている。
-  /// 375px で実測すると、到着行の幅は経路ごとにこうなる:
-  ///
-  /// | 経路 | 幅 |
-  /// |---|---|
-  /// | NEXT BUS カード | **300px**（いちばん狭い） |
-  /// | 来週ダイヤの BottomSheet（`_showUpcomingSchedule`） | 303px |
-  /// | ホームの時刻表リスト | 335px |
-  ///
-  /// **最長の13文字が 375px で収まることは `long_stop_names_test.dart` で
-  /// 見ている。**いちばん狭いカードが通るので、こちらも通る。
-  /// **前提が崩れる向きは2つある**（#239 のレビュー指摘）。シートの
-  /// `EdgeInsets.all(16)` を**増やす**か、カード側の余白を**減らす**か。
-  /// どちらでも最狭が入れ替わるので、幅を守る場所を決めるときは
-  /// 3経路とも測り直すこと（#237）。
+  /// **この行の展開・折りたたみは2段になっている。** 親の `_ScheduleRow`
+  /// （このファイル）はタップで到着行そのものを出し入れする（`_expanded`）。
+  /// 到着行が出たあと、行ごとにさらにタップすると `ArrivalRow` 自身の
+  /// `_expanded` が正式名を出し入れする。**内側のタップは外側まで貫通しない**
+  /// （Flutter のジェスチャーアリーナで内側の `GestureDetector` が勝つ）ので、
+  /// 到着行をタップしても親の行が閉じることはない。
   List<Widget> _buildArrivalRows() {
-    final colors = context.appColors;
     final order = widget.bus.arrivals.keys.toList();
     return order
         .map((key) => Padding(
               padding: const EdgeInsets.only(top: 4, left: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${widget.stopMaster.officialLabelOf(key)} 着',
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 12,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  Text(
-                    widget.bus.arrivals[key]!,
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 14,
-                      letterSpacing: 2,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ],
+              child: ArrivalRow(
+                stopId: key,
+                time: widget.bus.arrivals[key]!,
+                stopMaster: widget.stopMaster,
               ),
             ))
         .toList();
@@ -341,38 +328,74 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (widget.bus.routeLabel != null) ...[
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: widget.isNext
-                            ? AppColors.onPrimary
-                            : colors.textTertiary,
+                // **中間の3つ（系統タグ・講義タグ・行き先）を `Wrap` に入れる**（#242）。
+                //
+                // 元は素の `Row` に固定幅で並べ、`Spacer` を挟むだけだったので
+                // **縮む余地が無く、停留所名と無関係に横へ溢れていた**
+                // （代替フォントの実測で 1.35、実フォントで 2.0）。既定の
+                // 4停留所でも同じ倍率で溢れる。
+                //
+                // **`Spacer` を `Expanded` に置き換えて中に `Wrap` を入れる**のが肝。
+                // `Wrap` には `Spacer` が無いので、素直に `Wrap` へ移すと
+                // `◀ NEXT` とベルが右端から離れてしまう。`Expanded` は
+                // `Spacer` と同じく残り幅を全部取るので、**等倍の見え方は
+                // 変わらないまま**、入らなくなった分だけ2段目へ流れる。
+                //
+                // **時刻とベルは `Wrap` に入れない。** 時刻は行の主役、ベルは
+                // タップ対象なので、位置が動くと押しにくい。
+                //
+                // `crossAxisAlignment` は `Row` の既定（center）のまま。
+                // 等倍では1段なので差が出ない
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (widget.bus.routeLabel != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: widget.isNext
+                                  ? AppColors.onPrimary
+                                  : colors.textTertiary,
+                            ),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            widget.bus.routeLabel!,
+                            // **枠の中で文字単位に割れるのを防ぐ**（#242 /
+                            // PR #254 の指摘）。`Wrap` の子は「その行に入る
+                            // ところまで」の幅しか貰えないので、拡大時に
+                            // `空港経由` が `空港経` / `由` の2行になって
+                            // タグの枠が崩れていた。**`Wrap` は折り返せてしまう
+                            // ぶん overflow 例外を出さないので、テストは緑の
+                            // まま見た目だけ壊れる。** 等倍では収まるので
+                            // ellipsis は働かない
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 10,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ..._buildLectureTagWidgets(),
+                      Text(
+                        widget.bus.destination,
+                        // 系統タグと同じ理由。1.7 で `科技大` が
+                        // `科技` / `大` に割れていた（#242 / PR #254 の指摘）
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: textColor, fontSize: 14, letterSpacing: 1),
                       ),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
-                      widget.bus.routeLabel!,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 10,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                ],
-                ..._buildLectureTagWidgets(),
-                Text(
-                  widget.bus.destination,
-                  style: TextStyle(
-                      color: textColor, fontSize: 14, letterSpacing: 1),
                 ),
-                // ベルアイコンを右端に配置するため全行に Spacer を挿入。
-                // isPast 行はベルを SizedBox.shrink() で返すため視覚的影響はない。
-                const Spacer(),
                 if (widget.isNext)
                   const Text(
                     '◀ NEXT',

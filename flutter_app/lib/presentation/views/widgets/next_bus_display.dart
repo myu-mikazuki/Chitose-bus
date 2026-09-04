@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_colors_theme.dart';
+import '../../../core/theme/text_scale.dart';
 import '../../../domain/entities/bus_schedule.dart';
 import '../../viewmodels/schedule_viewmodel.dart';
+import 'arrival_row.dart';
 
 class NextBusDisplay extends ConsumerWidget {
   const NextBusDisplay({
@@ -55,10 +57,12 @@ class NextBusDisplay extends ConsumerWidget {
 ///
 /// 終点が分からない供給元（未デプロイの GAS・#177 以前のキャッシュ）だけ
 /// destination をそのまま出す。
-/// **ここは短縮名のまま**（#234）。到着行を `officialLabelOf` に変えたときも
-/// 揃えていない。行き先は「どこ行きか」が分かればよく、降りる停留所を現地の
-/// 表記と突き合わせる到着行とは用途が違う。結果として同じカードに
-/// `→ 本部棟` と `科技大本部棟 着` が並ぶが、承知のうえ。
+/// **ここは常に短縮名**（#234 で到着行を正式名にしたときも揃えなかった。
+/// #241 で到着行が既定は短縮名・タップで正式名に変わり、既定表示は
+/// 見た目上揃ったが、**それは結果であって意図して揃えたわけではない**。
+/// 行き先は「どこ行きか」が分かればよく、降りる停留所を現地の表記と
+/// 突き合わせる到着行とは用途が違うので、今後どちらかの表示が変わっても
+/// このまま短縮名を使い続けてよい）。
 String destinationLabelOf(BusEntry entry, List<BusStop> stopMaster) {
   final terminus = entry.terminusStopId;
   return terminus != null ? stopMaster.labelOf(terminus) : entry.destination;
@@ -74,59 +78,24 @@ class _NextBusCard extends StatelessWidget {
   final DateTime now;
   final List<BusStop> stopMaster;
 
-  /// 到着行。**降りる停留所を確かめる場所なので正式名を出す**（#234）。
-  /// 字の大きさは**時刻表リスト（`schedule_list.dart`）と揃える**（#231）。
+  /// 到着行。**中身は `ArrivalRow`（`arrival_row.dart`）に切り出した。**
   ///
-  /// `labelOf`（= `shortLabel ?? label`）はタブの幅が無いために作った短縮名を
-  /// 返す。#207 で31件すべてに `shortLabel` が付いた結果、**幅が足りている
-  /// この行にまで短縮名が及んでいた**（`古泉循環器内科クリニック前 着` →
-  /// `古泉 着`）。短縮名は現地の停留所の表記とは別物なので、ここで突き合わせ
-  /// られない。**既定の4停留所の見え方も変わる**（`本部棟 着` →
-  /// `科技大本部棟 着`）が、それを承知で正式名に寄せている。
+  /// 同じ Row が時刻表リスト（`schedule_list.dart`）にも複製されていて、
+  /// #231 → #234 → #241 と3回続けて両方を直す羽目になったため、1箇所に
+  /// まとめた（#241）。既定表示・タップで正式名を出す判断の経緯・幅の実測は
+  /// すべて `ArrivalRow` のドキュメントコメントを見ること。
   ///
-  /// 正式名は最長でも13文字（`古泉循環器内科クリニック前` /
-  /// `オフィス・アルカディア入口`）で、下の幅の実測はその13文字で採ってある。
-  /// **短縮名から正式名に変えても最長は伸びない。**
-  ///
-  /// **到着行が出る3経路のうち、この 300px がいちばん狭い**（375px で実測）。
-  /// 時刻表リストはホームで 335px、来週ダイヤのシート経由で 303px。
-  /// 幅の主張はここで押さえれば足りる。
-  ///
-  /// 名前 13px / 時刻 18px では、短縮名を持たない停留所名（`オフィス・
-  /// アルカディア入口 着`）が 375px で **10px はみ出していた**（#231）。
-  /// この Row は `spaceBetween` に素の `Text` を2つ並べるだけなので、
-  /// 名前が伸びると縮まずに溢れる。
-  ///
-  /// 同じ「◯◯ 着 ＋ 時刻」を出す時刻表リストが元から 12px / 14px で、
-  /// そちらは溢れていない。**2箇所で字の大きさを変える理由が無い**ので揃えた。
-  /// 375px で 300px 中 265px、360px でも収まる。
-  List<Widget> _buildArrivalRows(BusEntry entry, BuildContext context) {
-    final colors = context.appColors;
+  /// この Widget（`_NextBusCard`）は StatelessWidget のまま。展開状態
+  /// （タップして正式名を出すかどうか）は行ごとに `ArrivalRow` 自身が持つ。
+  List<Widget> _buildArrivalRows(BusEntry entry) {
     final order = entry.arrivals.keys.toList();
     return order
         .map((key) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${stopMaster.officialLabelOf(key)} 着',
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 12,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  Text(
-                    entry.arrivals[key]!,
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 14,
-                      letterSpacing: 2,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ],
+              child: ArrivalRow(
+                stopId: key,
+                time: entry.arrivals[key]!,
+                stopMaster: stopMaster,
               ),
             ))
         .toList();
@@ -138,9 +107,21 @@ class _NextBusCard extends StatelessWidget {
     final minutes = entry.minutesFromNow(now: now);
     final minLabel = _formatCountdown(minutes);
 
+    // 拡大時だけカードの縦の余白を詰める（#240 の (a)）。
+    //
+    // **`verticalSqueezeFactor` を直に呼ばないこと。**しきい値
+    // （`kVerticalScrollThreshold`）を超えると `_StopTab` 側が全体スクロールに
+    // 切り替える（(c)）が、**このカードはその中で描かれ続ける。**下限で
+    // 頭打ちになった倍率をそのまま使うと、縦はいくらでも使えるのに
+    // カードの中だけ詰まったままになる（PR #252 のレビュー指摘で実際に踏んだ）。
+    // `verticalSqueezeOf` はしきい値を超えたら 1.0 を返す。
+    //
+    // **等倍（ratio <= 1.0）では 1.0 になり、1pxも変わらない。**
+    final squeeze = verticalSqueezeOf(context);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      padding: EdgeInsets.symmetric(vertical: 24 * squeeze, horizontal: 20),
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.secondary, width: 1.5),
         borderRadius: BorderRadius.circular(8),
@@ -189,7 +170,7 @@ class _NextBusCard extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8 * squeeze),
           Text(
             entry.time,
             style: TextStyle(
@@ -204,7 +185,7 @@ class _NextBusCard extends StatelessWidget {
           // 以前は「千歳駅のときだけ出す」と乗車地を名指ししていたが、GAS が
           // 他の停留所にのりばを足したら出す、が正しい（#177）
           if (entry.platformNumber != null) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4 * squeeze),
             Text(
               '${entry.platformNumber}のりば',
               style: TextStyle(
@@ -214,7 +195,7 @@ class _NextBusCard extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 8),
+          SizedBox(height: 8 * squeeze),
           Text(
             minLabel,
             style: TextStyle(
@@ -225,10 +206,10 @@ class _NextBusCard extends StatelessWidget {
           ),
           // 到着時刻（arrivalsが空でない場合のみ表示）
           if (entry.arrivals.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12 * squeeze),
             Divider(color: colors.divider, height: 1),
-            const SizedBox(height: 10),
-            ..._buildArrivalRows(entry, context),
+            SizedBox(height: 10 * squeeze),
+            ..._buildArrivalRows(entry),
           ],
         ],
       ),

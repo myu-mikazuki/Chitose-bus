@@ -252,6 +252,7 @@ GitHub Actions の **iOS Build** ワークフロー（`workflow_dispatch`）か�
 
 | バージョン | 内容 |
 |-----------|------|
+| [v1.3.2](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.3.2) | 画面には短縮名・タップで正式名に統一、文字拡大時の縦 overflow・行ヘッダの overflow を修正、タブ横スワイプ時の縦ドラッグを抑止 |
 | [v1.3.1](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.3.1) | 全停留所に短縮名を追加、NEXT BUS カードに正式名を表示、到着行の overflow・文字拡大時のタブ overflow を修正 |
 | [v1.3.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.3.0) | 乗車地にするバス停を選べる機能を追加（上限5件）、祝日ダイヤの判定に対応、復路の南千歳着を修正、旧形式の応答でキャッシュが空に上書きされる不具合を修正 |
 | [v1.2.0](https://github.com/myu-mikazuki/Chitose-bus/releases/tag/v1.2.0) | 美々空港線の学休期ダイヤに対応、時刻表の有効期間表示を削除、GAS のスクリプトキャッシュを廃止 |
