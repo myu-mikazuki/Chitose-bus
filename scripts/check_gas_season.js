@@ -94,17 +94,25 @@ const v2 = doGetJson(2, '2026-08-04');
 const v1 = doGetJson(1, '2026-08-04');
 const vNone = doGetJson(null, '2026-08-04');
 
+// 8/4 は学休期の平日。**令和8年10月1日改正のダイヤには学休期が無い**ため、
+// 期別で減る便は1本も無く、平日ダイヤがそのまま出る（#253）。
+// 改正前はここが14便（学休期のみ）で、v=2 の33便と差が出ていた。
+// 学休期が復活したらこの期待値も戻すこと。
 const expectedVacation = [
-  '07:20', '08:10', '08:40', '09:10', '09:50', '10:30', '11:00',
-  '11:29', '12:10', '12:19', '13:20', '14:29', '16:00', '18:00',
+  '06:29', '06:45', '06:59', '07:00', '07:15', '07:29', '07:34', '07:50',
+  '08:00', '08:10', '08:16', '08:19', '08:24', '08:29', '08:50', '09:04',
+  '09:19', '09:34', '09:50', '09:54', '10:04', '10:14', '10:45', '11:00',
+  '11:29', '11:50', '12:10', '12:19', '12:40', '13:20', '14:24', '14:50',
+  '15:18', '16:00', '18:29', '19:29',
 ];
 
 check('v=1 は当日(学休期)の便のみ',
   times(v1.current.schedules, 'from_chitose'), expectedVacation);
 check('v 未指定は v=1 と同じ',
   times(vNone.current.schedules, 'from_chitose'), expectedVacation);
-check('v=2 は全便を返す（授業期の便も含む）',
-  times(v2.current.schedules, 'from_chitose').length, 33);
+// 期別が無いので v=2 の全便と一致する。**一致しなくなったら期別が復活した合図**
+check('v=2 は全便を返す（学休期が無いので v=1 と同数）',
+  times(v2.current.schedules, 'from_chitose').length, expectedVacation.length);
 check('v=1 は期別フラグを含まない',
   v1.current.schedules.some((e) => 'academicOnly' in e || 'vacationOnly' in e), false);
 check('v=2 は期別フラグを含む',
@@ -112,9 +120,9 @@ check('v=2 は期別フラグを含む',
 
 // 授業期の平日
 const v1Academic = doGetJson(1, '2026-09-28');
-check('v=1 授業期は直通19便を含む',
+check('v=1 授業期は直通17便を含む',
   v1Academic.current.schedules
-    .filter((e) => e.direction === 'from_chitose' && e.routeLabel === '直通').length, 19);
+    .filter((e) => e.direction === 'from_chitose' && e.routeLabel === '直通').length, 17);
 
 // 年末年始
 const v1NewYear = doGetJson(1, '2027-01-01');
@@ -122,32 +130,33 @@ check('v=1 年末年始は空', v1NewYear.current.schedules.length, 0);
 check('v=2 年末年始も全便返す（アプリ側で判定）',
   doGetJson(2, '2027-01-01').current.schedules.length > 0, true);
 
-console.log('復路の南千歳着（大学配付物「学休期ダイヤ（修正版）」より）');
+console.log('復路の南千歳着（Issue #159 の回帰ガード）')
 
-// 復路は全便が南千歳駅を経由する。市の PDF は該当セルが黒塗りに見えるが
-// 通過を意味しない（Issue #159 の差し戻し）。大学版を正とする。
+// 空港経由・長都行きの復路は**全便が南千歳駅を経由する**。
+// 千歳市の旧 PDF（bibikuuko.pdf）は該当セルが黒塗りに見えるが、これは通過を
+// 意味しない。実際に通過と誤読して到着時刻を削除し本番に出した（#159／PR #176）。
+//
+// **令和8年10月1日改正版でこの食い違いは解消した。** 新 PDF
+// （bibi_jikoku.pdf）はテキストレイヤーを持ち、復路の空17・空18 全25便に
+// 南千歳駅の時刻が並んでいることを機械的に確認できる。
+//
+// 時刻を直接並べると改正のたびに全滅するので、**「空港を通る復路便は必ず
+// 南千歳の到着を持つ」という不変条件**で見る。削除されたら 0 件ではなく
+// 「欠けている便」として出る。
 const allSchedules = doGetJson(2, '2026-06-17').current.schedules;
-function minamiChitoseOf(time) {
-  const e = allSchedules.find(
-    (x) => x.time === time && x.direction === 'from_honbuto'
-  );
-  return e ? e.arrivals.minamiChitose : 'ERROR: 便が見つからない';
-}
-// 02 科技大 ▶ 空港経由 ▶ 千歳駅行き の全10便
-[
-  ['11:36', '11:51'], ['12:42', '12:57'], ['13:35', '13:50'], ['14:32', '14:47'],
-  ['15:24', '15:39'], ['16:47', '17:02'], ['17:52', '18:07'], ['19:02', '19:17'],
-  ['19:42', '19:57'], ['21:22', '21:37'],
-].forEach(([t, m]) => check(`${t} 本部棟発 → 南千歳 ${m}`, minamiChitoseOf(t), m));
-
-// 03 科技大 ▶ 空港・千歳駅経由 ▶ 長都駅行き
-[['20:32', '20:47'], ['22:02', '22:17']].forEach(([t, m]) =>
-  check(`${t} 本部棟発（長都行き）→ 南千歳 ${m}`, minamiChitoseOf(t), m)
+const viaAirport = allSchedules.filter(
+  (e) => e.direction === 'from_honbuto' &&
+    (e.routeLabel === '空港経由' || e.routeLabel === '長都行き')
 );
+check('空港を通る復路便が1件以上ある', viaAirport.length > 0, true);
+check('そのすべてが南千歳の到着を持つ',
+  viaAirport.filter((e) => !e.arrivals.minamiChitose).map((e) => e.time), []);
 
-// 15:24 は期別で分岐しない（両期とも南千歳を経由する）
-check('15:24 は期別に分かれていない',
-  allSchedules.filter((e) => e.time === '15:24' && e.direction === 'from_honbuto').length, 1);
+// 直通・南千歳行きは南千歳駅を通らない（通ることにしてはいけない）
+check('直通の復路は南千歳を持たない',
+  allSchedules.filter(
+    (e) => e.direction === 'from_honbuto' && e.routeLabel === '直通' &&
+      e.arrivals.minamiChitose).length, 0);
 
 console.log('祝日判定（Issue #158）');
 
@@ -179,14 +188,27 @@ holidayCases.forEach(([d, name, dt]) => {
 check('2026-08-05 (水) は平日', dayTypeForYmd(parseYmd('2026-08-05')), 'weekday');
 check('2026-08-08 (土) は土日祝', dayTypeForYmd(parseYmd('2026-08-08')), 'weekendHoliday');
 
+// 8/11（山の日）に出るはずの千歳駅発。v=1 と v=2 で同じ並びになることも見る
+const holidayExpected = [
+  '06:29', '07:15', '07:34', '07:50', '08:24', '09:50', '10:45',
+  '11:29', '12:40', '13:40', '16:00', '17:30', '18:29', '19:29',
+];
+
 // v=1 の応答: 8/11 は土日祝ダイヤに絞られ、運行日フラグが落ちていること
+//
+// ★ 期待値は令和8年10月1日改正のデータ（#253）。改正前は「学休期 × 土日祝」の
+//   交わりで5便だったが、**新ダイヤには学休期が無い**ため土日祝ダイヤそのものが
+//   出る。学休期の扱いは大学に確認中で、復活させるならここも戻すこと。
 const v1Holiday = doGetJson(1, '2026-08-11');
-check('8/11 の千歳駅発は5便',
+check('8/11 の千歳駅発は14便',
   times(v1Holiday.current.schedules, 'from_chitose'),
-  ['07:20', '08:18', '09:10', '11:29', '13:20']);
-check('8/11 に直通便は無い',
+  holidayExpected);
+// 平日限定の直通便が土日祝に漏れないこと。新ダイヤの直通は毎日運行が2便ある
+check('8/11 に出る直通便は毎日運行の2便だけ',
   v1Holiday.current.schedules.filter(
-    (e) => e.direction === 'from_chitose' && e.routeLabel === '直通').length, 0);
+    (e) => e.direction === 'from_chitose' && e.routeLabel === '直通')
+    .map((e) => e.time).sort(),
+  ['07:50', '08:24']);
 check('8/11 は運行日フラグが落ちている',
   v1Holiday.current.schedules.every((e) => !e.weekdayOnly && !e.weekendOnly), true);
 
@@ -214,13 +236,13 @@ function asV120(json, today) {
   );
 }
 
-const holidayExpected = ['07:20', '08:18', '09:10', '11:29', '13:20'];
-
 const v2Holiday = doGetJson(2, '2026-08-11');
-check('v=2 で v1.2.0 が 8/11 に表示するのは5便',
+check('v=2 で v1.2.0 が 8/11 に表示するのは14便',
   asV120(v2Holiday, '2026-08-11').map((e) => e.time).sort(), holidayExpected);
-check('v=2 で v1.2.0 に直通便が出ない',
-  asV120(v2Holiday, '2026-08-11').filter((e) => e.routeLabel === '直通').length, 0);
+check('v=2 で v1.2.0 に出る直通便は毎日運行の2便だけ',
+  asV120(v2Holiday, '2026-08-11')
+    .filter((e) => e.routeLabel === '直通').map((e) => e.time).sort(),
+  ['07:50', '08:24']);
 
 // v=3 は全便を返し、アプリ側（祝日判定あり）が絞る
 const v3Holiday = doGetJson(3, '2026-08-11');
