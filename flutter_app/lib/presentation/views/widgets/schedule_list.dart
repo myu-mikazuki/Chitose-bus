@@ -62,6 +62,13 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
       // 非有界コンテキスト（来週ダイヤ BottomSheet 等）はスクロールしない。
       // nextBus が null の場合は _nextBusKey が付与されず currentContext が null となり
       // スクロールは発生しない（意図通り）。
+      //
+      // **非有界になる経路がもう1つ増えた**（#240 / #266）。文字拡大が
+      // `kVerticalScrollThreshold` を超えると `_StopTab` が画面ごとスクロールに
+      // 切り替わり、`Expanded` が外れてここも非有界になる。そちらでも
+      // 自動スクロールは走らないが、外側のスクロールが NEXT BUS カードから
+      // 始まるので意図した挙動として受け入れている
+      // （`home_screen.dart` の `_buildScheduleSection` 参照）。
       if (!_isBounded) return;
       final ctx = _nextBusKey.currentContext;
       if (ctx != null) {

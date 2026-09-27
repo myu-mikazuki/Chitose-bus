@@ -1266,7 +1266,17 @@ class _StopTabState extends State<_StopTab> {
       // キーにすると、行き先を切り替えても同じスクロール位置を共有してしまう
       // （PR #252 のレビュー指摘）。内側のリストは行き先・ダイヤ種別・季節ごとに
       // 位置を分けているので、外側だけ粗いと**切り替えた瞬間に外と内が別々の
-      // 位置を主張する**。上のしきい値を超えたときだけ通る経路だが、揃えておく
+      // 位置を主張する**。上のしきい値を超えたときだけ通る経路だが、揃えておく。
+      //
+      // **副作用がある**（#265）。`_destination` が key に入っているので、
+      // 行き先を切り替えると widget の key 自体が変わる。key が変われば
+      // `Widget.canUpdate` が false になり、要素は再利用されずに作り直される
+      // ——`content` 以下（`IndexedStack` が保持する両方向の
+      // `NextBusDisplay` / `ScheduleList`、`_ScheduleRow` と `ArrivalRow` の
+      // 展開状態、`_StopSectionHeader` の正式名トグル）の State が破棄される。
+      // **この経路（しきい値超え）でだけ `IndexedStack` の State 保持が効かない。**
+      // 誤った表示にはならず、開いていたものが畳まれるだけなので v1.3.2 では
+      // 直していない。直すならスクロール位置の永続化ごと作り替えることになる
       key: PageStorageKey('stopTabScroll_${widget.stopId}_${_destination}_'
           '${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
       child: content,
@@ -1280,6 +1290,21 @@ class _StopTabState extends State<_StopTab> {
   ///
   /// **縦ドラッグバリアはここには無い。** 上の NEXT BUS 側と同じ理由で、
   /// `TabBarView` の各 child の最外周に1つ掛けるだけで足りる（#260）。
+  ///
+  /// **`expand: false` では、`ScheduleList` の初回の `ensureVisible`（NEXT 行を
+  /// 見える位置に出す）が走らない**（#266）。`ScheduleList` は
+  /// `constraints.maxHeight.isFinite` で有界/非有界を見ており、`Expanded` を外すと
+  /// 非有界（`_isBounded == false`）になって `initState` の postFrame が早期
+  /// return する（`schedule_list.dart` 参照）。**あの早期 return はもともと
+  /// 来週ダイヤの BottomSheet のために置いたもので、(c) を足したことで
+  /// こちらも同じ経路に入るようになった。**
+  ///
+  /// **意図した挙動として受け入れている。** (c) では外側の
+  /// `SingleChildScrollView` が先頭——すなわち NEXT BUS カード——から始まるので、
+  /// NEXT の情報自体は最初から見えている。むしろ拡大している状態で開いた直後に
+  /// リストの途中まで飛ぶほうが、いま何を見ているのか分かりにくい。
+  /// **ここを変えるなら、外側のスクロールごと動かすことになる**ので、
+  /// `ScheduleList` 側の早期 return を緩めるだけでは済まない。
   Widget _buildScheduleSection({required bool expand}) {
     final stack = IndexedStack(
       index: _destinations.indexOf(_destination).clamp(0, 99),
