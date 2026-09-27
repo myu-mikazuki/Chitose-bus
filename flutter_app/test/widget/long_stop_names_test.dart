@@ -102,17 +102,18 @@ void main() {
     // その停留所を発つ便が無いので `_StopHasNoBus` が出てカード自体が
     // 描かれない。1停留所だけ選ばせるとカードに辿り着く。
     //
-    // **この2幅までしか守れていない（既知）。** 直し方が「字を小さくする」
-    // なので構造的な保証ではなく、次の2つは依然として溢れる:
+    // **320px 級の端末（iPhone SE 第1世代など）はこの2幅では見ていない**
+    // （既知）。
     //
-    // - **320px 級の端末**（iPhone SE 第1世代など）
-    // - **文字を大きくする設定**（`TextScaler`）。比率が変わらないので
-    //   字を小さくしても同じ倍率で同じように溢れる
+    // **文字を大きくする設定（`TextScaler`）は #241 で別に手当てした。**
+    // 以前はここで「比率が変わらないので字を小さくしても同じ倍率で同じよう
+    // に溢れる」と書いていたが、それは #237 で拡大設定を実測して初めて
+    // 分かった話で、直しはこの overflow テストの範囲外（`text_scaler_test.dart`
+    // 側）。#241 で既定表示を短縮名（最長5文字）に戻し、正式名はタップで
+    // 折り返し可能な形で出すようにしたことで、**倍率が上がっても構造的に
+    // 溢れない**形になった。詳しい経緯は `ArrivalRow`（`arrival_row.dart`）の
+    // ドキュメントコメントを見ること。
     //
-    // 名前側を `Flexible` + ellipsis にすれば「切れるが溢れない」形にできるが、
-    // #208 で「見出しの停留所名は削らずに正式名を出す」と決めた直後に到着行を
-    // 省略し始めると噛み合わないため見送っている（PR #236）。**拡大設定で
-    // どこが壊れるかを先に可視化してから決める**（#237）。
     // **到着行が出る3経路のうち、いちばん狭いのはカード**（375px で実測）。
     //
     // | 経路 | 到着行の幅（375px） |
@@ -128,7 +129,7 @@ void main() {
     // 冗長だが、リスト側の余白が変わったときに気づけるので残す。
     // 当初は「リストの方が 8px 狭い」と書いていたが逆だった（#234 のレビュー指摘）。
     for (final width in [375.0, 360.0]) {
-      testWidgets('NEXT BUS の到着行が overflow しない（幅 $width・#231 / #234）',
+      testWidgets('NEXT BUS の到着行が overflow しない（幅 $width・#231 / #234 / #241）',
           (tester) async {
         tester.view.physicalSize = Size(width * 2, 1334);
         tester.view.devicePixelRatio = 2.0;
@@ -138,16 +139,19 @@ void main() {
         await tester.pumpWidget(_wrap(['koizumi']));
         await tester.pumpAndSettle();
 
-        // 実データの最長13文字。**この停留所は短縮名（`O･A入口`）を持つ**ので、
-        // `officialLabelOf` を `labelOf` に戻すとここが落ちる。いちばん狭い
-        // 経路で #234 の主張と幅の主張を同時に押さえている
-        expect(find.text('オフィス・アルカディア入口 着'), findsOneWidget);
+        // #241 で既定表示は短縮名（`labelOf`）に戻した。実データの最長13文字
+        // （正式名）は既定では出ず、`O･A入口` のような短縮名（最長5文字）が
+        // 出るので、そもそも overflow の的にならない幅になっている
+        expect(find.text('O･A入口 着'), findsOneWidget);
+        // `find.text` は ellipsis で切れていても通ってしまうので、
+        // 等倍で省略されていないことも別に確かめる（#208 の PR #232 と同じ観点）
+        expectNotTruncated(tester, 'O･A入口 着');
       });
 
-      // #234 で時刻表リストの到着行も正式名にしたため、こちらにも最長の名前が
-      // 出るようになった。**上の表のとおりカードより広いので、カードが通れば
-      // ここも通る。**余白が変わったときの検知として残している。
-      testWidgets('時刻表リストの到着行が overflow しない（幅 $width・#234）', (tester) async {
+      // #241 で時刻表リストの到着行も既定は短縮名に戻した。**上の表のとおり
+      // カードより広いので、カードが通ればここも通る。**余白が変わったときの
+      // 検知として残している。
+      testWidgets('時刻表リストの到着行が overflow しない（幅 $width・#241）', (tester) async {
         tester.view.physicalSize = Size(width * 2, 1334);
         tester.view.devicePixelRatio = 2.0;
         addTearDown(tester.view.resetPhysicalSize);
@@ -159,16 +163,35 @@ void main() {
         await _expandScheduleRow(tester);
 
         // カードとリストの2箇所に出る
-        expect(find.text('オフィス・アルカディア入口 着'), findsNWidgets(2));
+        expect(find.text('O･A入口 着'), findsNWidgets(2));
       });
     }
 
-    testWidgets('見出しの停留所名は削らずに正式名を出す', (tester) async {
+    // #245 で意図を反転させた（#208 → #245）。#208 はタブで1〜2文字しか読めない
+    // 名前を見出しに丸ごと出す形にしたが、#237 で拡大設定を実測すると
+    // 375px・1.15倍から `Expanded` + ellipsis で黙って切れていた。既定を
+    // 短縮名（最長5文字）に戻し、正式名はタップで確実に読める形で残した
+    // （`ArrivalRow` の #241 と同じ判断）。
+    testWidgets('見出しの停留所名は既定で短縮名を出す（#245）', (tester) async {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();
 
-      // タブでは1〜2文字しか読めない名前を、ここでは丸ごと出す（#208）。
+      // 古泉循環器内科クリニック前 ではなく 古泉
+      expect(find.text('古泉 発'), findsOneWidget);
+      expect(find.text('古泉循環器内科クリニック前 発'), findsNothing);
       // find.text だけでは ellipsis で切れていても通るので、省略の有無まで見る
+      expectNotTruncated(tester, '古泉 発');
+    });
+
+    testWidgets('見出しをタップすると正式名が丸ごと出る（#245）', (tester) async {
+      await tester.pumpWidget(_wrap(['koizumi']));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('古泉 発'));
+      await tester.pump();
+
+      // タブでは1〜2文字しか読めない名前を、タップすればここで丸ごと読める
+      // （#208 の「削らずに正式名を出す」という約束はタップで果たす）
       expect(find.text('古泉循環器内科クリニック前 発'), findsOneWidget);
       expectNotTruncated(tester, '古泉循環器内科クリニック前 発');
     });
@@ -177,45 +200,107 @@ void main() {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();
 
-      // NEXT BUS カード
+      // NEXT BUS カード。#241 で既定表示は短縮名に戻したので `O･A入口 着`
       expect(find.textContaining('null'), findsNothing);
-      expect(find.text('オフィス・アルカディア入口 着'), findsOneWidget);
+      expect(find.text('O･A入口 着'), findsOneWidget);
 
       // 時刻表の行を開く
       await _expandScheduleRow(tester);
 
       expect(find.textContaining('null'), findsNothing);
-      expect(find.text('千歳豊友会病院前 着'), findsWidgets);
+      expect(find.text('豊友会 着'), findsWidgets);
     });
 
-    // #234 で意図を反転させた。以前は「短縮名があればそちらを出す（既定の4
-    // 停留所の見え方は不変）」を固定していた。
+    // #241 で意図をもう一度反転させた（#234 → #241）。#234 は「短縮名は現地の
+    // 停留所の表記とは別物なので、降りる場所を確かめる到着行では使わない」と
+    // 判断して正式名に寄せたが、#237 で拡大設定を実測すると**その到着行こそが
+    // Android の「最大」(1.3) で実際に崩れる唯一の場所**だった。
     //
-    // #207 で31件すべてに `shortLabel` が付いたことで、**幅が足りている到着行に
-    // まで短縮名が及んだ**（`古泉循環器内科クリニック前 着` → `古泉 着`）。
-    // 短縮名はタブで見分けがつくことだけを狙って削ってあり、現地の停留所の
-    // 表記とは別物なので、降りる場所を確かめる行には使わない。
+    // 正式名のまま拡大に耐えさせるより、**既定は短縮名（最長5文字）にして
+    // 構造的に幅の問題を消し、正式名はタップで確実に読める形で残す**ことにした
+    // （`ArrivalRow` のドキュメントコメントに詳しい経緯がある）。
     //
-    // **既定の4停留所の見え方が変わることを承知で受け入れている**
-    // （`本部棟 着` → `科技大本部棟 着`）。
-    testWidgets('到着行は短縮名があっても正式名を出す（#234）', (tester) async {
+    // **既定の4停留所の見え方が v1.3.1 からもう一度変わることを承知で
+    // 受け入れている**（`科技大本部棟 着` → `本部棟 着`）。
+    testWidgets('到着行は既定で短縮名を出す（#241）', (tester) async {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();
 
-      // 本部棟 ではなく 科技大本部棟
-      expect(find.text('科技大本部棟 着'), findsOneWidget);
-      expect(find.text('本部棟 着'), findsNothing);
+      // 科技大本部棟 ではなく 本部棟
+      expect(find.text('本部棟 着'), findsOneWidget);
+      expect(find.text('科技大本部棟 着'), findsNothing);
     });
 
-    testWidgets('時刻表リストの到着行も正式名を出す（#234）', (tester) async {
+    testWidgets('到着行をタップすると正式名が出る（NEXT BUS カード・#241）', (tester) async {
+      await tester.pumpWidget(_wrap(['koizumi']));
+      await tester.pumpAndSettle();
+
+      // NEXT BUS カード側の到着行を名指しでタップする（時刻表リストは
+      // まだ開いていないので、この時点で '本部棟 着' はカードにしか無い）
+      await tester.tap(find.text('本部棟 着'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('科技大本部棟'), findsOneWidget);
+    });
+
+    testWidgets('時刻表リストの到着行も既定で短縮名を出す（#241）', (tester) async {
       await tester.pumpWidget(_wrap(['koizumi']));
       await tester.pumpAndSettle();
 
       await _expandScheduleRow(tester);
 
       // NEXT BUS カードと時刻表リストで同じ便の到着地が違う名前にならないこと
-      expect(find.text('科技大本部棟 着'), findsNWidgets(2));
-      expect(find.text('本部棟 着'), findsNothing);
+      expect(find.text('本部棟 着'), findsNWidgets(2));
+      expect(find.text('科技大本部棟 着'), findsNothing);
+    });
+
+    testWidgets('到着行をタップすると正式名が出る（時刻表リスト・#241）', (tester) async {
+      await tester.pumpWidget(_wrap(['koizumi']));
+      await tester.pumpAndSettle();
+
+      await _expandScheduleRow(tester);
+
+      // 時刻表リスト側の '本部棟 着' はカードと合わせて2つあるので、
+      // ScheduleList 配下に絞ってからタップする
+      final listRow = find.descendant(
+        of: find.byType(ScheduleList),
+        matching: find.text('本部棟 着'),
+      );
+      expect(listRow, findsOneWidget);
+      await tester.ensureVisible(listRow);
+      await tester.pumpAndSettle();
+      await tester.tap(listRow);
+      await tester.pumpAndSettle();
+
+      // 正式名がリスト側に出る（カード側には出ていない）
+      expect(
+        find.descendant(
+          of: find.byType(ScheduleList),
+          matching: find.text('科技大本部棟'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('到着行をタップしても時刻表リストの親の行は閉じない（#241）', (tester) async {
+      await tester.pumpWidget(_wrap(['koizumi']));
+      await tester.pumpAndSettle();
+
+      await _expandScheduleRow(tester);
+      expect(find.text('本部棟 着'), findsNWidgets(2));
+
+      final listRow = find.descendant(
+        of: find.byType(ScheduleList),
+        matching: find.text('本部棟 着'),
+      );
+      await tester.ensureVisible(listRow);
+      await tester.pumpAndSettle();
+      await tester.tap(listRow);
+      await tester.pumpAndSettle();
+
+      // 親行が閉じていれば到着行そのものが消えるはず。
+      // 内側のタップに親が反応せず、到着行はまだ出ている
+      expect(find.text('本部棟 着'), findsNWidgets(2));
     });
 
     testWidgets('stopMaster に無い ID は ID をそのまま出す', (tester) async {
