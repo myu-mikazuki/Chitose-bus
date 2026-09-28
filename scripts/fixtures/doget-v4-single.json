@@ -122,6 +122,11 @@
    "shortLabel": "南千歳"
   },
   {
+   "id": "minamiChitoseNorth",
+   "label": "南千歳駅北口",
+   "shortLabel": "南千歳北"
+  },
+  {
    "id": "airCargo",
    "label": "エアカーゴ前",
    "shortLabel": "カーゴ"
@@ -166,51 +171,6 @@
     "destination": "科技大",
     "routeLabel": "空港経由",
     "terminus": "honbuto",
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "07:23"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "terminus": "honbuto",
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "08:21"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "terminus": "honbuto",
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "09:13"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -218,7 +178,52 @@
     "stops": [
      {
       "id": "morimoto",
-      "time": "10:33"
+      "time": "06:48"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "07:18"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "09:53"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "10:48"
      }
     ]
    },
@@ -248,6 +253,21 @@
     "stops": [
      {
       "id": "morimoto",
+      "time": "11:53"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
       "time": "12:13"
      }
     ]
@@ -263,14 +283,14 @@
     "stops": [
      {
       "id": "morimoto",
-      "time": "13:23"
+      "time": "12:43"
      }
     ]
    },
    {
-    "destination": "千歳駅",
+    "destination": "科技大",
     "routeLabel": "空港経由",
-    "terminus": "chitose",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -278,7 +298,142 @@
     "stops": [
      {
       "id": "morimoto",
-      "time": "11:58"
+      "time": "13:23"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "13:43"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "14:53"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "15:21"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "16:03"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "17:33"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "08:44"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "09:24"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "09:54"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "11:04"
      }
     ]
    },
@@ -293,7 +448,7 @@
     "stops": [
      {
       "id": "morimoto",
-      "time": "13:04"
+      "time": "11:58"
      }
     ]
    },
@@ -308,7 +463,37 @@
     "stops": [
      {
       "id": "morimoto",
+      "time": "13:04"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
       "time": "13:57"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "14:39"
      }
     ]
    },
@@ -331,7 +516,7 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "terminus": "chitose",
-    "weekdayOnly": false,
+    "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
     "vacationOnly": false,
@@ -339,6 +524,21 @@
      {
       "id": "morimoto",
       "time": "15:46"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "16:09"
      }
     ]
    },
@@ -358,39 +558,9 @@
     ]
    },
    {
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "terminus": "chitose",
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "18:14"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "terminus": "chitose",
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "19:24"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "terminus": "chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -398,22 +568,7 @@
     "stops": [
      {
       "id": "morimoto",
-      "time": "20:04"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "terminus": "chitose",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "21:44"
+      "time": "07:03"
      }
     ]
    },
@@ -423,22 +578,7 @@
     "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "07:17"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -451,254 +591,14 @@
     "destination": "科技大",
     "routeLabel": "直通",
     "terminus": "honbuto",
-    "weekdayOnly": true,
+    "weekdayOnly": false,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
-      "time": "08:07"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "08:17"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "08:22"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "08:27"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "08:32"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "09:07"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "09:22"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "09:37"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "09:47"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "09:57"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "10:07"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "10:17"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "14:27"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "15:25"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "15:58"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "16:07"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "17:54"
+      "time": "07:53"
      }
     ]
    },
@@ -709,7 +609,22 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "08:03"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
@@ -724,86 +639,176 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "08:43"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "09:13"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "09:53"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "16:03"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "morimoto",
-      "time": "18:03"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "直通",
-    "terminus": "chitose",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
     "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
-      "time": "11:20"
+      "time": "08:19"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "08:22"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "08:27"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "08:32"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "08:53"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "09:07"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "09:22"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "09:37"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "09:57"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "10:07"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "10:17"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "14:27"
      }
     ]
    },
@@ -813,7 +818,7 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -828,7 +833,7 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -843,12 +848,12 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
-      "time": "14:35"
+      "time": "15:10"
      }
     ]
    },
@@ -858,12 +863,12 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
-      "time": "15:20"
+      "time": "16:20"
      }
     ]
    },
@@ -873,7 +878,7 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -888,7 +893,7 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -903,7 +908,22 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "17:35"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -918,7 +938,22 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "18:00"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -934,11 +969,11 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
-      "time": "12:50"
+      "time": "19:05"
      }
     ]
    },
@@ -949,11 +984,11 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
-      "time": "14:50"
+      "time": "19:30"
      }
     ]
    },
@@ -964,26 +999,56 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
-      "time": "17:50"
+      "time": "19:50"
      }
     ]
    },
    {
-    "destination": "千歳駅",
-    "routeLabel": "直通",
-    "terminus": "chitose",
-    "weekdayOnly": true,
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "morimoto",
-      "time": "18:50"
+      "time": "06:32"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "07:02"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "07:37"
      }
     ]
    },
@@ -1021,6 +1086,96 @@
     "destination": "科技大",
     "routeLabel": "長都発",
     "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "18:32"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "19:32"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "12:44"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "15:34"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "18:29"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "19:04"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -1028,7 +1183,7 @@
     "stops": [
      {
       "id": "morimoto",
-      "time": "14:32"
+      "time": "19:21"
      }
     ]
    },
@@ -1043,7 +1198,22 @@
     "stops": [
      {
       "id": "morimoto",
-      "time": "20:54"
+      "time": "19:39"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "20:04"
      }
     ]
    },
@@ -1058,7 +1228,82 @@
     "stops": [
      {
       "id": "morimoto",
-      "time": "22:24"
+      "time": "20:44"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "21:24"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "21:44"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "22:14"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "22:54"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "morimoto",
+      "time": "23:54"
      }
     ]
    }

@@ -5,124 +5,7 @@
   "validTo": "2099-12-31",
   "schedules": [
    {
-    "time": "07:20",
-    "direction": "from_chitose",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": "5番",
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "arrivals": {
-     "minamiChitose": "07:31",
-     "kenkyuto": "07:44",
-     "honbuto": "07:45"
-    }
-   },
-   {
-    "time": "07:31",
-    "direction": "from_minami_chitose",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "arrivals": {
-     "kenkyuto": "07:44",
-     "honbuto": "07:45"
-    }
-   },
-   {
-    "time": "07:44",
-    "direction": "from_kenkyuto_to_honbuto",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "arrivals": {
-     "honbuto": "07:45"
-    }
-   },
-   {
-    "time": "08:18",
-    "direction": "from_chitose",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": "5番",
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "arrivals": {
-     "minamiChitose": "08:29",
-     "kenkyuto": "08:42",
-     "honbuto": "08:43"
-    }
-   },
-   {
-    "time": "08:29",
-    "direction": "from_minami_chitose",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "arrivals": {
-     "kenkyuto": "08:42",
-     "honbuto": "08:43"
-    }
-   },
-   {
-    "time": "08:42",
-    "direction": "from_kenkyuto_to_honbuto",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "arrivals": {
-     "honbuto": "08:43"
-    }
-   },
-   {
-    "time": "09:10",
-    "direction": "from_chitose",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": "5番",
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "arrivals": {
-     "minamiChitose": "09:21",
-     "kenkyuto": "09:34",
-     "honbuto": "09:35"
-    }
-   },
-   {
-    "time": "09:21",
-    "direction": "from_minami_chitose",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "arrivals": {
-     "kenkyuto": "09:34",
-     "honbuto": "09:35"
-    }
-   },
-   {
-    "time": "09:34",
-    "direction": "from_kenkyuto_to_honbuto",
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "arrivals": {
-     "honbuto": "09:35"
-    }
-   },
-   {
-    "time": "10:30",
+    "time": "06:45",
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "空港経由",
@@ -130,13 +13,13 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "minamiChitose": "10:41",
-     "kenkyuto": "10:54",
-     "honbuto": "10:55"
+     "minamiChitose": "06:56",
+     "kenkyuto": "07:09",
+     "honbuto": "07:10"
     }
    },
    {
-    "time": "10:41",
+    "time": "06:56",
     "direction": "from_minami_chitose",
     "destination": "科技大",
     "routeLabel": "空港経由",
@@ -144,12 +27,12 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "10:54",
-     "honbuto": "10:55"
+     "kenkyuto": "07:09",
+     "honbuto": "07:10"
     }
    },
    {
-    "time": "10:54",
+    "time": "07:09",
     "direction": "from_kenkyuto_to_honbuto",
     "destination": "科技大",
     "routeLabel": "空港経由",
@@ -157,7 +40,124 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "honbuto": "10:55"
+     "honbuto": "07:10"
+    }
+   },
+   {
+    "time": "07:15",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "07:26",
+     "kenkyuto": "07:39",
+     "honbuto": "07:40"
+    }
+   },
+   {
+    "time": "07:26",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "07:39",
+     "honbuto": "07:40"
+    }
+   },
+   {
+    "time": "07:39",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "07:40"
+    }
+   },
+   {
+    "time": "09:50",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "10:01",
+     "kenkyuto": "10:14",
+     "honbuto": "10:15"
+    }
+   },
+   {
+    "time": "10:01",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "10:14",
+     "honbuto": "10:15"
+    }
+   },
+   {
+    "time": "10:14",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "10:15"
+    }
+   },
+   {
+    "time": "10:45",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "10:56",
+     "kenkyuto": "11:09",
+     "honbuto": "11:10"
+    }
+   },
+   {
+    "time": "10:56",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "11:09",
+     "honbuto": "11:10"
+    }
+   },
+   {
+    "time": "11:09",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "11:10"
     }
    },
    {
@@ -200,6 +200,45 @@
     }
    },
    {
+    "time": "11:50",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "12:01",
+     "kenkyuto": "12:14",
+     "honbuto": "12:15"
+    }
+   },
+   {
+    "time": "12:01",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "12:14",
+     "honbuto": "12:15"
+    }
+   },
+   {
+    "time": "12:14",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "12:15"
+    }
+   },
+   {
     "time": "12:10",
     "direction": "from_chitose",
     "destination": "科技大",
@@ -239,12 +278,51 @@
     }
    },
    {
-    "time": "13:20",
+    "time": "12:40",
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "空港経由",
     "platformNumber": "5番",
     "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "12:51",
+     "kenkyuto": "13:04",
+     "honbuto": "13:05"
+    }
+   },
+   {
+    "time": "12:51",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "13:04",
+     "honbuto": "13:05"
+    }
+   },
+   {
+    "time": "13:04",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "13:05"
+    }
+   },
+   {
+    "time": "13:20",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
      "minamiChitose": "13:31",
@@ -258,7 +336,7 @@
     "destination": "科技大",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": false,
+    "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
      "kenkyuto": "13:44",
@@ -271,10 +349,313 @@
     "destination": "科技大",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": false,
+    "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
      "honbuto": "13:45"
+    }
+   },
+   {
+    "time": "13:40",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "minamiChitose": "13:51",
+     "kenkyuto": "14:04",
+     "honbuto": "14:05"
+    }
+   },
+   {
+    "time": "13:51",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "kenkyuto": "14:04",
+     "honbuto": "14:05"
+    }
+   },
+   {
+    "time": "14:04",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "honbuto": "14:05"
+    }
+   },
+   {
+    "time": "14:50",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "15:01",
+     "kenkyuto": "15:14",
+     "honbuto": "15:15"
+    }
+   },
+   {
+    "time": "15:01",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "15:14",
+     "honbuto": "15:15"
+    }
+   },
+   {
+    "time": "15:14",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "15:15"
+    }
+   },
+   {
+    "time": "15:18",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "15:29",
+     "kenkyuto": "15:42",
+     "honbuto": "15:43"
+    }
+   },
+   {
+    "time": "15:29",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "15:42",
+     "honbuto": "15:43"
+    }
+   },
+   {
+    "time": "15:42",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "15:43"
+    }
+   },
+   {
+    "time": "16:00",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "16:11",
+     "kenkyuto": "16:24",
+     "honbuto": "16:25"
+    }
+   },
+   {
+    "time": "16:11",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "16:24",
+     "honbuto": "16:25"
+    }
+   },
+   {
+    "time": "16:24",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "16:25"
+    }
+   },
+   {
+    "time": "17:30",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "minamiChitose": "17:41",
+     "kenkyuto": "17:54",
+     "honbuto": "17:55"
+    }
+   },
+   {
+    "time": "17:41",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "kenkyuto": "17:54",
+     "honbuto": "17:55"
+    }
+   },
+   {
+    "time": "17:54",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "honbuto": "17:55"
+    }
+   },
+   {
+    "time": "08:22",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "08:25",
+     "minamiChitose": "08:37",
+     "chitose": "08:48"
+    }
+   },
+   {
+    "time": "08:25",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "08:37",
+     "chitose": "08:48"
+    }
+   },
+   {
+    "time": "09:02",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "09:05",
+     "minamiChitose": "09:17",
+     "chitose": "09:28"
+    }
+   },
+   {
+    "time": "09:05",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "09:17",
+     "chitose": "09:28"
+    }
+   },
+   {
+    "time": "09:32",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "09:35",
+     "minamiChitose": "09:47",
+     "chitose": "09:58"
+    }
+   },
+   {
+    "time": "09:35",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "09:47",
+     "chitose": "09:58"
+    }
+   },
+   {
+    "time": "10:42",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "10:45",
+     "minamiChitose": "10:57",
+     "chitose": "11:08"
+    }
+   },
+   {
+    "time": "10:45",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "10:57",
+     "chitose": "11:08"
     }
    },
    {
@@ -283,8 +664,8 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": true,
-    "weekendOnly": false,
+    "weekdayOnly": false,
+    "weekendOnly": true,
     "arrivals": {
      "kenkyuto": "11:39",
      "minamiChitose": "11:51",
@@ -297,8 +678,8 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": true,
-    "weekendOnly": false,
+    "weekdayOnly": false,
+    "weekendOnly": true,
     "arrivals": {
      "minamiChitose": "11:51",
      "chitose": "12:02"
@@ -310,8 +691,8 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": true,
+    "weekdayOnly": true,
+    "weekendOnly": false,
     "arrivals": {
      "kenkyuto": "12:45",
      "minamiChitose": "12:57",
@@ -324,8 +705,8 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": true,
+    "weekdayOnly": true,
+    "weekendOnly": false,
     "arrivals": {
      "minamiChitose": "12:57",
      "chitose": "13:08"
@@ -337,7 +718,7 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": true,
+    "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
      "kenkyuto": "13:38",
@@ -351,11 +732,38 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": true,
+    "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
      "minamiChitose": "13:50",
      "chitose": "14:01"
+    }
+   },
+   {
+    "time": "14:17",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "14:20",
+     "minamiChitose": "14:32",
+     "chitose": "14:43"
+    }
+   },
+   {
+    "time": "14:20",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "14:32",
+     "chitose": "14:43"
     }
    },
    {
@@ -391,7 +799,7 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": false,
+    "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
      "kenkyuto": "15:27",
@@ -405,11 +813,38 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "platformNumber": null,
-    "weekdayOnly": false,
+    "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
      "minamiChitose": "15:39",
      "chitose": "15:50"
+    }
+   },
+   {
+    "time": "15:47",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "15:50",
+     "minamiChitose": "16:02",
+     "chitose": "16:13"
+    }
+   },
+   {
+    "time": "15:50",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "16:02",
+     "chitose": "16:13"
     }
    },
    {
@@ -440,111 +875,103 @@
     }
    },
    {
-    "time": "17:52",
-    "direction": "from_honbuto",
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
+    "time": "07:00",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "17:55",
-     "minamiChitose": "18:07",
-     "chitose": "18:18"
+     "kenkyuto": "07:18",
+     "honbuto": "07:21"
     }
    },
    {
-    "time": "17:55",
-    "direction": "from_kenkyuto_to_station",
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "arrivals": {
-     "minamiChitose": "18:07",
-     "chitose": "18:18"
-    }
-   },
-   {
-    "time": "19:02",
-    "direction": "from_honbuto",
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "arrivals": {
-     "kenkyuto": "19:05",
-     "minamiChitose": "19:17",
-     "chitose": "19:28"
-    }
-   },
-   {
-    "time": "19:05",
-    "direction": "from_kenkyuto_to_station",
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "arrivals": {
-     "minamiChitose": "19:17",
-     "chitose": "19:28"
-    }
-   },
-   {
-    "time": "19:42",
-    "direction": "from_honbuto",
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
+    "time": "07:18",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
     "platformNumber": null,
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "19:45",
-     "minamiChitose": "19:57",
-     "chitose": "20:08"
+     "honbuto": "07:21"
     }
    },
    {
-    "time": "19:45",
-    "direction": "from_kenkyuto_to_station",
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
+    "time": "07:29",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "07:47",
+     "honbuto": "07:50"
+    }
+   },
+   {
+    "time": "07:47",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
     "platformNumber": null,
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "minamiChitose": "19:57",
-     "chitose": "20:08"
+     "honbuto": "07:50"
     }
    },
    {
-    "time": "21:22",
-    "direction": "from_honbuto",
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
+    "time": "07:50",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "08:08",
+     "honbuto": "08:11"
+    }
+   },
+   {
+    "time": "08:08",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "08:11"
+    }
+   },
+   {
+    "time": "08:00",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "08:18",
+     "honbuto": "08:21"
+    }
+   },
+   {
+    "time": "08:18",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
     "platformNumber": null,
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "21:25",
-     "minamiChitose": "21:37",
-     "chitose": "21:48"
-    }
-   },
-   {
-    "time": "21:25",
-    "direction": "from_kenkyuto_to_station",
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "platformNumber": null,
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "arrivals": {
-     "minamiChitose": "21:37",
-     "chitose": "21:48"
+     "honbuto": "08:21"
     }
    },
    {
@@ -552,7 +979,7 @@
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "直通",
-    "platformNumber": "3番",
+    "platformNumber": "4番",
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
@@ -573,20 +1000,20 @@
     }
    },
    {
-    "time": "08:40",
+    "time": "08:16",
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "直通",
-    "platformNumber": "3番",
+    "platformNumber": "4番",
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "08:58",
-     "honbuto": "09:01"
+     "kenkyuto": "08:34",
+     "honbuto": "08:37"
     }
    },
    {
-    "time": "08:58",
+    "time": "08:34",
     "direction": "from_kenkyuto_to_honbuto",
     "destination": "科技大",
     "routeLabel": "直通",
@@ -594,24 +1021,24 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "honbuto": "09:01"
+     "honbuto": "08:37"
     }
    },
    {
-    "time": "09:10",
+    "time": "08:19",
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "直通",
-    "platformNumber": "3番",
+    "platformNumber": "4番",
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "09:28",
-     "honbuto": "09:31"
+     "kenkyuto": "08:37",
+     "honbuto": "08:40"
     }
    },
    {
-    "time": "09:28",
+    "time": "08:37",
     "direction": "from_kenkyuto_to_honbuto",
     "destination": "科技大",
     "routeLabel": "直通",
@@ -619,24 +1046,49 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "honbuto": "09:31"
+     "honbuto": "08:40"
     }
    },
    {
-    "time": "09:50",
+    "time": "08:24",
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "直通",
-    "platformNumber": "3番",
-    "weekdayOnly": true,
+    "platformNumber": "4番",
+    "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "10:08",
-     "honbuto": "10:11"
+     "kenkyuto": "08:42",
+     "honbuto": "08:45"
     }
    },
    {
-    "time": "10:08",
+    "time": "08:42",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "08:45"
+    }
+   },
+   {
+    "time": "08:29",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "08:47",
+     "honbuto": "08:50"
+    }
+   },
+   {
+    "time": "08:47",
     "direction": "from_kenkyuto_to_honbuto",
     "destination": "科技大",
     "routeLabel": "直通",
@@ -644,24 +1096,24 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "honbuto": "10:11"
+     "honbuto": "08:50"
     }
    },
    {
-    "time": "16:00",
+    "time": "08:50",
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "直通",
-    "platformNumber": "3番",
+    "platformNumber": "4番",
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "16:18",
-     "honbuto": "16:21"
+     "kenkyuto": "09:08",
+     "honbuto": "09:11"
     }
    },
    {
-    "time": "16:18",
+    "time": "09:08",
     "direction": "from_kenkyuto_to_honbuto",
     "destination": "科技大",
     "routeLabel": "直通",
@@ -669,24 +1121,24 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "honbuto": "16:21"
+     "honbuto": "09:11"
     }
    },
    {
-    "time": "18:00",
+    "time": "09:04",
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "直通",
-    "platformNumber": "3番",
+    "platformNumber": "4番",
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "18:18",
-     "honbuto": "18:21"
+     "kenkyuto": "09:22",
+     "honbuto": "09:25"
     }
    },
    {
-    "time": "18:18",
+    "time": "09:22",
     "direction": "from_kenkyuto_to_honbuto",
     "destination": "科技大",
     "routeLabel": "直通",
@@ -694,11 +1146,161 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "honbuto": "18:21"
+     "honbuto": "09:25"
     }
    },
    {
-    "time": "12:32",
+    "time": "09:19",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "09:37",
+     "honbuto": "09:40"
+    }
+   },
+   {
+    "time": "09:37",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "09:40"
+    }
+   },
+   {
+    "time": "09:34",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "09:52",
+     "honbuto": "09:55"
+    }
+   },
+   {
+    "time": "09:52",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "09:55"
+    }
+   },
+   {
+    "time": "09:54",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "10:12",
+     "honbuto": "10:15"
+    }
+   },
+   {
+    "time": "10:12",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "10:15"
+    }
+   },
+   {
+    "time": "10:04",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "10:22",
+     "honbuto": "10:25"
+    }
+   },
+   {
+    "time": "10:22",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "10:25"
+    }
+   },
+   {
+    "time": "10:14",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "10:32",
+     "honbuto": "10:35"
+    }
+   },
+   {
+    "time": "10:32",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "10:35"
+    }
+   },
+   {
+    "time": "14:24",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": "4番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "14:42",
+     "honbuto": "14:45"
+    }
+   },
+   {
+    "time": "14:42",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "14:45"
+    }
+   },
+   {
+    "time": "12:27",
     "direction": "from_honbuto",
     "destination": "千歳駅",
     "routeLabel": "直通",
@@ -706,12 +1308,12 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "12:35",
-     "chitose": "12:54"
+     "kenkyuto": "12:30",
+     "chitose": "12:49"
     }
    },
    {
-    "time": "12:35",
+    "time": "12:30",
     "direction": "from_kenkyuto_to_station",
     "destination": "千歳駅",
     "routeLabel": "直通",
@@ -719,11 +1321,11 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "chitose": "12:54"
+     "chitose": "12:49"
     }
    },
    {
-    "time": "14:32",
+    "time": "13:07",
     "direction": "from_honbuto",
     "destination": "千歳駅",
     "routeLabel": "直通",
@@ -731,12 +1333,12 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "14:35",
-     "chitose": "14:54"
+     "kenkyuto": "13:10",
+     "chitose": "13:29"
     }
    },
    {
-    "time": "14:35",
+    "time": "13:10",
     "direction": "from_kenkyuto_to_station",
     "destination": "千歳駅",
     "routeLabel": "直通",
@@ -744,11 +1346,11 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "chitose": "14:54"
+     "chitose": "13:29"
     }
    },
    {
-    "time": "17:32",
+    "time": "14:52",
     "direction": "from_honbuto",
     "destination": "千歳駅",
     "routeLabel": "直通",
@@ -756,12 +1358,12 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "17:35",
-     "chitose": "17:54"
+     "kenkyuto": "14:55",
+     "chitose": "15:14"
     }
    },
    {
-    "time": "17:35",
+    "time": "14:55",
     "direction": "from_kenkyuto_to_station",
     "destination": "千歳駅",
     "routeLabel": "直通",
@@ -769,11 +1371,11 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "chitose": "17:54"
+     "chitose": "15:14"
     }
    },
    {
-    "time": "18:32",
+    "time": "16:02",
     "direction": "from_honbuto",
     "destination": "千歳駅",
     "routeLabel": "直通",
@@ -781,12 +1383,12 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "18:35",
-     "chitose": "18:54"
+     "kenkyuto": "16:05",
+     "chitose": "16:24"
     }
    },
    {
-    "time": "18:35",
+    "time": "16:05",
     "direction": "from_kenkyuto_to_station",
     "destination": "千歳駅",
     "routeLabel": "直通",
@@ -794,7 +1396,349 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "chitose": "18:54"
+     "chitose": "16:24"
+    }
+   },
+   {
+    "time": "16:42",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "16:45",
+     "chitose": "17:04"
+    }
+   },
+   {
+    "time": "16:45",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "17:04"
+    }
+   },
+   {
+    "time": "17:02",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "17:05",
+     "chitose": "17:24"
+    }
+   },
+   {
+    "time": "17:05",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "17:24"
+    }
+   },
+   {
+    "time": "17:17",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "17:20",
+     "chitose": "17:39"
+    }
+   },
+   {
+    "time": "17:20",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "17:39"
+    }
+   },
+   {
+    "time": "17:30",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "17:33",
+     "chitose": "17:52"
+    }
+   },
+   {
+    "time": "17:33",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "17:52"
+    }
+   },
+   {
+    "time": "17:42",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "17:45",
+     "chitose": "18:04"
+    }
+   },
+   {
+    "time": "17:45",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "18:04"
+    }
+   },
+   {
+    "time": "18:27",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "18:30",
+     "chitose": "18:49"
+    }
+   },
+   {
+    "time": "18:30",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "18:49"
+    }
+   },
+   {
+    "time": "18:47",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "18:50",
+     "chitose": "19:09"
+    }
+   },
+   {
+    "time": "18:50",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "19:09"
+    }
+   },
+   {
+    "time": "19:12",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "19:15",
+     "chitose": "19:34"
+    }
+   },
+   {
+    "time": "19:15",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "19:34"
+    }
+   },
+   {
+    "time": "19:32",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "19:35",
+     "chitose": "19:54"
+    }
+   },
+   {
+    "time": "19:35",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "chitose": "19:54"
+    }
+   },
+   {
+    "time": "06:29",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "06:40",
+     "kenkyuto": "06:53",
+     "honbuto": "06:54"
+    }
+   },
+   {
+    "time": "06:40",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "06:53",
+     "honbuto": "06:54"
+    }
+   },
+   {
+    "time": "06:53",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "06:54"
+    }
+   },
+   {
+    "time": "06:59",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": "5番",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "07:10",
+     "kenkyuto": "07:23",
+     "honbuto": "07:24"
+    }
+   },
+   {
+    "time": "07:10",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "07:23",
+     "honbuto": "07:24"
+    }
+   },
+   {
+    "time": "07:23",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "07:24"
+    }
+   },
+   {
+    "time": "07:34",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "07:45",
+     "kenkyuto": "07:58",
+     "honbuto": "07:59"
+    }
+   },
+   {
+    "time": "07:45",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "07:58",
+     "honbuto": "07:59"
+    }
+   },
+   {
+    "time": "07:58",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "07:59"
     }
    },
    {
@@ -876,46 +1820,220 @@
     }
    },
    {
-    "time": "14:29",
+    "time": "18:29",
     "direction": "from_chitose",
     "destination": "科技大",
     "routeLabel": "長都発",
     "platformNumber": "5番",
-    "weekdayOnly": true,
+    "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
-     "minamiChitose": "14:40",
-     "kenkyuto": "14:53",
-     "honbuto": "14:54"
+     "minamiChitose": "18:40",
+     "kenkyuto": "18:53",
+     "honbuto": "18:54"
     }
    },
    {
-    "time": "14:40",
+    "time": "18:40",
     "direction": "from_minami_chitose",
     "destination": "科技大",
     "routeLabel": "長都発",
     "platformNumber": null,
-    "weekdayOnly": true,
+    "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "14:53",
-     "honbuto": "14:54"
+     "kenkyuto": "18:53",
+     "honbuto": "18:54"
     }
    },
    {
-    "time": "14:53",
+    "time": "18:53",
     "direction": "from_kenkyuto_to_honbuto",
     "destination": "科技大",
     "routeLabel": "長都発",
     "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "18:54"
+    }
+   },
+   {
+    "time": "19:29",
+    "direction": "from_chitose",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": "5番",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "19:40",
+     "kenkyuto": "19:53",
+     "honbuto": "19:54"
+    }
+   },
+   {
+    "time": "19:40",
+    "direction": "from_minami_chitose",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "19:53",
+     "honbuto": "19:54"
+    }
+   },
+   {
+    "time": "19:53",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "19:54"
+    }
+   },
+   {
+    "time": "12:22",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "12:25",
+     "minamiChitose": "12:37",
+     "chitose": "12:50"
+    }
+   },
+   {
+    "time": "12:25",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "12:37",
+     "chitose": "12:50"
+    }
+   },
+   {
+    "time": "15:12",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "15:15",
+     "minamiChitose": "15:27",
+     "chitose": "15:40"
+    }
+   },
+   {
+    "time": "15:15",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "15:27",
+     "chitose": "15:40"
+    }
+   },
+   {
+    "time": "18:07",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "18:10",
+     "minamiChitose": "18:22",
+     "chitose": "18:35"
+    }
+   },
+   {
+    "time": "18:10",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "18:22",
+     "chitose": "18:35"
+    }
+   },
+   {
+    "time": "18:42",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "kenkyuto": "18:45",
+     "minamiChitose": "18:57",
+     "chitose": "19:10"
+    }
+   },
+   {
+    "time": "18:45",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "minamiChitose": "18:57",
+     "chitose": "19:10"
+    }
+   },
+   {
+    "time": "18:59",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
     "weekdayOnly": true,
     "weekendOnly": false,
     "arrivals": {
-     "honbuto": "14:54"
+     "kenkyuto": "19:02",
+     "minamiChitose": "19:14",
+     "chitose": "19:27"
     }
    },
    {
-    "time": "20:32",
+    "time": "19:02",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "19:14",
+     "chitose": "19:27"
+    }
+   },
+   {
+    "time": "19:17",
     "direction": "from_honbuto",
     "destination": "千歳駅",
     "routeLabel": "長都行き",
@@ -923,13 +2041,13 @@
     "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "20:35",
-     "minamiChitose": "20:47",
-     "chitose": "21:00"
+     "kenkyuto": "19:20",
+     "minamiChitose": "19:32",
+     "chitose": "19:45"
     }
    },
    {
-    "time": "20:35",
+    "time": "19:20",
     "direction": "from_kenkyuto_to_station",
     "destination": "千歳駅",
     "routeLabel": "長都行き",
@@ -937,12 +2055,39 @@
     "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
-     "minamiChitose": "20:47",
-     "chitose": "21:00"
+     "minamiChitose": "19:32",
+     "chitose": "19:45"
     }
    },
    {
-    "time": "22:02",
+    "time": "19:42",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "19:45",
+     "minamiChitose": "19:57",
+     "chitose": "20:10"
+    }
+   },
+   {
+    "time": "19:45",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "19:57",
+     "chitose": "20:10"
+    }
+   },
+   {
+    "time": "20:22",
     "direction": "from_honbuto",
     "destination": "千歳駅",
     "routeLabel": "長都行き",
@@ -950,13 +2095,13 @@
     "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
-     "kenkyuto": "22:05",
-     "minamiChitose": "22:17",
-     "chitose": "22:30"
+     "kenkyuto": "20:25",
+     "minamiChitose": "20:37",
+     "chitose": "20:50"
     }
    },
    {
-    "time": "22:05",
+    "time": "20:25",
     "direction": "from_kenkyuto_to_station",
     "destination": "千歳駅",
     "routeLabel": "長都行き",
@@ -964,8 +2109,311 @@
     "weekdayOnly": false,
     "weekendOnly": false,
     "arrivals": {
-     "minamiChitose": "22:17",
-     "chitose": "22:30"
+     "minamiChitose": "20:37",
+     "chitose": "20:50"
+    }
+   },
+   {
+    "time": "21:02",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "21:05",
+     "minamiChitose": "21:17",
+     "chitose": "21:30"
+    }
+   },
+   {
+    "time": "21:05",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "21:17",
+     "chitose": "21:30"
+    }
+   },
+   {
+    "time": "21:22",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "kenkyuto": "21:25",
+     "minamiChitose": "21:37",
+     "chitose": "21:50"
+    }
+   },
+   {
+    "time": "21:25",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "minamiChitose": "21:37",
+     "chitose": "21:50"
+    }
+   },
+   {
+    "time": "21:52",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "21:55",
+     "minamiChitose": "22:07",
+     "chitose": "22:20"
+    }
+   },
+   {
+    "time": "21:55",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "22:07",
+     "chitose": "22:20"
+    }
+   },
+   {
+    "time": "22:32",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "22:35",
+     "minamiChitose": "22:47",
+     "chitose": "23:00"
+    }
+   },
+   {
+    "time": "22:35",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "22:47",
+     "chitose": "23:00"
+    }
+   },
+   {
+    "time": "23:32",
+    "direction": "from_honbuto",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "kenkyuto": "23:35",
+     "minamiChitose": "23:47",
+     "chitose": "24:00"
+    }
+   },
+   {
+    "time": "23:35",
+    "direction": "from_kenkyuto_to_station",
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "minamiChitose": "23:47",
+     "chitose": "24:00"
+    }
+   },
+   {
+    "time": "06:58",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "07:01"
+    }
+   },
+   {
+    "time": "07:18",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "07:21"
+    }
+   },
+   {
+    "time": "07:33",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "07:36"
+    }
+   },
+   {
+    "time": "07:38",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "07:41"
+    }
+   },
+   {
+    "time": "07:58",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "08:01"
+    }
+   },
+   {
+    "time": "08:13",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "08:16"
+    }
+   },
+   {
+    "time": "08:38",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "arrivals": {
+     "honbuto": "08:41"
+    }
+   },
+   {
+    "time": "08:43",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "08:46"
+    }
+   },
+   {
+    "time": "08:48",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "08:51"
+    }
+   },
+   {
+    "time": "09:03",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "09:06"
+    }
+   },
+   {
+    "time": "09:33",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "09:36"
+    }
+   },
+   {
+    "time": "09:48",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "09:51"
+    }
+   },
+   {
+    "time": "10:13",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "10:16"
+    }
+   },
+   {
+    "time": "10:28",
+    "direction": "from_kenkyuto_to_honbuto",
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "platformNumber": null,
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "arrivals": {
+     "honbuto": "10:31"
     }
    }
   ]
