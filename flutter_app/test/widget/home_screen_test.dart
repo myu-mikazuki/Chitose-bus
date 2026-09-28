@@ -159,6 +159,11 @@ const _stopMaster = [
   BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
 ];
 
+/// タブの中の文字だけを探す。一覧の行も終点（本部棟など）を出すので、
+/// `find.text` だと行と数が合わなくなる（#270）
+Finder inTab(String text) =>
+    find.descendant(of: find.byType(Tab), matching: find.text(text));
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -234,7 +239,7 @@ void main() {
       expect(find.text('千歳駅'), findsOneWidget);
       expect(find.text('南千歳'), findsOneWidget);
       expect(find.text('研究棟'), findsOneWidget);
-      expect(find.text('本部棟'), findsOneWidget);
+      expect(inTab('本部棟'), findsOneWidget);
     });
 
     group('停留所名が届くまでのタブ', () {
@@ -282,7 +287,7 @@ void main() {
         await tester.pump();
 
         expect(find.text('千歳駅'), findsOneWidget);
-        expect(find.text('本部棟'), findsOneWidget);
+        expect(inTab('本部棟'), findsOneWidget);
       });
 
       testWidgets('更新中は名前が消えない', (tester) async {
@@ -528,7 +533,7 @@ void main() {
         );
         await tester.pump();
 
-        expect(find.text('honbuto'), findsOneWidget);
+        expect(inTab('honbuto'), findsOneWidget);
         expect(find.text('千歳駅'), findsOneWidget);
       });
     });
@@ -1294,7 +1299,7 @@ void main() {
         final tabs = tester.widgetList<Tab>(find.byType(Tab)).toList();
         expect(tester.getTopLeft(find.byWidget(tabs[0])).dx,
             lessThan(tester.getTopLeft(find.byWidget(tabs[1])).dx));
-        expect(find.text('本部棟'), findsOneWidget);
+        expect(inTab('本部棟'), findsOneWidget);
         expect(find.text('千歳駅'), findsOneWidget);
       });
 
