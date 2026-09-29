@@ -164,6 +164,58 @@ void main() {
       });
     });
 
+    testWidgets('行き先は終点で出す。destination と終点が食い違う便でも矛盾しない（#270）', (tester) async {
+      final t = safeFutureHhmm(30);
+      final timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-03-31',
+        schedules: [
+          // 南17 の復路：destination は千歳駅だが、実際の終点は南千歳
+          BusEntry(
+            time: t,
+            boardingStopId: 'kenkyuto',
+            destination: '千歳駅',
+            routeLabel: '南千歳行き',
+            terminusStopId: 'minamiChitose',
+            arrivals: const {'minamiChitose': '23:59'},
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(_wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
+          timetable: timetable,
+          stopId: 'kenkyuto')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('南千歳'), findsOneWidget);
+      expect(find.text('千歳駅'), findsNothing);
+    });
+
+    testWidgets('終点が分からない供給元では destination のまま出す（#270）', (tester) async {
+      final t = safeFutureHhmm(30);
+      final timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-03-31',
+        schedules: [
+          BusEntry(
+            time: t,
+            boardingStopId: 'kenkyuto',
+            destination: '千歳駅',
+            arrivals: const {},
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(_wrap(ScheduleList(
+          stopMaster: kTestStopMaster,
+          timetable: timetable,
+          stopId: 'kenkyuto')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('千歳駅'), findsOneWidget);
+    });
+
     testWidgets('バスリストに複数エントリ: 時刻・行き先が表示される', (tester) async {
       final t1 = safeFutureHhmm(60);
       final t2 = safeFutureHhmm(120);

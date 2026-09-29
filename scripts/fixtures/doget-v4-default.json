@@ -122,6 +122,11 @@
    "shortLabel": "南千歳"
   },
   {
+   "id": "minamiChitoseNorth",
+   "label": "南千歳駅北口",
+   "shortLabel": "南千歳北"
+  },
+  {
    "id": "airCargo",
    "label": "エアカーゴ前",
    "shortLabel": "カーゴ"
@@ -166,90 +171,6 @@
     "destination": "科技大",
     "routeLabel": "空港経由",
     "terminus": "honbuto",
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "07:20",
-      "platform": "5番"
-     },
-     {
-      "id": "minamiChitose",
-      "time": "07:31"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "07:44"
-     },
-     {
-      "id": "honbuto",
-      "time": "07:45"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "terminus": "honbuto",
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "08:18",
-      "platform": "5番"
-     },
-     {
-      "id": "minamiChitose",
-      "time": "08:29"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "08:42"
-     },
-     {
-      "id": "honbuto",
-      "time": "08:43"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "terminus": "honbuto",
-    "weekdayOnly": false,
-    "weekendOnly": true,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "09:10",
-      "platform": "5番"
-     },
-     {
-      "id": "minamiChitose",
-      "time": "09:21"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "09:34"
-     },
-     {
-      "id": "honbuto",
-      "time": "09:35"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "空港経由",
-    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
@@ -257,20 +178,104 @@
     "stops": [
      {
       "id": "chitose",
-      "time": "10:30",
+      "time": "06:45",
       "platform": "5番"
      },
      {
       "id": "minamiChitose",
-      "time": "10:41"
+      "time": "06:56"
      },
      {
       "id": "kenkyuto",
-      "time": "10:54"
+      "time": "07:09"
      },
      {
       "id": "honbuto",
-      "time": "10:55"
+      "time": "07:10"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "07:15",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "07:26"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "07:39"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:40"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:50",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "10:01"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:14"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:15"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "10:45",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "10:56"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "11:09"
+     },
+     {
+      "id": "honbuto",
+      "time": "11:10"
      }
     ]
    },
@@ -313,6 +318,34 @@
     "stops": [
      {
       "id": "chitose",
+      "time": "11:50",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "12:01"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "12:14"
+     },
+     {
+      "id": "honbuto",
+      "time": "12:15"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
       "time": "12:10",
       "platform": "5番"
      },
@@ -341,6 +374,34 @@
     "stops": [
      {
       "id": "chitose",
+      "time": "12:40",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "12:51"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "13:04"
+     },
+     {
+      "id": "honbuto",
+      "time": "13:05"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
       "time": "13:20",
       "platform": "5番"
      },
@@ -359,11 +420,259 @@
     ]
    },
    {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "13:40",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "13:51"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "14:04"
+     },
+     {
+      "id": "honbuto",
+      "time": "14:05"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "14:50",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "15:01"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "15:14"
+     },
+     {
+      "id": "honbuto",
+      "time": "15:15"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "15:18",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "15:29"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "15:42"
+     },
+     {
+      "id": "honbuto",
+      "time": "15:43"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "16:00",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "16:11"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "16:24"
+     },
+     {
+      "id": "honbuto",
+      "time": "16:25"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "空港経由",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "17:30",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "17:41"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:54"
+     },
+     {
+      "id": "honbuto",
+      "time": "17:55"
+     }
+    ]
+   },
+   {
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "terminus": "chitose",
-    "weekdayOnly": true,
+    "weekdayOnly": false,
     "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "08:22"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:25"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "08:37"
+     },
+     {
+      "id": "chitose",
+      "time": "08:48"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "09:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:05"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "09:17"
+     },
+     {
+      "id": "chitose",
+      "time": "09:28"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "09:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:35"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "09:47"
+     },
+     {
+      "id": "chitose",
+      "time": "09:58"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "10:42"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:45"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "10:57"
+     },
+     {
+      "id": "chitose",
+      "time": "11:08"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": false,
+    "weekendOnly": true,
     "academicOnly": false,
     "vacationOnly": false,
     "stops": [
@@ -389,8 +698,8 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "terminus": "chitose",
-    "weekdayOnly": false,
-    "weekendOnly": true,
+    "weekdayOnly": true,
+    "weekendOnly": false,
     "academicOnly": false,
     "vacationOnly": false,
     "stops": [
@@ -416,7 +725,7 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "terminus": "chitose",
-    "weekdayOnly": true,
+    "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
     "vacationOnly": false,
@@ -436,6 +745,33 @@
      {
       "id": "chitose",
       "time": "14:01"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "14:17"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "14:20"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "14:32"
+     },
+     {
+      "id": "chitose",
+      "time": "14:43"
      }
     ]
    },
@@ -470,7 +806,7 @@
     "destination": "千歳駅",
     "routeLabel": "空港経由",
     "terminus": "chitose",
-    "weekdayOnly": false,
+    "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
     "vacationOnly": false,
@@ -490,6 +826,33 @@
      {
       "id": "chitose",
       "time": "15:50"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "空港経由",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "15:47"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "15:50"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "16:02"
+     },
+     {
+      "id": "chitose",
+      "time": "16:13"
      }
     ]
    },
@@ -521,110 +884,26 @@
     ]
    },
    {
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "terminus": "chitose",
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "honbuto",
-      "time": "17:52"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "17:55"
-     },
-     {
-      "id": "minamiChitose",
-      "time": "18:07"
-     },
-     {
-      "id": "chitose",
-      "time": "18:18"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "terminus": "chitose",
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "honbuto",
-      "time": "19:02"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "19:05"
-     },
-     {
-      "id": "minamiChitose",
-      "time": "19:17"
-     },
-     {
-      "id": "chitose",
-      "time": "19:28"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "terminus": "chitose",
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
-      "id": "honbuto",
-      "time": "19:42"
+      "id": "chitose",
+      "time": "07:00",
+      "platform": "4番"
      },
      {
       "id": "kenkyuto",
-      "time": "19:45"
+      "time": "07:18"
      },
-     {
-      "id": "minamiChitose",
-      "time": "19:57"
-     },
-     {
-      "id": "chitose",
-      "time": "20:08"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "空港経由",
-    "terminus": "chitose",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
      {
       "id": "honbuto",
-      "time": "21:22"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "21:25"
-     },
-     {
-      "id": "minamiChitose",
-      "time": "21:37"
-     },
-     {
-      "id": "chitose",
-      "time": "21:48"
+      "time": "07:21"
      }
     ]
    },
@@ -634,37 +913,13 @@
     "terminus": "honbuto",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "07:14",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "07:32"
-     },
-     {
-      "id": "honbuto",
-      "time": "07:35"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
       "id": "chitose",
       "time": "07:29",
-      "platform": "3番"
+      "platform": "4番"
      },
      {
       "id": "kenkyuto",
@@ -680,407 +935,23 @@
     "destination": "科技大",
     "routeLabel": "直通",
     "terminus": "honbuto",
-    "weekdayOnly": true,
+    "weekdayOnly": false,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
       "id": "chitose",
-      "time": "08:04",
-      "platform": "3番"
+      "time": "07:50",
+      "platform": "4番"
      },
      {
       "id": "kenkyuto",
-      "time": "08:22"
+      "time": "08:08"
      },
      {
       "id": "honbuto",
-      "time": "08:25"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "08:14",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "08:32"
-     },
-     {
-      "id": "honbuto",
-      "time": "08:35"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "08:19",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "08:37"
-     },
-     {
-      "id": "honbuto",
-      "time": "08:40"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "08:24",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "08:42"
-     },
-     {
-      "id": "honbuto",
-      "time": "08:45"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "08:29",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "08:47"
-     },
-     {
-      "id": "honbuto",
-      "time": "08:50"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "09:04",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "09:22"
-     },
-     {
-      "id": "honbuto",
-      "time": "09:25"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "09:19",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "09:37"
-     },
-     {
-      "id": "honbuto",
-      "time": "09:40"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "09:34",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "09:52"
-     },
-     {
-      "id": "honbuto",
-      "time": "09:55"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "09:44",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "10:02"
-     },
-     {
-      "id": "honbuto",
-      "time": "10:05"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "09:54",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "10:12"
-     },
-     {
-      "id": "honbuto",
-      "time": "10:15"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "10:04",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "10:22"
-     },
-     {
-      "id": "honbuto",
-      "time": "10:25"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "10:14",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "10:32"
-     },
-     {
-      "id": "honbuto",
-      "time": "10:35"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "14:24",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "14:42"
-     },
-     {
-      "id": "honbuto",
-      "time": "14:45"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "15:22",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "15:40"
-     },
-     {
-      "id": "honbuto",
-      "time": "15:43"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "15:55",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "16:13"
-     },
-     {
-      "id": "honbuto",
-      "time": "16:16"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "16:04",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "16:22"
-     },
-     {
-      "id": "honbuto",
-      "time": "16:25"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "17:51",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "18:09"
-     },
-     {
-      "id": "honbuto",
-      "time": "18:12"
+      "time": "08:11"
      }
     ]
    },
@@ -1091,12 +962,36 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:00",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:18"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:21"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "chitose",
       "time": "08:10",
-      "platform": "3番"
+      "platform": "4番"
      },
      {
       "id": "kenkyuto",
@@ -1115,139 +1010,284 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "08:40",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "08:58"
-     },
-     {
-      "id": "honbuto",
-      "time": "09:01"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "09:10",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "09:28"
-     },
-     {
-      "id": "honbuto",
-      "time": "09:31"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "09:50",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "10:08"
-     },
-     {
-      "id": "honbuto",
-      "time": "10:11"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "16:00",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "16:18"
-     },
-     {
-      "id": "honbuto",
-      "time": "16:21"
-     }
-    ]
-   },
-   {
-    "destination": "科技大",
-    "routeLabel": "直通",
-    "terminus": "honbuto",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": true,
-    "stops": [
-     {
-      "id": "chitose",
-      "time": "18:00",
-      "platform": "3番"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "18:18"
-     },
-     {
-      "id": "honbuto",
-      "time": "18:21"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "直通",
-    "terminus": "chitose",
-    "weekdayOnly": true,
-    "weekendOnly": false,
-    "academicOnly": true,
     "vacationOnly": false,
     "stops": [
      {
-      "id": "honbuto",
-      "time": "11:02"
+      "id": "chitose",
+      "time": "08:16",
+      "platform": "4番"
      },
      {
       "id": "kenkyuto",
-      "time": "11:05"
+      "time": "08:34"
      },
      {
+      "id": "honbuto",
+      "time": "08:37"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
       "id": "chitose",
-      "time": "11:24"
+      "time": "08:19",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:37"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:40"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:24",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:42"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:45"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:29",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "08:47"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:50"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "08:50",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:08"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:11"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:04",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:22"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:25"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:19",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:37"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:40"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:34",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "09:52"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:55"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "09:54",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:12"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:15"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "10:04",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:22"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:25"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "10:14",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "10:32"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:35"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "直通",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "14:24",
+      "platform": "4番"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "14:42"
+     },
+     {
+      "id": "honbuto",
+      "time": "14:45"
      }
     ]
    },
@@ -1257,7 +1297,7 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -1280,7 +1320,7 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -1303,20 +1343,20 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
       "id": "honbuto",
-      "time": "14:17"
+      "time": "14:52"
      },
      {
       "id": "kenkyuto",
-      "time": "14:20"
+      "time": "14:55"
      },
      {
       "id": "chitose",
-      "time": "14:39"
+      "time": "15:14"
      }
     ]
    },
@@ -1326,20 +1366,20 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
       "id": "honbuto",
-      "time": "15:02"
+      "time": "16:02"
      },
      {
       "id": "kenkyuto",
-      "time": "15:05"
+      "time": "16:05"
      },
      {
       "id": "chitose",
-      "time": "15:24"
+      "time": "16:24"
      }
     ]
    },
@@ -1349,7 +1389,7 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -1372,7 +1412,7 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -1395,7 +1435,30 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "17:17"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:20"
+     },
+     {
+      "id": "chitose",
+      "time": "17:39"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -1418,7 +1481,30 @@
     "terminus": "chitose",
     "weekdayOnly": true,
     "weekendOnly": false,
-    "academicOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "17:42"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:45"
+     },
+     {
+      "id": "chitose",
+      "time": "18:04"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "直通",
+    "terminus": "chitose",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
@@ -1442,19 +1528,19 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "honbuto",
-      "time": "12:32"
+      "time": "18:47"
      },
      {
       "id": "kenkyuto",
-      "time": "12:35"
+      "time": "18:50"
      },
      {
       "id": "chitose",
-      "time": "12:54"
+      "time": "19:09"
      }
     ]
    },
@@ -1465,19 +1551,19 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "honbuto",
-      "time": "14:32"
+      "time": "19:12"
      },
      {
       "id": "kenkyuto",
-      "time": "14:35"
+      "time": "19:15"
      },
      {
       "id": "chitose",
-      "time": "14:54"
+      "time": "19:34"
      }
     ]
    },
@@ -1488,42 +1574,103 @@
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
     "stops": [
      {
       "id": "honbuto",
-      "time": "17:32"
+      "time": "19:32"
      },
      {
       "id": "kenkyuto",
-      "time": "17:35"
+      "time": "19:35"
      },
      {
       "id": "chitose",
-      "time": "17:54"
+      "time": "19:54"
      }
     ]
    },
    {
-    "destination": "千歳駅",
-    "routeLabel": "直通",
-    "terminus": "chitose",
-    "weekdayOnly": true,
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
     "weekendOnly": false,
     "academicOnly": false,
-    "vacationOnly": true,
+    "vacationOnly": false,
     "stops": [
      {
-      "id": "honbuto",
-      "time": "18:32"
+      "id": "chitose",
+      "time": "06:29",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "06:40"
      },
      {
       "id": "kenkyuto",
-      "time": "18:35"
+      "time": "06:53"
      },
      {
+      "id": "honbuto",
+      "time": "06:54"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
       "id": "chitose",
-      "time": "18:54"
+      "time": "06:59",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "07:10"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "07:23"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:24"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "07:34",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "07:45"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "07:58"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:59"
      }
     ]
    },
@@ -1587,54 +1734,194 @@
     "destination": "科技大",
     "routeLabel": "長都発",
     "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "18:29",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "18:40"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:53"
+     },
+     {
+      "id": "honbuto",
+      "time": "18:54"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "長都発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "chitose",
+      "time": "19:29",
+      "platform": "5番"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "19:40"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "19:53"
+     },
+     {
+      "id": "honbuto",
+      "time": "19:54"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "12:22"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "12:25"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "12:37"
+     },
+     {
+      "id": "chitose",
+      "time": "12:50",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "15:12"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "15:15"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "15:27"
+     },
+     {
+      "id": "chitose",
+      "time": "15:40",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "18:07"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:10"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "18:22"
+     },
+     {
+      "id": "chitose",
+      "time": "18:35",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "18:42"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:45"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "18:57"
+     },
+     {
+      "id": "chitose",
+      "time": "19:10",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
     "weekdayOnly": true,
     "weekendOnly": false,
     "academicOnly": false,
     "vacationOnly": false,
     "stops": [
      {
-      "id": "chitose",
-      "time": "14:29",
-      "platform": "5番"
-     },
-     {
-      "id": "minamiChitose",
-      "time": "14:40"
+      "id": "honbuto",
+      "time": "18:59"
      },
      {
       "id": "kenkyuto",
-      "time": "14:53"
-     },
-     {
-      "id": "honbuto",
-      "time": "14:54"
-     }
-    ]
-   },
-   {
-    "destination": "千歳駅",
-    "routeLabel": "長都行き",
-    "terminus": "osatsu",
-    "weekdayOnly": false,
-    "weekendOnly": false,
-    "academicOnly": false,
-    "vacationOnly": false,
-    "stops": [
-     {
-      "id": "honbuto",
-      "time": "20:32"
-     },
-     {
-      "id": "kenkyuto",
-      "time": "20:35"
+      "time": "19:02"
      },
      {
       "id": "minamiChitose",
-      "time": "20:47"
+      "time": "19:14"
      },
      {
       "id": "chitose",
-      "time": "21:00",
+      "time": "19:27",
       "platform": "4番"
      }
     ]
@@ -1650,20 +1937,672 @@
     "stops": [
      {
       "id": "honbuto",
-      "time": "22:02"
+      "time": "19:17"
      },
      {
       "id": "kenkyuto",
-      "time": "22:05"
+      "time": "19:20"
      },
      {
       "id": "minamiChitose",
-      "time": "22:17"
+      "time": "19:32"
      },
      {
       "id": "chitose",
-      "time": "22:30",
+      "time": "19:45",
       "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "19:42"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "19:45"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "19:57"
+     },
+     {
+      "id": "chitose",
+      "time": "20:10",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "20:22"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "20:25"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "20:37"
+     },
+     {
+      "id": "chitose",
+      "time": "20:50",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "21:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "21:05"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "21:17"
+     },
+     {
+      "id": "chitose",
+      "time": "21:30",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "21:22"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "21:25"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "21:37"
+     },
+     {
+      "id": "chitose",
+      "time": "21:50",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "21:52"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "21:55"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "22:07"
+     },
+     {
+      "id": "chitose",
+      "time": "22:20",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "22:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "22:35"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "22:47"
+     },
+     {
+      "id": "chitose",
+      "time": "23:00",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "長都行き",
+    "terminus": "osatsu",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "23:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "23:35"
+     },
+     {
+      "id": "minamiChitose",
+      "time": "23:47"
+     },
+     {
+      "id": "chitose",
+      "time": "24:00",
+      "platform": "4番"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "06:58"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:01"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "07:18"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:21"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "07:33"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:36"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "07:38"
+     },
+     {
+      "id": "honbuto",
+      "time": "07:41"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "07:58"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:01"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "08:13"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:16"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": false,
+    "weekendOnly": true,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "08:38"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:41"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "08:43"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:46"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "08:48"
+     },
+     {
+      "id": "honbuto",
+      "time": "08:51"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "09:03"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:06"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "09:33"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:36"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "09:48"
+     },
+     {
+      "id": "honbuto",
+      "time": "09:51"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "10:13"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:16"
+     }
+    ]
+   },
+   {
+    "destination": "科技大",
+    "routeLabel": "南千歳発",
+    "terminus": "honbuto",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "kenkyuto",
+      "time": "10:28"
+     },
+     {
+      "id": "honbuto",
+      "time": "10:31"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "15:17"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "15:20"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "16:35"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "16:38"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "16:44"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "16:47"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "17:07"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:10"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "17:12"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:15"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "17:47"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "17:50"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "18:12"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:15"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "18:22"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:25"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "18:32"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "18:35"
+     }
+    ]
+   },
+   {
+    "destination": "千歳駅",
+    "routeLabel": "南千歳行き",
+    "terminus": "minamiChitoseNorth",
+    "weekdayOnly": true,
+    "weekendOnly": false,
+    "academicOnly": false,
+    "vacationOnly": false,
+    "stops": [
+     {
+      "id": "honbuto",
+      "time": "19:02"
+     },
+     {
+      "id": "kenkyuto",
+      "time": "19:05"
      }
     ]
    }
