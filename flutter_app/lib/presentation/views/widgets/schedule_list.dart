@@ -8,6 +8,7 @@ import '../../viewmodels/display_settings_viewmodel.dart';
 import '../../viewmodels/notification_viewmodel.dart';
 import '../../viewmodels/schedule_viewmodel.dart';
 import 'arrival_row.dart';
+import 'next_bus_display.dart' show destinationLabelOf;
 
 class ScheduleList extends ConsumerStatefulWidget {
   const ScheduleList({
@@ -385,7 +386,10 @@ class _ScheduleRowState extends ConsumerState<_ScheduleRow> {
                         ),
                       ..._buildLectureTagWidgets(),
                       Text(
-                        widget.bus.destination,
+                        // 終点で出す。NEXT BUS・見出しと同じ（#270）。
+                        // `destination` は科技大 / 千歳駅の2値なので、
+                        // 南17 の復路で「南千歳行き … 千歳駅」と矛盾する
+                        destinationLabelOf(widget.bus, widget.stopMaster),
                         // 系統タグと同じ理由。1.7 で `科技大` が
                         // `科技` / `大` に割れていた（#242 / PR #254 の指摘）
                         maxLines: 1,
