@@ -2,7 +2,7 @@
 
 対応順の記録。**着手前にこの順序を確認し、変更したらここを更新する。**
 
-最終更新: 2026-09-27（v1.3.2 リリース）
+最終更新: 2026-09-29（`release/v1.3.3` を切った）
 
 ---
 
@@ -23,7 +23,8 @@
 | — | [#251](https://github.com/myu-mikazuki/Chitose-bus/issues/251) | 測る網を広げる（`koizumi` 固定で測っていた穴を塞ぐ。production の修正は無し） | **v1.3.2 リリース済み** |
 | — | [#261](https://github.com/myu-mikazuki/Chitose-bus/issues/261) | `flutter test` の出力を圧縮するラッパースクリプトを用意する（開発用ツール） | **v1.3.2 リリース済み** |
 | — | [#260](https://github.com/myu-mikazuki/Chitose-bus/issues/260) | 横スクロールの感度を調整する | **v1.3.2 リリース済み** |
-| — | [#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253) | **2026年10月1日からの新ダイヤに対応**（108便→168便） | **データ差し替え済み。本番 GAS デプロイ待ち（2026-10-01 まで）** |
+| — | [#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253) | **2026年10月1日からの新ダイヤに対応**（108便→168便） | **release/v1.3.3 に切り出し済み。本番 GAS デプロイ待ち（2026-10-01 まで）** |
+| — | [#270](https://github.com/myu-mikazuki/Chitose-bus/issues/270) | 一覧の行の行き先を終点で出す（南17 復路の「南千歳行き … 千歳駅」の矛盾） | **release/v1.3.3 に切り出し済み** |
 | 1 | [#146](https://github.com/myu-mikazuki/Chitose-bus/issues/146) | portal の連絡掲示から増便情報を取得 | |
 | 2 | [#23](https://github.com/myu-mikazuki/Chitose-bus/issues/23) | 横長画面で NEXT BUS を左・SCHEDULE を右に | |
 | 3 | [#140](https://github.com/myu-mikazuki/Chitose-bus/issues/140) | お気に入り登録を研究棟タブの本部棟⇔千歳駅にも対応 | |
