@@ -37,7 +37,8 @@ void main() {
     ],
   );
 
-  Future<void> pumpHome(WidgetTester tester, Size logical) async {
+  Future<void> pumpHome(WidgetTester tester, Size logical,
+      {BusTimetable? table}) async {
     tester.view.physicalSize = logical * 2;
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
@@ -50,7 +51,7 @@ void main() {
               data: ScheduleResponse(
                 stopMaster: stopMaster,
                 updatedAt: '2024-01-01',
-                current: timetable,
+                current: table ?? timetable,
               ),
             )),
           ),
@@ -101,5 +102,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.widget<TabBar>(find.byType(TabBar)).controller!.index, 1);
+  });
+
+  testWidgets('横画面の行き先トグルはラベルが折り返さない', (tester) async {
+    final twoWay = BusTimetable(
+      validFrom: '2024-01-01',
+      validTo: '2024-12-31',
+      pdfUrl: '',
+      schedules: [
+        ...timetable.schedules,
+        const BusEntry(
+          time: '10:30',
+          boardingStopId: 'chitose',
+          destination: BusDestination.station,
+          arrivals: {'honbuto': '10:40'},
+        ),
+      ],
+    );
+    await pumpHome(tester, const Size(667, 375), table: twoWay);
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SegmentedButton<String>), findsOneWidget);
+    // 1行のまま（縦に1文字ずつ割れると高さが跳ね上がる）
+    final label = find.descendant(
+        of: find.byType(SegmentedButton<String>),
+        matching: find.textContaining('→'));
+    for (final e in label.evaluate()) {
+      expect(tester.getSize(find.byWidget(e.widget)).height, lessThan(30));
+    }
   });
 }

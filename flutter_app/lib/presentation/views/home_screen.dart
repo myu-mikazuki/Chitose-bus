@@ -1293,12 +1293,19 @@ class _StopTabState extends State<_StopTab> {
         selectedForegroundColor: AppColors.onPrimary,
         // 横画面では縦が足りないので、ボタンの余白と文字を詰める
         visualDensity: compact ? VisualDensity.compact : null,
-        padding: compact ? const EdgeInsets.symmetric(horizontal: 4) : null,
+        padding: compact ? const EdgeInsets.symmetric(horizontal: 8) : null,
         textStyle: compact ? const TextStyle(fontSize: 12) : null,
         tapTargetSize: compact ? MaterialTapTargetSize.shrinkWrap : null,
       ),
     );
-    if (compact) return button;
+    // 足りないときは折り返さず、ボタンごと縮小する
+    if (compact) {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: button,
+      );
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: button,
