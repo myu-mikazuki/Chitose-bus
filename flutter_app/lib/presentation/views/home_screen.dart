@@ -1346,13 +1346,13 @@ class _StopTabState extends State<_StopTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 左はスクロールさせない。収まらないときは全体を縮小して収める
-        // （文字が小さくなるのは許容）。FittedBox に無限の高さを渡して自然な
+        // （文字が小さくなるのは許容。縮小したときは左カラムの中央に置く）。FittedBox に無限の高さを渡して自然な
         // 高さを測らせ、幅だけ固定する
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) => FittedBox(
               fit: BoxFit.scaleDown,
-              alignment: Alignment.topLeft,
+              alignment: Alignment.center,
               child: SizedBox(
                 width: constraints.maxWidth,
                 child: Padding(
