@@ -1,6 +1,6 @@
 # 文字拡大の限界を実フォントで測る
 
-`doc/roadmap.md` と `flutter_app/test/widget/text_scaler_test.dart` に載っている
+life リポジトリの `docs/life/kagibus/roadmap.md` と `flutter_app/test/widget/text_scaler_test.dart` に載っている
 **「実フォント」の列を採り直すための手順**（#237 / #246）。
 
 ## なぜ実フォントで測り直すのか
@@ -121,7 +121,7 @@ flutter test test/tools/text_scale_probe_test.dart --dart-define=JP_FONT=/tmp/jp
 > 介さず変わる**うえ、[#253](https://github.com/myu-mikazuki/Chitose-bus/issues/253)
 > （2026-10-01 の新ダイヤ）で件数が増える可能性が具体的にある。**新しい
 > データを測るときは、fixture の到着地の件数もそのデータに合わせて
-> 変えること**——`doc/roadmap.md` の「#237 で分かったこと」の NOTE に
+> 変えること**——life リポジトリの `docs/life/kagibus/roadmap.md` の「#237 で分かったこと」の NOTE に
 > 詳しい実測値がある。
 
 ## 4. 表を直す
@@ -129,7 +129,7 @@ flutter test test/tools/text_scale_probe_test.dart --dart-define=JP_FONT=/tmp/jp
 読み取った値を次の2箇所に書く。**片方だけ直さないこと。**
 
 - `flutter_app/test/widget/text_scaler_test.dart` の冒頭
-- `doc/roadmap.md` の「#237 で分かったこと」
+- life リポジトリの `docs/life/kagibus/roadmap.md` の「#237 で分かったこと」
 
 **`text_scaler_test.dart` のテストが踏む倍率（`_deviceLimit` /
 `_arrivalLimit` / `_tabLimit`）は代替フォントの値**なので、実フォントの列を
