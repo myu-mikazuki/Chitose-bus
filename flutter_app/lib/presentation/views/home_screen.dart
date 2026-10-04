@@ -842,9 +842,13 @@ class _StopSectionHeader extends StatefulWidget {
     required this.title,
     required this.stopId,
     required this.stopMaster,
+    this.middle,
   });
 
   final String title;
+
+  /// 見出しと名前の間に挟むウィジェット（横画面で行き先トグルを入れる・#23）
+  final Widget? middle;
 
   /// 乗車地の停留所 ID
   final String stopId;
@@ -888,6 +892,10 @@ class _StopSectionHeaderState extends State<_StopSectionHeader> {
         // 縮むべきは名前のほうではない
         Text(widget.title, style: _sectionTitleStyle(context)),
         const SizedBox(width: 12),
+        if (widget.middle != null) ...[
+          Flexible(child: widget.middle!),
+          const SizedBox(width: 12),
+        ],
         // タップ領域は Expanded の中に GestureDetector を置く。右寄せテキスト
         // だが、当たり判定は Expanded の幅いっぱい（HitTestBehavior.opaque）
         // なので、文字の外側をタップしても反応する
@@ -1266,27 +1274,34 @@ class _StopTabState extends State<_StopTab> {
   }
 
   /// 行き先の切り替え。縦・横どちらのレイアウトからも使う。
-  Widget _buildDestinationSelector() {
+  Widget _buildDestinationSelector({bool compact = false}) {
+    final button = SegmentedButton<String>(
+      segments: [
+        for (final d in _destinations)
+          ButtonSegment(
+            value: d,
+            label: Text('→ ${widget.terminusLabel(d)}'),
+          ),
+      ],
+      selected: {_destination},
+      onSelectionChanged: (selection) =>
+          setState(() => _selected = selection.first),
+      style: SegmentedButton.styleFrom(
+        backgroundColor: context.appColors.surface,
+        foregroundColor: context.appColors.textTertiary,
+        selectedBackgroundColor: AppColors.primary,
+        selectedForegroundColor: AppColors.onPrimary,
+        // 横画面では縦が足りないので、ボタンの余白と文字を詰める
+        visualDensity: compact ? VisualDensity.compact : null,
+        padding: compact ? const EdgeInsets.symmetric(horizontal: 4) : null,
+        textStyle: compact ? const TextStyle(fontSize: 12) : null,
+        tapTargetSize: compact ? MaterialTapTargetSize.shrinkWrap : null,
+      ),
+    );
+    if (compact) return button;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: SegmentedButton<String>(
-        segments: [
-          for (final d in _destinations)
-            ButtonSegment(
-              value: d,
-              label: Text('→ ${widget.terminusLabel(d)}'),
-            ),
-        ],
-        selected: {_destination},
-        onSelectionChanged: (selection) =>
-            setState(() => _selected = selection.first),
-        style: SegmentedButton.styleFrom(
-          backgroundColor: context.appColors.surface,
-          foregroundColor: context.appColors.textTertiary,
-          selectedBackgroundColor: AppColors.primary,
-          selectedForegroundColor: AppColors.onPrimary,
-        ),
-      ),
+      child: button,
     );
   }
 
@@ -1309,43 +1324,52 @@ class _StopTabState extends State<_StopTab> {
 
   /// 横画面（#23）。NEXT BUS を左、TODAY'S SCHEDULE を右の2カラムにする。
   ///
-  /// 左は自前でスクロールし、右は `ScheduleList` が有界の高さで自前スクロールする
+  /// 左はスクロールせず、収まらなければ縮小する。右は `ScheduleList` が有界の高さで自前スクロールする
   /// ので、**拡大時の全体スクロール (c) には入らない**（縦が足りなければ各カラムが
   /// 別々にスクロールする）。余白を詰める必要もないので squeeze は使わない。
   Widget _buildLandscape() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // 左はスクロールさせない。収まらないときは全体を縮小して収める
+        // （文字が小さくなるのは許容）。FittedBox に無限の高さを渡して自然な
+        // 高さを測らせ、幅だけ固定する
         Expanded(
-          child: SingleChildScrollView(
-            key: PageStorageKey('stopTabLeft_${widget.stopId}'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: LayoutBuilder(
+            builder: (context, constraints) => FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: constraints.maxWidth,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [WeekendWarningBanner(), SeasonNoticeBanner()],
-                  ),
-                ),
-                if (_destinations.length > 1) _buildDestinationSelector(),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          WeekendWarningBanner(),
+                          SeasonNoticeBanner(),
+                        ],
+                      ),
+                      // 行き先トグルは NEXT BUS と「〇〇発」の間に入れる。
+                      // 別の行に置くより縦を1行ぶん節約できる
                       _StopSectionHeader(
                         title: 'NEXT BUS',
                         stopId: widget.stopId,
                         stopMaster: widget.stopMaster,
+                        middle: _destinations.length > 1
+                            ? _buildDestinationSelector(compact: true)
+                            : null,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       _buildNextBusStack(),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),

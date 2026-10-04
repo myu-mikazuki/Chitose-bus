@@ -75,6 +75,13 @@ void main() {
     expect(next.dx, lessThan(schedule.dx));
     // 同じ高さの段に並ぶ（縦に積まれていない）
     expect((next.dy - schedule.dy).abs(), lessThan(40));
+    // 左（NEXT BUS）はスクロールさせない
+    expect(
+      find.ancestor(
+          of: find.text('NEXT BUS'),
+          matching: find.byType(SingleChildScrollView)),
+      findsNothing,
+    );
   });
 
   testWidgets('縦画面(375x667)は従来どおり縦に積む', (tester) async {
