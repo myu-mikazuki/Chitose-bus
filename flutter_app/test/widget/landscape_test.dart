@@ -123,6 +123,7 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(SegmentedButton<String>), findsOneWidget);
+    expect(find.byIcon(Icons.check), findsNothing);
     // 1行のまま（縦に1文字ずつ割れると高さが跳ね上がる）
     final label = find.descendant(
         of: find.byType(SegmentedButton<String>),

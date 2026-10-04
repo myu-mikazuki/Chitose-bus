@@ -1280,9 +1280,16 @@ class _StopTabState extends State<_StopTab> {
         for (final d in _destinations)
           ButtonSegment(
             value: d,
-            label: Text('→ ${widget.terminusLabel(d)}'),
+            label: Text(
+              '→ ${widget.terminusLabel(d)}',
+              // 幅が足りなくても折り返さない（縦に1文字ずつ割れる）
+              softWrap: false,
+              maxLines: 1,
+            ),
           ),
       ],
+      // 横画面では幅を食うチェックを外す。選択は背景色で分かる
+      showSelectedIcon: !compact,
       selected: {_destination},
       onSelectionChanged: (selection) =>
           setState(() => _selected = selection.first),
