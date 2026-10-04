@@ -6,7 +6,7 @@
 # このリポジトリは1つの PR でテストを10回以上走らせる（限界値の二分探索など）
 # ので効いてくる。緑の情報量はほぼゼロ（「全部通った」以外に読むものが無い）
 # なので、緑なら集計だけ・赤なら中身を全部、という非対称な圧縮をする。
-# (*) develop の現在値。中身は `doc/roadmap.md` 参照
+# (*) develop の現在値。中身は life リポジトリの `docs/life/kagibus/roadmap.md` 参照
 #
 #   $ scripts/test.sh
 #   475 passed, 1 skipped (16s)
