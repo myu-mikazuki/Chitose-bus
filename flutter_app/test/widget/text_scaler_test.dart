@@ -486,6 +486,20 @@ Future<void> _expandRow(WidgetTester tester, String time) async {
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
+  // 既定の 800x600 は横画面で、横画面は2カラム（#23）になる。このファイルは縦画面の
+  // 画面を見るので、幅はそのまま（800）に高さだけ伸ばして縦向きにしておく。
+  // 個別に physicalSize を決めるテストはそちらが優先される
+  setUp(() {
+    final view = TestWidgetsFlutterBinding.ensureInitialized()
+        .platformDispatcher
+        .views
+        .first;
+    view.devicePixelRatio = 3.0;
+    view.physicalSize = const Size(2400, 3600);
+    addTearDown(view.resetPhysicalSize);
+    addTearDown(view.resetDevicePixelRatio);
+  });
+
   // overflow はテストが自動で失敗として拾うので、「例外なく pump できること」
   // 自体が検査になっている（`long_stop_names_test.dart` と同じ立て方）。
   group('文字拡大設定（TextScaler）', () {
@@ -568,11 +582,14 @@ void main() {
         // フッター（`更新: ...`）の Padding が等倍のまま
         // （(c) に切り替わったら余白を詰める理由が無い。`verticalSqueezeOf`
         // のドキュメント参照）
+        // `.first` は直近の祖先。外側には SafeArea の Padding も居る
         final footerPadding = tester.widget<Padding>(
-          find.ancestor(
-            of: find.textContaining('更新:'),
-            matching: find.byType(Padding),
-          ),
+          find
+              .ancestor(
+                of: find.textContaining('更新:'),
+                matching: find.byType(Padding),
+              )
+              .first,
         );
         expect((footerPadding.padding as EdgeInsets).top, 8.0);
         expect((footerPadding.padding as EdgeInsets).bottom, 16.0);

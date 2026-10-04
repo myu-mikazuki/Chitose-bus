@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_colors_theme.dart';
@@ -76,11 +77,20 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
         // 有界コンテキストでは ListView 自身が独立スクロール可能なため、
         // ensureVisible が ListView をスクロールする（親 SingleChildScrollView は不変）。
         // NEXT BUS セクションは常時表示のまま維持される。
-        Scrollable.ensureVisible(
-          ctx,
-          alignment: 0.0,
-          duration: Duration.zero,
-        );
+        //
+        // **`Scrollable.ensureVisible` は使わない。** あれは祖先のスクロールを
+        // すべて動かすので、横画面（#23）のように時刻表が TabBarView の
+        // 横向き PageView の中で有界になる経路では、PageView まで動かして
+        // タブが隣へ飛ぶ。いちばん近い（このリスト自身の）スクロールだけを動かす。
+        final position = Scrollable.maybeOf(ctx)?.position;
+        final viewport = RenderAbstractViewport.maybeOf(ctx.findRenderObject());
+        if (position != null && viewport != null) {
+          final target = viewport
+              .getOffsetToReveal(ctx.findRenderObject()!, 0.0)
+              .offset
+              .clamp(position.minScrollExtent, position.maxScrollExtent);
+          position.jumpTo(target);
+        }
       }
     });
   }
