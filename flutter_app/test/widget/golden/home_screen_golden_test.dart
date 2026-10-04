@@ -136,6 +136,12 @@ Future<void> _pumpHomeScreen(WidgetTester tester,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: buildTestTheme(),
+        // 描画の大きさ（既定の 800x600）は変えず、向きだけ縦にする。横画面は
+        // 2カラムになる（#23）が、この golden は縦向きの見た目を固定するもの
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(size: const Size(800, 1200)),
+          child: child!,
+        ),
         home: const HomeScreen(),
       ),
     ),

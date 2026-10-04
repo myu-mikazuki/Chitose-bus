@@ -169,6 +169,20 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  // 既定の 800x600 は横画面で、横画面は2カラム（#23）になる。このファイルは縦画面の
+  // 画面を見るので、幅はそのまま（800）に高さだけ伸ばして縦向きにしておく。
+  // 個別に physicalSize を決めるテストはそちらが優先される
+  setUp(() {
+    final view = TestWidgetsFlutterBinding.ensureInitialized()
+        .platformDispatcher
+        .views
+        .first;
+    view.devicePixelRatio = 3.0;
+    view.physicalSize = const Size(2400, 3600);
+    addTearDown(view.resetPhysicalSize);
+    addTearDown(view.resetDevicePixelRatio);
+  });
+
   group('HomeScreen', () {
     testWidgets('loading状態: CircularProgressIndicatorが表示される', (tester) async {
       await tester.pumpWidget(

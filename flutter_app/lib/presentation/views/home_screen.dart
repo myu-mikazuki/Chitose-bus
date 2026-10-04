@@ -412,91 +412,98 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ],
         ),
       ),
-      body: Stack(
-        children: [
-          scheduleAsync.when(
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-            error: (e, _) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('エラー: $e',
-                      style: const TextStyle(color: AppColors.error)),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () =>
-                        ref.read(scheduleViewModelProvider.notifier).refresh(),
-                    child: const Text('再試行',
-                        style: TextStyle(color: AppColors.primary)),
-                  ),
-                ],
+      // 横画面のノッチ・角丸で左右が欠けないようにする。上は AppBar、下は
+      // 広告バナーが受けるので触らない。縦向きでは左右の inset が 0 で何も変わらない
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Stack(
+          children: [
+            scheduleAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
-            ),
-            data: (result) {
-              return Column(
-                children: [
-                  if (result.isFromCache)
-                    OfflineCacheBanner(updatedAt: result.data.updatedAt),
-                  if (dayType != null) ...[
-                    _DayTypeSelector(dayType: dayType),
-                    _SeasonSelector(
-                      season: season ?? SeasonType.fromDate(DateTime.now()),
+              error: (e, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('エラー: $e',
+                        style: const TextStyle(color: AppColors.error)),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => ref
+                          .read(scheduleViewModelProvider.notifier)
+                          .refresh(),
+                      child: const Text('再試行',
+                          style: TextStyle(color: AppColors.primary)),
                     ),
                   ],
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        for (final id in stopIds)
-                          // 縦ドラッグが横スワイプ（タブ切り替え）に奪われる
-                          // のを防ぐバリア（#260）。各ページの最外周に常時
-                          // 掛ける——理由は [_wrapVerticalDragBarrier] 参照。
-                          // **key は中身と同じ値を付ける**（並べ替え時の
-                          // State 追随のため。関数のドキュメント参照）
-                          !result.data.covers(id)
-                              ? _wrapVerticalDragBarrier(
-                                  key: ValueKey('notFetched_$id'),
-                                  // オフラインで停留所を足すと、その停留所の
-                                  // 時刻を持たないキャッシュを表示すること
-                                  // になる。「便が1本も無い」と区別して
-                                  // 伝える（#177）
-                                  _StopNotFetched(
-                                    onRetry: () => ref
-                                        .read(
-                                            scheduleViewModelProvider.notifier)
-                                        .refresh(),
-                                  ),
-                                )
-                              : _wrapVerticalDragBarrier(
-                                  key: ValueKey(id),
-                                  _StopTab(
-                                    timetable: result.data.current,
-                                    stopId: id,
-                                    stopMaster: result.data.stopMaster,
-                                    updatedAt: result.data.updatedAt,
-                                    dayType: dayType,
-                                    season: season,
-                                  ),
-                                ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          if (!kIsWeb && !_bannerDismissed)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: ref.read(bannerAdBuilderProvider)(
-                () => setState(() => _bannerDismissed = true),
+                ),
               ),
+              data: (result) {
+                return Column(
+                  children: [
+                    if (result.isFromCache)
+                      OfflineCacheBanner(updatedAt: result.data.updatedAt),
+                    if (dayType != null) ...[
+                      _DayTypeSelector(dayType: dayType),
+                      _SeasonSelector(
+                        season: season ?? SeasonType.fromDate(DateTime.now()),
+                      ),
+                    ],
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          for (final id in stopIds)
+                            // 縦ドラッグが横スワイプ（タブ切り替え）に奪われる
+                            // のを防ぐバリア（#260）。各ページの最外周に常時
+                            // 掛ける——理由は [_wrapVerticalDragBarrier] 参照。
+                            // **key は中身と同じ値を付ける**（並べ替え時の
+                            // State 追随のため。関数のドキュメント参照）
+                            !result.data.covers(id)
+                                ? _wrapVerticalDragBarrier(
+                                    key: ValueKey('notFetched_$id'),
+                                    // オフラインで停留所を足すと、その停留所の
+                                    // 時刻を持たないキャッシュを表示すること
+                                    // になる。「便が1本も無い」と区別して
+                                    // 伝える（#177）
+                                    _StopNotFetched(
+                                      onRetry: () => ref
+                                          .read(scheduleViewModelProvider
+                                              .notifier)
+                                          .refresh(),
+                                    ),
+                                  )
+                                : _wrapVerticalDragBarrier(
+                                    key: ValueKey(id),
+                                    _StopTab(
+                                      timetable: result.data.current,
+                                      stopId: id,
+                                      stopMaster: result.data.stopMaster,
+                                      updatedAt: result.data.updatedAt,
+                                      dayType: dayType,
+                                      season: season,
+                                    ),
+                                  ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
-        ],
+            if (!kIsWeb && !_bannerDismissed)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: ref.read(bannerAdBuilderProvider)(
+                  () => setState(() => _bannerDismissed = true),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1130,6 +1137,13 @@ class _StopTabState extends State<_StopTab> {
     // `ratio > kVerticalScrollThreshold ? 1.0 : ...` と書くと、同じ判定を
     // 書き忘れた側（`_NextBusCard`）だけ詰まったままになる事故が起きる
     // （PR #252 のレビュー指摘で実際に踏んだ）
+    // 横画面かつ当日表示のときは NEXT BUS（左）と時刻表（右）の2カラム（#23）。
+    // 当日以外は NEXT BUS が無く左が空になるので縦向きと同じ並びのまま
+    if (MediaQuery.orientationOf(context) == Orientation.landscape &&
+        widget.dayType == null) {
+      return _buildLandscape();
+    }
+
     final useFullScroll = useVerticalScroll(context);
     final squeeze = verticalSqueezeOf(context);
 
@@ -1149,28 +1163,7 @@ class _StopTabState extends State<_StopTab> {
         ),
         // 行き先が複数ある停留所だけ切り替えを出す。
         // 終点や片方向しか通らない停留所では選ぶものが無い
-        if (_destinations.length > 1)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: SegmentedButton<String>(
-              segments: [
-                for (final d in _destinations)
-                  ButtonSegment(
-                    value: d,
-                    label: Text('→ ${widget.terminusLabel(d)}'),
-                  ),
-              ],
-              selected: {_destination},
-              onSelectionChanged: (selection) =>
-                  setState(() => _selected = selection.first),
-              style: SegmentedButton.styleFrom(
-                backgroundColor: context.appColors.surface,
-                foregroundColor: context.appColors.textTertiary,
-                selectedBackgroundColor: AppColors.primary,
-                selectedForegroundColor: AppColors.onPrimary,
-              ),
-            ),
-          ),
+        if (_destinations.length > 1) _buildDestinationSelector(),
         Padding(
           padding: EdgeInsets.fromLTRB(16, 16 * squeeze, 16, 0),
           child: Column(
@@ -1194,18 +1187,7 @@ class _StopTabState extends State<_StopTab> {
                 // 最外周でトップレベルの `_wrapVerticalDragBarrier`
                 // を1つだけ掛けている——ヒットテスト順で内側のスクロール
                 // 可能な要素が先に勝つので、ここに個別のバリアは要らない
-                IndexedStack(
-                  index: _destinations.indexOf(_destination).clamp(0, 99),
-                  children: [
-                    for (final d in _destinations)
-                      NextBusDisplay(
-                        timetable: widget.timetable,
-                        stopId: widget.stopId,
-                        stopMaster: widget.stopMaster,
-                        destination: d,
-                      ),
-                  ],
-                ),
+                _buildNextBusStack(),
                 SizedBox(height: 24 * squeeze),
                 // 乗車地は上の NEXT BUS 側に出ているので、ここでは繰り返さない
                 Text("TODAY'S SCHEDULE", style: _sectionTitleStyle(context)),
@@ -1280,6 +1262,115 @@ class _StopTabState extends State<_StopTab> {
       key: PageStorageKey('stopTabScroll_${widget.stopId}_${_destination}_'
           '${widget.dayType?.name ?? 'today'}_${widget.season?.name ?? ''}'),
       child: content,
+    );
+  }
+
+  /// 行き先の切り替え。縦・横どちらのレイアウトからも使う。
+  Widget _buildDestinationSelector() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: SegmentedButton<String>(
+        segments: [
+          for (final d in _destinations)
+            ButtonSegment(
+              value: d,
+              label: Text('→ ${widget.terminusLabel(d)}'),
+            ),
+        ],
+        selected: {_destination},
+        onSelectionChanged: (selection) =>
+            setState(() => _selected = selection.first),
+        style: SegmentedButton.styleFrom(
+          backgroundColor: context.appColors.surface,
+          foregroundColor: context.appColors.textTertiary,
+          selectedBackgroundColor: AppColors.primary,
+          selectedForegroundColor: AppColors.onPrimary,
+        ),
+      ),
+    );
+  }
+
+  /// 両方向の NextBusDisplay を IndexedStack で常時保持する
+  /// （切り替え時のレイアウトガタつきを防ぐ）。縦・横で共用。
+  Widget _buildNextBusStack() {
+    return IndexedStack(
+      index: _destinations.indexOf(_destination).clamp(0, 99),
+      children: [
+        for (final d in _destinations)
+          NextBusDisplay(
+            timetable: widget.timetable,
+            stopId: widget.stopId,
+            stopMaster: widget.stopMaster,
+            destination: d,
+          ),
+      ],
+    );
+  }
+
+  /// 横画面（#23）。NEXT BUS を左、TODAY'S SCHEDULE を右の2カラムにする。
+  ///
+  /// 左は自前でスクロールし、右は `ScheduleList` が有界の高さで自前スクロールする
+  /// ので、**拡大時の全体スクロール (c) には入らない**（縦が足りなければ各カラムが
+  /// 別々にスクロールする）。余白を詰める必要もないので squeeze は使わない。
+  Widget _buildLandscape() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            key: PageStorageKey('stopTabLeft_${widget.stopId}'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [WeekendWarningBanner(), SeasonNoticeBanner()],
+                  ),
+                ),
+                if (_destinations.length > 1) _buildDestinationSelector(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _StopSectionHeader(
+                        title: 'NEXT BUS',
+                        stopId: widget.stopId,
+                        stopMaster: widget.stopMaster,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildNextBusStack(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text("TODAY'S SCHEDULE",
+                    style: _sectionTitleStyle(context)),
+              ),
+              _buildScheduleSection(expand: true),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Text(
+                  '更新: ${widget.updatedAt}',
+                  style: TextStyle(
+                      color: context.appColors.textDisabled, fontSize: 11),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
