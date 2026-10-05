@@ -153,6 +153,21 @@ enum SeasonType {
 
 /// 運行カレンダー上の特例日
 abstract final class ServiceCalendar {
+  /// 運行日が前日側に残る時刻（この時より前は前日の運行日）。
+  ///
+  /// 時刻表は終バスを `24:22` のように 24 時超で表す。日付が変わった直後も
+  /// その便は前日の運行日の便なので、0 時台は前日として扱う。
+  /// 24 時台の最終便（現状 24:22）より後であればよい。午前3時とする。
+  static const serviceDayStartHour = 3;
+
+  /// [now] が属する運行日（時刻は 0:00）。曜日区分・期別・運休の判定と、
+  /// 便の時刻の基準日はすべてこれを使う。暦の日付を直接使わないこと。
+  static DateTime serviceDate(DateTime now) => DateTime(
+        now.year,
+        now.month,
+        now.hour < serviceDayStartHour ? now.day - 1 : now.day,
+      );
+
   /// 年末年始（12/31 〜 1/3）は全便運休
   static bool isSuspended(DateTime date) =>
       (date.month == DateTime.december && date.day == 31) ||
@@ -245,12 +260,16 @@ class BusEntry {
     return true;
   }
 
-  bool isRunningToday(DateTime now) =>
-      !ServiceCalendar.isSuspended(now) &&
-      runsOn(DayType.fromDate(now), SeasonType.fromDate(now));
+  bool isRunningToday(DateTime now) {
+    final day = ServiceCalendar.serviceDate(now);
+    return !ServiceCalendar.isSuspended(day) &&
+        runsOn(DayType.fromDate(day), SeasonType.fromDate(day));
+  }
 
+  /// 運行日 ([ServiceCalendar.serviceDate]) 基準の発車時刻。
+  /// `24:10` は運行日の翌日 0:10 になる。
   DateTime toDateTimeToday({DateTime? now}) {
-    final base = now ?? DateTime.now();
+    final base = ServiceCalendar.serviceDate(now ?? DateTime.now());
     final parts = time.split(':');
     return DateTime(
       base.year,
@@ -297,11 +316,12 @@ class BusTimetable {
   List<BusEntry> todayBuses(String stopId,
       {String? destination, DateTime? now}) {
     final current = now ?? DateTime.now();
-    if (ServiceCalendar.isSuspended(current)) return const [];
+    final day = ServiceCalendar.serviceDate(current);
+    if (ServiceCalendar.isSuspended(day)) return const [];
     return busesFor(
       stopId,
-      DayType.fromDate(current),
-      SeasonType.fromDate(current),
+      DayType.fromDate(day),
+      SeasonType.fromDate(day),
       destination: destination,
     );
   }

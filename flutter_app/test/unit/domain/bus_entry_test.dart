@@ -68,8 +68,8 @@ void main() {
           destination: '科技大',
           weekdayOnly: true,
         );
-        final saturday = DateTime(2024, 6, 15); // 土曜日
-        final monday = DateTime(2024, 6, 17); // 月曜日
+        final saturday = DateTime(2024, 6, 15, 12); // 土曜日
+        final monday = DateTime(2024, 6, 17, 12); // 月曜日
         expect(entry.isRunningToday(saturday), isFalse);
         expect(entry.isRunningToday(monday), isTrue);
       });
@@ -81,8 +81,8 @@ void main() {
           destination: '科技大',
           weekendOnly: true,
         );
-        final sunday = DateTime(2024, 6, 16); // 日曜日
-        final monday = DateTime(2024, 6, 17); // 月曜日
+        final sunday = DateTime(2024, 6, 16, 12); // 日曜日
+        final monday = DateTime(2024, 6, 17, 12); // 月曜日
         expect(entry.isRunningToday(monday), isFalse);
         expect(entry.isRunningToday(sunday), isTrue);
       });

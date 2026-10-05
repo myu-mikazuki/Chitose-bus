@@ -18,7 +18,7 @@ class SeasonNoticeBanner extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final now = ref.watch(countdownProvider);
+    final now = ServiceCalendar.serviceDate(ref.watch(countdownProvider));
 
     if (ServiceCalendar.isSuspended(now)) {
       return const _Banner(

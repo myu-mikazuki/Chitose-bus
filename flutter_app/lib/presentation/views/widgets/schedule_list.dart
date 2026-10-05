@@ -106,7 +106,8 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
         : widget.timetable.busesFor(
             widget.stopId,
             dayType,
-            widget.season ?? SeasonType.fromDate(now),
+            widget.season ??
+                SeasonType.fromDate(ServiceCalendar.serviceDate(now)),
             destination: widget.destination,
           );
     // 当日以外の表示では NEXT の概念がないため null とする
@@ -116,7 +117,8 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
         : null;
 
     if (buses.isEmpty) {
-      final isSuspended = dayType == null && ServiceCalendar.isSuspended(now);
+      final isSuspended = dayType == null &&
+          ServiceCalendar.isSuspended(ServiceCalendar.serviceDate(now));
       return Center(
         child: Text(
           isSuspended ? '年末年始のため全便運休です' : '時刻表データなし',
