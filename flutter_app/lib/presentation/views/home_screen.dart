@@ -148,6 +148,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
+  /// 縮小経路のタブ名の文字サイズ。[maxWidth] に収まる最大のサイズを
+  /// [_tabLabelMaxFontSize]〜[_tabLabelMinFontSize] の範囲で返す。
+  ///
+  /// **文字を大きくする設定を渡して測ること**（#243）。等倍で測ると、拡大時に
+  /// 実際の幅より小さく見積もって、収まると誤判定する。
+  static const _tabLabelMaxFontSize = 11.0;
+  static const _tabLabelMinFontSize = 8.0;
+
+  static double _tabLabelFontSize(
+      BuildContext context, String label, double maxWidth) {
+    final painter = TextPainter(
+      text: TextSpan(
+          text: label, style: const TextStyle(fontSize: _tabLabelMaxFontSize)),
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    // 浮動小数点の誤差で「ちょうど」が溢れ扱いになるため、わずかに余裕を取る
+    final fitted = _tabLabelMaxFontSize * maxWidth / painter.width * 0.98;
+    return fitted.clamp(_tabLabelMinFontSize, _tabLabelMaxFontSize);
+  }
+
   /// タブ1つ。[label] が null なら停留所名がまだ分からない（初回起動）。
   ///
   /// 名前の供給元は GAS の `stopMaster` だけなので、届くまで出せる名前が無い。
@@ -255,7 +276,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 場所取りも Flexible の中では縮む（停留所を増やすとタブが狭まる）
-              Flexible(child: labelWidget(const TextStyle(fontSize: 11))),
+              //
+              // 11px で収まらなければ、8px を下限に文字を小さくして収める（#271）。
+              // 5タブの 375px でラベルに残るのは 27px 程度で、3字の短縮名（`南千北`）
+              // は 8.8px で入る。省略されると隣の `南千歳` と読み分けられない。
+              // 下限を割る分（360px など）は従来どおり ellipsis（小さすぎて読めないよりよい）
+              Flexible(
+                child: LayoutBuilder(
+                  builder: (context, box) => labelWidget(TextStyle(
+                    fontSize: label == null
+                        ? 11
+                        : _tabLabelFontSize(context, label, box.maxWidth),
+                  )),
+                ),
+              ),
               const SizedBox(width: 2),
               starIcon(14),
             ],

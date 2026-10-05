@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kagi_bus/domain/entities/bus_schedule.dart';
@@ -496,6 +497,59 @@ void main() {
               '${StopSelection.maxStops} タブで名前が「…」だけになる',
         );
       });
+
+      // #271: 5タブの縮小経路では、3字の短縮名は文字を小さくして収める。
+      // 省略されると `南千歳` と `南千北` がどちらも `南…` になり読み分けられない。
+      // 実測: 375px・等倍で 8.8px、390px で 9.8px、411px で 11px で収まる。
+      // 360px と、375px の拡大設定（1.15 倍）では下限（8px）でも入らない
+      for (final width in [375.0, 390.0, 411.0]) {
+        testWidgets('5タブで3字の短縮名が省略されない（${width.toInt()}px）', (tester) async {
+          const master = [
+            BusStop(id: 'chitose', label: '千歳駅前', shortLabel: '千歳駅'),
+            BusStop(id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳'),
+            BusStop(
+                id: 'minamiChitoseNorth', label: '南千歳駅北口', shortLabel: '南千北'),
+            BusStop(id: 'kenkyuto', label: '科技大研究棟', shortLabel: '研究棟'),
+            BusStop(id: 'honbuto', label: '科技大本部棟', shortLabel: '本部棟'),
+          ];
+          tester.view.physicalSize = Size(width * 2, 1334);
+          tester.view.devicePixelRatio = 2.0;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                scheduleViewModelProvider.overrideWith(
+                  () => FakeScheduleViewModel(ScheduleResult(
+                    data: ScheduleResponse(
+                      stopMaster: master,
+                      updatedAt: '2024-01-01',
+                      current: _emptyTimetable,
+                    ),
+                  )),
+                ),
+                stopSelectionProvider.overrideWith(
+                  () => FakeStopSelectionNotifier(
+                      StopSelection(stopIds: master.map((s) => s.id).toList())),
+                ),
+                countdownOverride(),
+              ],
+              child: MaterialApp(
+                  theme: buildTestTheme(), home: const HomeScreen()),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          for (final name in ['南千北', '南千歳']) {
+            final label = find.descendant(
+                of: find.byType(TabBar), matching: find.text(name));
+            expect(
+                tester.renderObject<RenderParagraph>(label).didExceedMaxLines,
+                isFalse,
+                reason: '「$name」が $width px の5タブで省略されている');
+          }
+        });
+      }
 
       testWidgets('更新に失敗しても名前は残る（バーに戻るのは初回起動だけ）', (tester) async {
         // AsyncError も直前の値を添えたまま持つ（AsyncLoading と同じ）。

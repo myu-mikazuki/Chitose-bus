@@ -665,8 +665,11 @@ var STOPS = [
   { id: 'arcadia', label: 'オフィス・アルカディア入口', shortLabel: 'O･A入口' },
   { id: 'minamiChitose', label: '南千歳駅', shortLabel: '南千歳' },
   // 南17（令和8年10月1日新設）の起終点。南千歳駅とは別の停留所なので分けてある。
-  // 「北口」を落とすと南千歳と同じ短縮名になるため、落とすのは「駅」「口」だけ。
-  { id: 'minamiChitoseNorth', label: '南千歳駅北口', shortLabel: '南千歳北' },
+  // 「南千歳北」（4字）だと5タブで「南千…」に切れ、隣の「南千歳」と読み分けられない
+  // （#271）。3字の「南千北」なら、アプリ側が縮小経路で文字を 8px まで小さくして
+  // 収める（home_screen.dart の `_tabLabelFontSize`）。「歳」「駅」「口」を削っただけ。
+  // **4字以上にすると 8px でも収まらず省略される。360px や拡大設定では3字も省略される。**
+  { id: 'minamiChitoseNorth', label: '南千歳駅北口', shortLabel: '南千北' },
   // 「エアカーゴ」だと4タブでも「エアカ…」に切れる（31件で唯一の省略だった）
   { id: 'airCargo', label: 'エアカーゴ前', shortLabel: 'カーゴ' },
   { id: 'domestic28', label: '空港国内線28番', shortLabel: '国内28' },
@@ -929,7 +932,7 @@ var ROUTES = [
     // そのまま行き先として出すため、**千歳駅に行かないこの便を「→ 千歳駅」と
     // 表示してしまう**。destination は BusDestination の2値しか取れないので
     // （アプリが行き先で絞る・check_gas_response.js が検査する）、'南千歳駅' に
-    // 逃がすこともできない。v>=4 は terminus で正しく「→ 南千歳北」と出る。
+    // 逃がすこともできない。v>=4 は terminus で正しく「→ 南千歳駅北口」と出る。
     legacy: false,
     stops: ['rapidus', 'honbuto', 'kenkyuto', 'minamiChitoseNorth'],
     trips: [
