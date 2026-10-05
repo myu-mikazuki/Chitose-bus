@@ -510,7 +510,7 @@ flutter build ios --dart-define-from-file ../.dart_defines
 
 ### iOS 要件
 
-- Deployment Target: iOS 14.0+（`google_mobile_ads` 依存）
+- Deployment Target: iOS 15.0+（App Store Connect が 2027 年春から 15.0 未満を受け付けなくなるため。ITMS-90068 / #233）
 - 通知使用のため `NSUserNotificationUsageDescription` が必要
 
 ---
