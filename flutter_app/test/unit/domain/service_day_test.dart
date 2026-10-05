@@ -92,6 +92,39 @@ void main() {
           isEmpty);
     });
 
+    test('期別も運行日基準: 学休期の開始日（2026-08-03 月）0 時台はまだ授業期', () {
+      const vacationOnlyLast = BusEntry(
+        time: '24:10',
+        boardingStopId: 'chitose',
+        destination: '科技大',
+        vacationOnly: true,
+      );
+      const academicOnlyLast = BusEntry(
+        time: '24:10',
+        boardingStopId: 'chitose',
+        destination: '科技大',
+        academicOnly: true,
+      );
+      final mon0005 = DateTime(2026, 8, 3, 0, 5);
+      expect(academicOnlyLast.isRunningToday(mon0005), isTrue);
+      expect(vacationOnlyLast.isRunningToday(mon0005), isFalse);
+      // 3 時を過ぎると学休期
+      final mon0300 = DateTime(2026, 8, 3, 3, 0);
+      expect(academicOnlyLast.isRunningToday(mon0300), isFalse);
+      expect(vacationOnlyLast.isRunningToday(mon0300), isTrue);
+    });
+
+    test('日曜の終バス（土日祝ダイヤ）は祝日の月曜（2026-07-20）0 時過ぎにも残る', () {
+      // 2026-07-19 は日曜 → 土日祝ダイヤの終バスが 7/20 0:05 に残る
+      const sunLast = BusEntry(
+        time: '24:10',
+        boardingStopId: 'chitose',
+        destination: '科技大',
+        weekendOnly: true,
+      );
+      expect(sunLast.isRunningToday(DateTime(2026, 7, 20, 0, 5)), isTrue);
+    });
+
     test('12/30 の終バスは 12/31 0 時過ぎでも運行する', () {
       expect(timetable.nextBus('chitose', now: DateTime(2024, 12, 31, 0, 5)),
           lastBus);
