@@ -275,7 +275,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
     // 当日以外モードに入るときは、当日と逆のダイヤを初期表示する
     // （平日に土日祝ダイヤを確認する、が主なユースケースのため）
-    final now = DateTime.now();
+    final now = ServiceCalendar.serviceDate(DateTime.now());
     final today = DayType.fromDate(now);
     dayNotifier.state =
         today == DayType.weekday ? DayType.weekendHoliday : DayType.weekday;
@@ -448,7 +448,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     if (dayType != null) ...[
                       _DayTypeSelector(dayType: dayType),
                       _SeasonSelector(
-                        season: season ?? SeasonType.fromDate(DateTime.now()),
+                        season: season ??
+                            SeasonType.fromDate(
+                                ServiceCalendar.serviceDate(DateTime.now())),
                       ),
                     ],
                     Expanded(

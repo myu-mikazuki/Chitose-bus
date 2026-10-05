@@ -111,7 +111,9 @@ ProviderContainer makeContainer({
   NotificationSettings? initialSettings,
   BusTimetable? timetable,
   String stopId = 'chitose',
+  DateTime? now,
 }) {
+  final clock = now ?? _fixedNow;
   final repo = FakeNotificationSettingsRepository(initialSettings);
 
   final scheduleOverride = timetable != null
@@ -138,7 +140,7 @@ ProviderContainer makeContainer({
     overrides: [
       notificationServiceProvider.overrideWithValue(service),
       notificationSettingsRepositoryProvider.overrideWithValue(repo),
-      clockProvider.overrideWithValue(() => _fixedNow),
+      clockProvider.overrideWithValue(() => clock),
       scheduleOverride,
     ],
   );
@@ -470,6 +472,52 @@ void main() {
         expect(saved.scheduledBusKeys,
             contains(NotificationSettingsNotifier.busKey(pastBus)),
             reason: 'キーは追加されるべき');
+      });
+
+      test('0 時を過ぎても 24 時台の便は未来の便として予約される（#272）', () async {
+        final service = FakeNotificationService();
+        const lastBus = BusEntry(
+          time: '24:10',
+          boardingStopId: 'chitose',
+          destination: '科技大',
+        );
+        final container = makeContainer(
+          service: service,
+          initialSettings:
+              NotificationSettings(enabled: true, minutesBefore: 3),
+          now: DateTime(2026, 1, 16, 0, 5), // 24:10 の 5 分前
+        );
+        addTearDown(container.dispose);
+        await awaitProviders(container);
+
+        await container
+            .read(notificationSettingsProvider.notifier)
+            .toggleBusNotification(lastBus);
+
+        expect(service.scheduledCalls.map((c) => c.bus), [lastBus]);
+      });
+
+      test('24 時台の便が出た後（0:30）は予約されない（翌日扱いにならない）', () async {
+        final service = FakeNotificationService();
+        const lastBus = BusEntry(
+          time: '24:10',
+          boardingStopId: 'chitose',
+          destination: '科技大',
+        );
+        final container = makeContainer(
+          service: service,
+          initialSettings:
+              NotificationSettings(enabled: true, minutesBefore: 3),
+          now: DateTime(2026, 1, 16, 0, 30),
+        );
+        addTearDown(container.dispose);
+        await awaitProviders(container);
+
+        await container
+            .read(notificationSettingsProvider.notifier)
+            .toggleBusNotification(lastBus);
+
+        expect(service.scheduledCalls, isEmpty);
       });
 
       test('enabled=false のとき ON にしても scheduleNotification は呼ばれない', () async {
