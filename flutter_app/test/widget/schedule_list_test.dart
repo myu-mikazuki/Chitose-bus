@@ -98,6 +98,72 @@ void main() {
       expect(find.text('時刻表データなし'), findsOneWidget);
     });
 
+    // #272: 日付が変わった後も、午前3時までは前日の運行日の表示のまま
+    group('深夜（0:00〜3:00）は前日の運行日（#272）', () {
+      const weekdayLast = BusEntry(
+        time: '24:10',
+        boardingStopId: 'chitose',
+        destination: '千歳科技大',
+        weekdayOnly: true,
+      );
+      const weekendMorning = BusEntry(
+        time: '07:00',
+        boardingStopId: 'chitose',
+        destination: '千歳科技大',
+        weekendOnly: true,
+      );
+      const timetable = BusTimetable(
+        validFrom: '2024-01-01',
+        validTo: '2024-12-31',
+        schedules: [weekendMorning, weekdayLast],
+      );
+
+      Future<void> pumpAt(WidgetTester tester, DateTime now) =>
+          tester.pumpWidget(ProviderScope(
+            overrides: [countdownOverride(now: now)],
+            child: MaterialApp(
+              theme: buildTestTheme(),
+              home: Scaffold(
+                body: ScheduleList(
+                    stopMaster: kTestStopMaster,
+                    timetable: timetable,
+                    stopId: 'chitose'),
+              ),
+            ),
+          ));
+
+      testWidgets('土曜 0:05: 金曜（平日）の終バスが NEXT で、土日の便は出ない', (tester) async {
+        await pumpAt(tester, DateTime(2024, 6, 15, 0, 5));
+
+        expect(find.text('24:10'), findsOneWidget);
+        expect(find.text('◀ NEXT'), findsOneWidget);
+        expect(find.text('07:00'), findsNothing);
+      });
+
+      testWidgets('土曜 0:30: 終バスは過去になり NEXT は出ない', (tester) async {
+        await pumpAt(tester, DateTime(2024, 6, 15, 0, 30));
+
+        expect(find.text('24:10'), findsOneWidget);
+        expect(find.text('◀ NEXT'), findsNothing);
+        final timeText = tester.widget<Text>(find.text('24:10'));
+        expect(timeText.style?.color, const Color(0xFF444444));
+      });
+
+      testWidgets('土曜 3:00: 土日ダイヤに切り替わり、07:00 が NEXT', (tester) async {
+        await pumpAt(tester, DateTime(2024, 6, 15, 3, 0));
+
+        expect(find.text('24:10'), findsNothing);
+        expect(find.text('07:00'), findsOneWidget);
+        expect(find.text('◀ NEXT'), findsOneWidget);
+      });
+
+      testWidgets('1/4 0:05: 1/3 の運行日として運休表示', (tester) async {
+        await pumpAt(tester, DateTime(2025, 1, 4, 0, 5));
+
+        expect(find.text('年末年始のため全便運休です'), findsOneWidget);
+      });
+    });
+
     // #242 で行ヘッダの中間3つ（系統タグ・講義タグ・行き先）を `Wrap` に
     // 入れた。**折り返せるようにしたぶん、等倍で勝手に折り返す事故**が
     // 起きうるので、そこを留める。
